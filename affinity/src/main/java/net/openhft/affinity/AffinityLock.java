@@ -88,7 +88,7 @@ public class AffinityLock {
             if (cpuLayout.equals(AffinityLock.cpuLayout))
                 return;
             AffinityLock.cpuLayout = cpuLayout;
-            System.out.println("Locks= " + cpuLayout.cpus());
+//            System.out.println("Locks= " + cpuLayout.cpus());
             LOCKS = new AffinityLock[cpuLayout.cpus()];
             int threads = cpuLayout.threadsPerCore();
             CORES = new TreeMap<Integer, AffinityLock[]>();
