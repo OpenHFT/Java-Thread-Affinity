@@ -21,7 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.openhft</groupId>
-    <artifactId>Java-Affinity</artifactId>
+    <artifactId>Java-Thread-Affinity</artifactId>
     <version>6.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 

@@ -159,6 +159,6 @@
     </developers>
 
     <scm>
-        <url>scm:git:https://github.com/OpenHFT/Java-Affinity.git</url>
+        <url>scm:git:https://github.com/OpenHFT/Java-Thread-Affinity.git</url>
     </scm>
 </project>
