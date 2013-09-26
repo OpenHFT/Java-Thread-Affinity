@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * Implementation of {@link net.openhft.affinity.IAffinity} based on JNA call of
  * sched_SetThreadAffinityMask/GetProcessAffinityMask from Windows 'kernel32' library. Applicable for
  * most windows platforms
- * <p/> *
+ * <p> *
  *
  * @author andre.monteiro
  */
