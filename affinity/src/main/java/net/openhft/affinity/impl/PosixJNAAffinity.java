@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * Implementation of {@link IAffinity} based on JNA call of
  * sched_setaffinity(3)/sched_getaffinity(3) from 'c' library. Applicable for most
  * linux/unix platforms
- * <p/>
+ * <p>
  * TODO Support assignment to core 64 and above
  *
  * @author peter.lawrey
