@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * This is a ThreadFactory which assigns threads based the strategies provided.
- * <p>
+ * <p/>
  * If no strategies are provided AffinityStrategies.ANY is used.
  *
  * @author peter.lawrey
