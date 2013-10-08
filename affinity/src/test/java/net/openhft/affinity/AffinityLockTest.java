@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
+import static net.openhft.lang.Assert.assertEquals;
+import static net.openhft.lang.Assert.assertNotSame;
 
 /**
  * @author peter.lawrey
