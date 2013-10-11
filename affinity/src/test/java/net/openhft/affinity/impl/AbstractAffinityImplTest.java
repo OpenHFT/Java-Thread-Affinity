@@ -20,8 +20,8 @@ import net.openhft.affinity.IAffinity;
 import org.junit.After;
 import org.junit.Test;
 
-import static net.openhft.lang.Assert.assertEquals;
-import static net.openhft.lang.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
