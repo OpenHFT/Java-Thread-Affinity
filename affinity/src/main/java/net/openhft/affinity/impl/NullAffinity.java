@@ -19,6 +19,7 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.IAffinity;
 
+import java.lang.management.ManagementFactory;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +28,6 @@ import java.util.logging.Logger;
  */
 public enum NullAffinity implements IAffinity {
     INSTANCE;
-
     private static final Logger LOGGER = Logger.getLogger(NullAffinity.class.getName());
 
     @Override
@@ -45,5 +45,17 @@ public enum NullAffinity implements IAffinity {
     public int getCpu() {
         return -1;
     }
+
+    @Override
+    public int getProcessId() {
+        final String name = ManagementFactory.getRuntimeMXBean().getName();
+        return Integer.parseInt(name.split("@")[0]);
+    }
+
+    @Override
+    public int getThreadId() {
+        throw new UnsupportedOperationException();
+    }
+
 
 }

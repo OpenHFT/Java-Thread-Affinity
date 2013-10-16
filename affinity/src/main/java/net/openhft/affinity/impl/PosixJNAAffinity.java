@@ -82,6 +82,16 @@ public enum PosixJNAAffinity implements IAffinity {
         }
     }
 
+    @Override
+    public int getProcessId() {
+        return CLibrary.INSTANCE.getpid();
+    }
+
+    @Override
+    public int getThreadId() {
+        return -1;
+    }
+
 
     /**
      * @author BegemoT
@@ -99,6 +109,8 @@ public enum PosixJNAAffinity implements IAffinity {
                               final PointerType cpuset) throws LastErrorException;
 
         int sched_getcpu() throws LastErrorException;
+
+        int getpid() throws LastErrorException;
     }
 
     static {

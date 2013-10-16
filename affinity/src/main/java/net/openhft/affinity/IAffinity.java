@@ -37,4 +37,14 @@ public interface IAffinity {
      * @return the current cpu id, or -1 if unknown.
      */
     int getCpu();
+
+    /**
+     * @return the process id of the current process.
+     */
+    int getProcessId();
+
+    /**
+     * @return the thread id of the current thread or -1 is not available.
+     */
+    int getThreadId();
 }

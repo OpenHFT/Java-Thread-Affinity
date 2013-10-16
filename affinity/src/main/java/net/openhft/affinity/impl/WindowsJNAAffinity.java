@@ -20,6 +20,7 @@ import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.PointerType;
+import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
@@ -88,6 +89,16 @@ public enum WindowsJNAAffinity implements IAffinity {
     @Override
     public int getCpu() {
         return -1;
+    }
+
+    @Override
+    public int getProcessId() {
+        return Kernel32.INSTANCE.GetCurrentProcessId();
+    }
+
+    @Override
+    public int getThreadId() {
+        return Kernel32.INSTANCE.GetCurrentThreadId();
     }
 
 

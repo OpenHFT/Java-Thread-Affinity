@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.openhft.affinity.AffinityLock.acquireLock;
+import static net.openhft.affinity.AffinityLock.dumpLocks;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
@@ -177,4 +179,32 @@ public class AffinityLockTest {
         System.out.println("cpu= " + AffinitySupport.getCpu());
     }
 
+    @Test
+    public void testAffinity() throws InterruptedException {
+        System.out.println("Started");
+        displayStatus();
+        final AffinityLock al = acquireLock();
+        System.out.println("Main locked");
+        displayStatus();
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                AffinityLock al2 = al.acquireLock(AffinityStrategies.ANY);
+                System.out.println("Thread-0 locked");
+                displayStatus();
+                al2.release();
+            }
+        });
+        t.start();
+        t.join();
+        System.out.println("Thread-0 unlocked");
+        displayStatus();
+        al.release();
+        System.out.println("All unlocked");
+        displayStatus();
+    }
+
+    private void displayStatus() {
+        System.out.println(Thread.currentThread() + " on " + AffinitySupport.getCpu() + "\n" + dumpLocks());
+    }
 }
