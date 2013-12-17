@@ -40,23 +40,10 @@ public enum PosixJNAAffinity implements IAffinity {
     public static final boolean LOADED;
     private static final Logger LOGGER = Logger.getLogger(PosixJNAAffinity.class.getName());
     private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
-    private static final int PROCS = Runtime.getRuntime().availableProcessors();
 
     @Override
     public long getAffinity() {
         final CLibrary lib = CLibrary.INSTANCE;
-        if (PROCS <= 32) {
-            // TODO where are systems with 64+ cores...
-            final IntByReference cpuset = new IntByReference(0);
-            try {
-                final int ret = lib.sched_getaffinity(0, Integer.SIZE / 8, cpuset);
-                if (ret < 0)
-                    throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset + ") ) return " + ret);
-                return cpuset.getValue();
-            } catch (LastErrorException e) {
-                throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset + ") ) errorNo=" + e.getErrorCode(), e);
-            }
-        }
         // TODO where are systems with 64+ cores...
         final LongByReference cpuset = new LongByReference(0L);
         try {
@@ -65,23 +52,23 @@ public enum PosixJNAAffinity implements IAffinity {
                 throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + cpuset + ") ) return " + ret);
             return cpuset.getValue();
         } catch (LastErrorException e) {
-            throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + cpuset + ") ) errorNo=" + e.getErrorCode(), e);
+            if (e.getErrorCode() != 22)
+                throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + cpuset + ") ) errorNo=" + e.getErrorCode(), e);
+        }
+        final IntByReference cpuset32 = new IntByReference(0);
+        try {
+            final int ret = lib.sched_getaffinity(0, Integer.SIZE / 8, cpuset32);
+            if (ret < 0)
+                throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) return " + ret);
+            return cpuset32.getValue();
+        } catch (LastErrorException e) {
+            throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }
 
     @Override
     public void setAffinity(final long affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
-        if (PROCS <= 32)
-            try {
-                final int ret = lib.sched_setaffinity(0, Integer.SIZE / 8, new IntByReference((int) affinity));
-                if (ret < 0) {
-                    throw new IllegalStateException("sched_setaffinity((" + Integer.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
-                }
-            } catch (LastErrorException e) {
-                throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
-            }
-
         try {
             //fixme: where are systems with more then 64 cores...
             final int ret = lib.sched_setaffinity(0, Long.SIZE / 8, new LongByReference(affinity));
@@ -89,7 +76,16 @@ public enum PosixJNAAffinity implements IAffinity {
                 throw new IllegalStateException("sched_setaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
             }
         } catch (LastErrorException e) {
-            throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
+            if (e.getErrorCode() != 22)
+                throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
+        }
+        try {
+            final int ret = lib.sched_setaffinity(0, Integer.SIZE / 8, new IntByReference((int) affinity));
+            if (ret < 0) {
+                throw new IllegalStateException("sched_setaffinity((" + Integer.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
+            }
+        } catch (LastErrorException e) {
+            throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }
 
