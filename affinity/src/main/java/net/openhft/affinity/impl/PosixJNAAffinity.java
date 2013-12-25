@@ -102,14 +102,60 @@ public enum PosixJNAAffinity implements IAffinity {
         }
     }
 
+    private static final int PROCESS_ID;
+
     @Override
     public int getProcessId() {
-        return CLibrary.INSTANCE.getpid();
+        return PROCESS_ID;
     }
+
+    static {
+        int processId;
+        try {
+            processId = CLibrary.INSTANCE.getpid();
+        } catch (Exception ignored) {
+            processId = -1;
+        }
+        PROCESS_ID = processId;
+    }
+
+    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<Integer>();
 
     @Override
     public int getThreadId() {
+        if (ISLINUX) {
+            Integer tid = THREAD_ID.get();
+            if (tid == null)
+                THREAD_ID.set(tid = CLibrary.INSTANCE.syscall(SYS_gettid, NO_ARGS));
+            return tid;
+        }
         return -1;
+    }
+
+    private static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
+
+    private static final boolean IS64BIT = is64Bit0();
+
+    private static final int SYS_gettid = is64Bit() ? 186 : 224;
+
+    private static final Object[] NO_ARGS = {};
+
+    public static boolean is64Bit() {
+        return IS64BIT;
+    }
+
+    private static boolean is64Bit0() {
+        String systemProp;
+        systemProp = System.getProperty("com.ibm.vm.bitmode");
+        if (systemProp != null) {
+            return "64".equals(systemProp);
+        }
+        systemProp = System.getProperty("sun.arch.data.model");
+        if (systemProp != null) {
+            return "64".equals(systemProp);
+        }
+        systemProp = System.getProperty("java.vm.version");
+        return systemProp != null && systemProp.contains("_64");
     }
 
 
@@ -131,6 +177,8 @@ public enum PosixJNAAffinity implements IAffinity {
         int sched_getcpu() throws LastErrorException;
 
         int getpid() throws LastErrorException;
+
+        int syscall(int number, Object... args) throws LastErrorException;
     }
 
     static {

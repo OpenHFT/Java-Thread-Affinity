@@ -21,6 +21,7 @@ import net.openhft.affinity.impl.PosixJNAAffinity;
 import net.openhft.affinity.impl.WindowsJNAAffinity;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.logging.Logger;
 
 /**
@@ -61,6 +62,10 @@ public enum AffinitySupport {
         return AFFINITY_IMPL.getCpu();
     }
 
+    public static int getThreadId() {
+        return AFFINITY_IMPL.getThreadId();
+    }
+
     public static boolean isJNAAvailable() {
         if (JNAAvailable == null)
             try {
@@ -70,5 +75,18 @@ public enum AffinitySupport {
                 JNAAvailable = false;
             }
         return JNAAvailable;
+    }
+
+    public static void setThreadId() {
+        try {
+            int threadId = getThreadId();
+            final Field tid = Thread.class.getDeclaredField("tid");
+            tid.setAccessible(true);
+            final Thread thread = Thread.currentThread();
+            tid.setLong(thread, threadId);
+            Logger.getAnonymousLogger().info("Set " + thread.getName() + " to thread id " + threadId);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
