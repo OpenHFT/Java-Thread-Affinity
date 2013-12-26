@@ -44,8 +44,8 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
         System.out.println("tid=" + PosixJNAAffinity.INSTANCE.getThreadId());
         AffinitySupport.setThreadId();
 
-        for (int j = 0; j < 10; j++) {
-            final int runs = 5000;
+        for (int j = 0; j < 3; j++) {
+            final int runs = 100000;
             long tid = 0;
             long time = 0;
             for (int i = 0; i < runs; i++) {
