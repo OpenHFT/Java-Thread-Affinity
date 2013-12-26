@@ -3,6 +3,8 @@ Java-Affinity
 
 OpenHFT Java Thread Affinity library
 
+See the affinity/src/test/java for working examples of how to use this library.
+
 Versions
 ======
 
