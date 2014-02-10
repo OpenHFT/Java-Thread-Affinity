@@ -17,6 +17,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.NullAffinity;
+import net.openhft.affinity.impl.OSXJNAAffinity;
 import net.openhft.affinity.impl.PosixJNAAffinity;
 import net.openhft.affinity.impl.WindowsJNAAffinity;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +45,11 @@ public enum AffinitySupport {
         } else if (osName.contains("x") && isJNAAvailable() && PosixJNAAffinity.LOADED) {
             LOGGER.fine("Using Posix JNA-based affinity control implementation");
             AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
-        } else {
+        }else if (osName.contains("Mac") && isJNAAvailable()) {
+            LOGGER.fine("Using MAC OSX JNA-based thread id implementation");
+            AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
+        }
+        else {
             LOGGER.info("Using dummy affinity control implementation");
             AFFINITY_IMPL = NullAffinity.INSTANCE;
         }
