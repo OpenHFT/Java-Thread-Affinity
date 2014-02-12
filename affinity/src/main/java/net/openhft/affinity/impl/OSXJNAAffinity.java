@@ -60,7 +60,10 @@ public enum OSXJNAAffinity implements IAffinity {
     @Override
     public int getThreadId() {
         final CLibrary lib = CLibrary.INSTANCE;
-        return CLibrary.INSTANCE.pthread_self();
+        int tid = CLibrary.INSTANCE.pthread_self();
+        //The tid must be an unsigned 16 bit
+        short s_tid = (short)tid;
+        return s_tid;
     }
 
     interface CLibrary extends Library {
