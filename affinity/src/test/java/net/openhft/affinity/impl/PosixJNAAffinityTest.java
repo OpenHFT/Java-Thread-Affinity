@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
     @BeforeClass
     public static void checkJniLibraryPresent() {
-        Assume.assumeTrue(PosixJNAAffinity.LOADED);
+        Assume.assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
     }
 
     @Override
