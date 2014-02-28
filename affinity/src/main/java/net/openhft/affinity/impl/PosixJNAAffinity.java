@@ -76,16 +76,7 @@ public enum PosixJNAAffinity implements IAffinity {
                 throw new IllegalStateException("sched_setaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
             }
         } catch (LastErrorException e) {
-            if (e.getErrorCode() != 22)
-                throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
-        }
-        try {
-            final int ret = lib.sched_setaffinity(0, Integer.SIZE / 8, new IntByReference((int) affinity));
-            if (ret < 0) {
-                throw new IllegalStateException("sched_setaffinity((" + Integer.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
-            }
-        } catch (LastErrorException e) {
-            throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
+            throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }
 
