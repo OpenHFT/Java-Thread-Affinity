@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * Implementation of {@link IAffinity} based on JNA call of
  * sched_setaffinity(3)/sched_getaffinity(3) from 'c' library. Applicable for most
  * linux/unix platforms
- * <p/>
+ * <p></p>
  * TODO Support assignment to core 64 and above
  *
  * @author peter.lawrey
@@ -60,7 +60,7 @@ public enum PosixJNAAffinity implements IAffinity {
             final int ret = lib.sched_getaffinity(0, Integer.SIZE / 8, cpuset32);
             if (ret < 0)
                 throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) return " + ret);
-            return cpuset32.getValue();
+            return cpuset32.getValue() & 0xFFFFFFFFL;
         } catch (LastErrorException e) {
             throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) errorNo=" + e.getErrorCode(), e);
         }
@@ -68,6 +68,9 @@ public enum PosixJNAAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final long affinity) {
+        int procs = Runtime.getRuntime().availableProcessors();
+        if (procs < 64 && (affinity & ((1L << procs) - 1)) == 0)
+            throw new IllegalArgumentException("Cannot set zero affinity");
         final CLibrary lib = CLibrary.INSTANCE;
         try {
             //fixme: where are systems with more then 64 cores...
@@ -76,7 +79,19 @@ public enum PosixJNAAffinity implements IAffinity {
                 throw new IllegalStateException("sched_setaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
             }
         } catch (LastErrorException e) {
-            throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
+            if (e.getErrorCode() != 22 || (affinity & 0xFFFFFFFFL) != affinity)
+                throw new IllegalStateException("sched_setaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
+        }
+        if (procs < 32 && (affinity & ((1L << procs) - 1)) == 0)
+            throw new IllegalArgumentException("Cannot set zero affinity for 32-bit set affinity");
+        final IntByReference cpuset32 = new IntByReference(0);
+        cpuset32.setValue((int) affinity);
+        try {
+            final int ret = lib.sched_setaffinity(0, Integer.SIZE / 8, cpuset32);
+            if (ret < 0)
+                throw new IllegalStateException("sched_setaffinity((" + Integer.SIZE / 8 + ") , &(" + Integer.toHexString(cpuset32.getValue()) + ") ) return " + ret);
+        } catch (LastErrorException e) {
+            throw new IllegalStateException("sched_setaffinity((" + Integer.SIZE / 8 + ") , &(" + Integer.toHexString(cpuset32.getValue()) + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }
 

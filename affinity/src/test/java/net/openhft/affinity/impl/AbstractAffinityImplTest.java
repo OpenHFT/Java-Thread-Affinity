@@ -47,7 +47,7 @@ public abstract class AbstractAffinityImplTest {
                 "Affinity mask " + affinity + " must be >0",
                 affinity > 0
         );
-        final int allCoresMask = (1 << CORES) - 1;
+        final long allCoresMask = (1L << CORES) - 1;
         assertTrue(
                 "Affinity mask " + affinity + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
                 affinity <= allCoresMask
@@ -64,7 +64,7 @@ public abstract class AbstractAffinityImplTest {
         final IAffinity impl = getImpl();
         final int cores = CORES;
         for (int core = 0; core < cores; core++) {
-            final long mask = (1 << core);
+            final long mask = (1L << core);
             getAffinityReturnsValuePreviouslySet(impl, mask);
         }
     }
@@ -79,7 +79,11 @@ public abstract class AbstractAffinityImplTest {
 
     @After
     public void tearDown() throws Exception {
-        final int anyCore = (1 << CORES) - 1;
-        getImpl().setAffinity(anyCore);
+        final long anyCore = (1L << CORES) - 1;
+        try {
+            getImpl().setAffinity(anyCore);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
