@@ -35,44 +35,27 @@
     <dependencyManagement>
 
         <dependencies>
-            <!-- on linux install with sudo apt-get install libjna-java -->
-            <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna</artifactId>
-                <version>4.1.0</version>
-            </dependency>
 
             <dependency>
-                <groupId>net.java.dev.jna</groupId>
-                <artifactId>jna-platform</artifactId>
-                <version>4.1.0</version>
+                <groupId>net.openhft</groupId>
+                <artifactId>third-party-bom</artifactId>
+                <type>pom</type>
+                <version>3.1-SNAPSHOT</version>
+                <scope>import</scope>
             </dependency>
 
-            <dependency>
-                <groupId>org.kohsuke.jetbrains</groupId>
-                <artifactId>annotations</artifactId>
-                <version>9.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.easymock</groupId>
-                <artifactId>easymock</artifactId>
-                <version>3.2</version>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.11</version>
-            </dependency>
         </dependencies>
 
     </dependencyManagement>
 
     <dependencies>
         <!-- on linux install with sudo apt-get install libjna-java -->
+
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
         </dependency>
+
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna-platform</artifactId>
@@ -81,7 +64,6 @@
         <dependency>
             <groupId>org.kohsuke.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -89,6 +71,7 @@
             <artifactId>easymock</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
