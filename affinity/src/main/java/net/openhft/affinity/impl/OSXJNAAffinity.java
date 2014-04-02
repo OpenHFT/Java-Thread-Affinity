@@ -61,7 +61,7 @@ public enum OSXJNAAffinity implements IAffinity {
     public int getThreadId() {
         int tid = CLibrary.INSTANCE.pthread_self();
         //The tid must be an unsigned 16 bit
-        int tid_24 = tid & 0xFFFFFF;
+        int tid_24 = tid & 0xFFFF;
         return tid_24;
     }
 
