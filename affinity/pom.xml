@@ -210,19 +210,11 @@
 
             <id>sign-artifact</id>
 
-            <properties>
-                <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                <repositoryId>sonatype_oss</repositoryId>
-            </properties>
-
             <build>
                 <plugins>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <configuration>
-                            <passphrase>${gpg.passphrase}</passphrase>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
