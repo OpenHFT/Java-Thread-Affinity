@@ -207,9 +207,7 @@
 
     <profiles>
         <profile>
-
             <id>sign-artifact</id>
-
             <build>
                 <plugins>
                     <plugin>
@@ -233,7 +231,7 @@
 
     <repositories>
         <repository>
-            <id>Snapshot</id>
+            <id>Snapshot Repository</id>
             <name>Snapshot Repository</name>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
