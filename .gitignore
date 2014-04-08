@@ -6,3 +6,6 @@
 *.war
 *.ear
 *.iml
+
+target/
+
