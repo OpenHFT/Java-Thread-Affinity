@@ -185,7 +185,10 @@
     </repositories>
 
     <scm>
-        <url>scm:git:https://github.com/OpenHFT/Java-Thread-Affinity.git</url>
+        <url>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</url>
+        <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
+        <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</developerConnection>
+        <tag>master</tag>
     </scm>
 
 </project>
