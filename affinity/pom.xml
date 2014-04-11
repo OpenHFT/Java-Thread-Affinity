@@ -40,7 +40,7 @@
                 <groupId>net.openhft</groupId>
                 <artifactId>third-party-bom</artifactId>
                 <type>pom</type>
-                <version>3.1-SNAPSHOT</version>
+                <version>3.3.0</version>
                 <scope>import</scope>
             </dependency>
 
@@ -133,7 +133,7 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Import-Package> 
+                        <Import-Package>
                             com.sun.jna.platform.win32;resolution:=optional,
                             *
                         </Import-Package>
