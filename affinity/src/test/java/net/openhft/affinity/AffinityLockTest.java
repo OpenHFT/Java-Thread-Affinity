@@ -17,6 +17,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
@@ -25,26 +26,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.acquireLock;
-import static net.openhft.affinity.AffinityLock.dumpLocks;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
 /**
  * @author peter.lawrey
  */
+@SuppressWarnings("ALL")
 public class AffinityLockTest {
     @Test
     public void dumpLocksI7() throws IOException {
-        AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false),
-                new AffinityLock(1, false, false),
-                new AffinityLock(2, false, true),
-                new AffinityLock(3, false, true),
-                new AffinityLock(4, true, false),
-                new AffinityLock(5, false, false),
-                new AffinityLock(6, false, true),
-                new AffinityLock(7, false, true),
+                new AffinityLock(0, true, false, lockInventory),
+                new AffinityLock(1, false, false, lockInventory),
+                new AffinityLock(2, false, true, lockInventory),
+                new AffinityLock(3, false, true, lockInventory),
+                new AffinityLock(4, true, false, lockInventory),
+                new AffinityLock(5, false, false, lockInventory),
+                new AffinityLock(6, false, true, lockInventory),
+                new AffinityLock(7, false, true, lockInventory),
         };
         locks[2].assignedThread = new Thread(new InterrupedThread(), "logger");
         locks[2].assignedThread.start();
@@ -53,7 +54,7 @@ public class AffinityLockTest {
         locks[6].assignedThread = new Thread(new InterrupedThread(), "main");
         locks[7].assignedThread = new Thread(new InterrupedThread(), "tcp");
         locks[7].assignedThread.start();
-        final String actual = AffinityLock.dumpLocks0(locks);
+        final String actual = LockInventory.dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
                 "1: CPU not available\n" +
                 "2: Thread[logger,5,main] alive=true\n" +
@@ -72,18 +73,18 @@ public class AffinityLockTest {
 
     @Test
     public void dumpLocksI3() throws IOException {
-        AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false),
-                new AffinityLock(1, false, true),
-                new AffinityLock(2, true, false),
-                new AffinityLock(3, false, true),
+                new AffinityLock(0, true, false, lockInventory),
+                new AffinityLock(1, false, true, lockInventory),
+                new AffinityLock(2, true, false, lockInventory),
+                new AffinityLock(3, false, true, lockInventory),
         };
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
         locks[3].assignedThread = new Thread(new InterrupedThread(), "main");
 
-        final String actual = AffinityLock.dumpLocks0(locks);
+        final String actual = LockInventory.dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
                 "1: Thread[engine,5,main] alive=true\n" +
                 "2: General use CPU\n" +
@@ -95,15 +96,15 @@ public class AffinityLockTest {
 
     @Test
     public void dumpLocksCoreDuo() throws IOException {
-        AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false),
-                new AffinityLock(1, false, true),
+                new AffinityLock(0, true, false, lockInventory),
+                new AffinityLock(1, false, true, lockInventory),
         };
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
 
-        final String actual = AffinityLock.dumpLocks0(locks);
+        final String actual = LockInventory.dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
                 "1: Thread[engine,5,main] alive=true\n", actual);
         System.out.println(actual);
@@ -205,6 +206,6 @@ public class AffinityLockTest {
     }
 
     private void displayStatus() {
-        System.out.println(Thread.currentThread() + " on " + AffinitySupport.getCpu() + "\n" + dumpLocks());
+        System.out.println(Thread.currentThread() + " on " + AffinitySupport.getCpu() + "\n" + AffinityLock.dumpLocks());
     }
 }

@@ -23,8 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -46,29 +44,12 @@ public class AffinityLock {
     public static final long BASE_AFFINITY = AffinitySupport.getAffinity();
     public static final long RESERVED_AFFINITY = getReservedAffinity0();
 
-    private static AffinityLock[] LOCKS;
-    private static NavigableMap<Integer, AffinityLock[]> CORES; // set by cpuLayout()
-    private static final AffinityLock NONE = new AffinityLock(-1, false, false);
-    @NotNull
-    private static CpuLayout cpuLayout = new NoCpuLayout(PROCESSORS);
+    static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
 
     static {
         try {
             if (new File("/proc/cpuinfo").exists()) {
                 cpuLayout(VanillaCpuLayout.fromCpuInfo());
-            } else {
-                LOCKS = new AffinityLock[PROCESSORS];
-                CORES = new TreeMap<Integer, AffinityLock[]>();
-                for (int i = 0; i < PROCESSORS; i++) {
-                    AffinityLock al = LOCKS[i] = new AffinityLock(i, ((BASE_AFFINITY >> i) & 1) != 0, ((RESERVED_AFFINITY >> i) & 1) != 0);
-
-                    final int layoutId = al.cpuId;
-                    int logicalCpuId = coreForId(layoutId);
-                    AffinityLock[] als = CORES.get(logicalCpuId);
-                    if (als == null)
-                        CORES.put(logicalCpuId, als = new AffinityLock[1]);
-                    als[cpuLayout.threadId(layoutId)] = al;
-                }
             }
         } catch (IOException e) {
             LOGGER.log(Level.WARNING, "Unable to load /proc/cpuinfo", e);
@@ -84,41 +65,7 @@ public class AffinityLock {
      * @param cpuLayout for this application to use for this machine.
      */
     public static void cpuLayout(@NotNull CpuLayout cpuLayout) {
-        synchronized (AffinityLock.class) {
-            if (cpuLayout.equals(AffinityLock.cpuLayout))
-                return;
-            AffinityLock.cpuLayout = cpuLayout;
-//            System.out.println("Locks= " + cpuLayout.cpus());
-            LOCKS = new AffinityLock[cpuLayout.cpus()];
-            int threads = cpuLayout.threadsPerCore();
-            CORES = new TreeMap<Integer, AffinityLock[]>();
-            for (int i = 0; i < cpuLayout.cpus(); i++) {
-                boolean base1 = ((BASE_AFFINITY >> i) & 1) != 0;
-                boolean reservable1 = ((RESERVED_AFFINITY >> i) & 1) != 0;
-                if (LOGGER.isLoggable(Level.FINE))
-                    LOGGER.fine("cpu " + i + " base= " + base1 + " reservable= " + reservable1);
-                AffinityLock al = LOCKS[i] = new AffinityLock(i, base1, reservable1);
-                final int layoutId = al.cpuId;
-                int logicalCpuId = coreForId(layoutId);
-                AffinityLock[] als = CORES.get(logicalCpuId);
-                if (als == null)
-                    CORES.put(logicalCpuId, als = new AffinityLock[threads]);
-                als[cpuLayout.threadId(layoutId)] = al;
-            }
-        }
-    }
-
-    /**
-     * Translate a layout id into a logical cpu id.
-     * <p></p>
-     * This translation is perform so that regardless of how
-     *
-     * @param id
-     * @return
-     */
-
-    private static int coreForId(int id) {
-        return cpuLayout.socketId(id) * cpuLayout.coresPerSocket() + cpuLayout.coreId(id);
+        LOCK_INVENTORY.set(cpuLayout);
     }
 
     /**
@@ -126,7 +73,7 @@ public class AffinityLock {
      */
     @NotNull
     public static CpuLayout cpuLayout() {
-        return cpuLayout;
+        return LOCK_INVENTORY.getCpuLayout();
     }
 
     private static long getReservedAffinity0() {
@@ -187,42 +134,11 @@ public class AffinityLock {
     }
 
     private static AffinityLock acquireLock(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {
-        synchronized (AffinityLock.class) {
-            for (AffinityStrategy strategy : strategies) {
-                // consider all processors except cpu 0 which is usually used by the OS.
-                // if you have only one core, this library is not appropriate in any case.
-                for (int i = LOCKS.length - 1; i > 0; i--) {
-                    AffinityLock al = LOCKS[i];
-                    if (al.canReserve() && (cpuId < 0 || strategy.matches(cpuId, al.cpuId))) {
-                        al.assignCurrentThread(bind, false);
-                        return al;
-                    }
-                }
-            }
-        }
-        if (LOGGER.isLoggable(Level.WARNING))
-            LOGGER.warning("No reservable CPU for " + Thread.currentThread());
-        return AffinityLock.NONE;
+        return LOCK_INVENTORY.acquireLock(bind, cpuId, strategies);
     }
 
     private static AffinityLock acquireCore(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {
-        synchronized (AffinityLock.class) {
-            for (AffinityStrategy strategy : strategies) {
-                LOOP:
-                for (AffinityLock[] als : CORES.descendingMap().values()) {
-                    for (AffinityLock al : als)
-                        if (!al.canReserve() || !strategy.matches(cpuId, al.cpuId))
-                            continue LOOP;
-
-                    final AffinityLock al = als[0];
-                    al.assignCurrentThread(bind, true);
-                    return al;
-                }
-            }
-        }
-        if (LOGGER.isLoggable(Level.WARNING))
-            LOGGER.warning("No reservable Core for " + Thread.currentThread());
-        return acquireLock(bind, cpuId, strategies);
+        return LOCK_INVENTORY.acquireCore(bind, cpuId, strategies);
     }
 
 
@@ -231,37 +147,37 @@ public class AffinityLock {
      */
     @NotNull
     public static String dumpLocks() {
-        return dumpLocks0(LOCKS);
+        return LOCK_INVENTORY.dumpLocks();
     }
 
-    @NotNull
-    static String dumpLocks0(@NotNull AffinityLock[] locks) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < locks.length; i++) {
-            AffinityLock al = locks[i];
-            sb.append(i).append(": ");
-            if (al.assignedThread != null)
-                sb.append(al.assignedThread).append(" alive=").append(al.assignedThread.isAlive());
-            else if (al.reservable)
-                sb.append("Reserved for this application");
-            else if (al.base)
-                sb.append("General use CPU");
-            else
-                sb.append("CPU not available");
-            sb.append('\n');
-        }
-        return sb.toString();
-    }
-
-    //// Non static fields and methods.
+    /**
+     * Logical ID of the CPU to which this lock belongs to.
+     */
     private final int cpuId;
+
+    /**
+     * CPU to which this lock belongs to is of general use.
+     */
     private final boolean base;
+
+    /**
+     * CPU to which this lock belongs to is reservable.
+     */
     private final boolean reservable;
+
+    /**
+     * An inventory build from the CPU layout which keeps track of the various locks
+     * belonging to each CPU.
+     */
+    private final LockInventory lockInventory;
+
     boolean bound = false;
+
     @Nullable
     Thread assignedThread;
 
-    AffinityLock(int cpuId, boolean base, boolean reservable) {
+    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+        this.lockInventory = lockInventory;
         this.cpuId = cpuId;
         this.base = base;
         this.reservable = reservable;
@@ -273,7 +189,7 @@ public class AffinityLock {
      * @param bind      whether to bind the thread as well
      * @param wholeCore whether to reserve all the thread in the same core.
      */
-    private void assignCurrentThread(boolean bind, boolean wholeCore) {
+    final void assignCurrentThread(boolean bind, boolean wholeCore) {
         assignedThread = Thread.currentThread();
         if (bind)
             bind(wholeCore);
@@ -296,25 +212,7 @@ public class AffinityLock {
             throw new IllegalStateException("cpu " + cpuId + " already bound to " + assignedThread);
 
         if (wholeCore) {
-            int core = coreForId(cpuId);
-            for (AffinityLock al : CORES.get(core)) {
-                if (bound && al.assignedThread != null && al.assignedThread.isAlive()) {
-                    LOGGER.severe("cpu " + al.cpuId + " already bound to " + al.assignedThread);
-                } else {
-                    al.bound = true;
-                    al.assignedThread = Thread.currentThread();
-                }
-            }
-            if (LOGGER.isLoggable(Level.INFO)) {
-                StringBuilder sb = new StringBuilder().append("Assigning core ").append(core);
-                String sep = ": cpus ";
-                for (AffinityLock al : CORES.get(core)) {
-                    sb.append(sep).append(al.cpuId);
-                    sep = ", ";
-                }
-                sb.append(" to ").append(assignedThread);
-                LOGGER.info(sb.toString());
-            }
+            lockInventory.bindWhileCore(cpuId);
         } else if (cpuId >= 0) {
             bound = true;
             assignedThread = Thread.currentThread();
@@ -325,7 +223,7 @@ public class AffinityLock {
             AffinitySupport.setAffinity(1L << cpuId);
     }
 
-    private boolean canReserve() {
+    final boolean canReserve() {
         if (!reservable) return false;
         if (assignedThread != null) {
             if (assignedThread.isAlive()) return false;
@@ -351,23 +249,7 @@ public class AffinityLock {
      * Release the current AffinityLock which can be discarded.
      */
     public void release() {
-        Thread t = Thread.currentThread();
-        synchronized (AffinityLock.class) {
-            for (AffinityLock al : LOCKS) {
-                Thread at = al.assignedThread;
-                if (at == t) {
-                    if (LOGGER.isLoggable(Level.INFO))
-                        LOGGER.info("Releasing cpu " + al.cpuId + " from " + t);
-                    al.assignedThread = null;
-                    al.bound = false;
-                } else if (at != null && !at.isAlive()) {
-                    LOGGER.warning("Releasing cpu " + al.cpuId + " from " + t + " as it is not alive.");
-                    al.assignedThread = null;
-                    al.bound = false;
-                }
-            }
-        }
-        AffinitySupport.setAffinity(BASE_AFFINITY);
+        lockInventory.release();
     }
 
     @Override
@@ -398,5 +280,19 @@ public class AffinityLock {
      */
     public boolean isBound() {
         return bound;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        if (assignedThread != null)
+            sb.append(assignedThread).append(" alive=").append(assignedThread.isAlive());
+        else if (reservable)
+            sb.append("Reserved for this application");
+        else if (base)
+            sb.append("General use CPU");
+        else
+            sb.append("CPU not available");
+        return sb.toString();
     }
 }
