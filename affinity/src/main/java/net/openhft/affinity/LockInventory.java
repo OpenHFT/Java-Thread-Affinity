@@ -7,7 +7,7 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class LockInventory { //todo: review and simplify code
+class LockInventory {
 
     private static final Logger LOGGER = Logger.getLogger(LockInventory.class.getName());
 
@@ -43,7 +43,7 @@ class LockInventory { //todo: review and simplify code
             if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.fine("cpu " + i + " base= " + base + " reservable= " + reservable);
             }
-            AffinityLock lock = logicalCoreLocks[i] = new AffinityLock(i, base, reservable, this);
+            AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);
 
             int layoutId = lock.cpuId();
             int physicalCore = toPhysicalCore(layoutId);
@@ -70,7 +70,7 @@ class LockInventory { //todo: review and simplify code
         if (LOGGER.isLoggable(Level.WARNING)) {
             LOGGER.warning("No reservable CPU for " + Thread.currentThread());
         }
-        return new AffinityLock(-1, false, false, this);
+        return newLock(-1, false, false);
     }
 
     public final synchronized AffinityLock acquireCore(boolean bind, int cpuId, AffinityStrategy... strategies) {
@@ -135,6 +135,10 @@ class LockInventory { //todo: review and simplify code
 
     public final synchronized String dumpLocks() {
         return dumpLocks(logicalCoreLocks);
+    }
+
+    protected AffinityLock newLock(int cpuId, boolean base, boolean reservable) {
+        return new AffinityLock(cpuId, base, reservable, this);
     }
 
     private void reset(CpuLayout cpuLayout) {
