@@ -212,7 +212,7 @@ public class AffinityLock {
             throw new IllegalStateException("cpu " + cpuId + " already bound to " + assignedThread);
 
         if (wholeCore) {
-            lockInventory.bindWhileCore(cpuId);
+            lockInventory.bindWholeCore(cpuId);
         } else if (cpuId >= 0) {
             bound = true;
             assignedThread = Thread.currentThread();
