@@ -140,4 +140,25 @@ public enum AffinitySupport {
             throw new IllegalStateException(e);
         }
     }
+
+    public static AffinityLock acquireLock() {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireLock() : AffinityLock.acquireLock();
+    }
+
+    public static AffinityLock acquireCore() {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireCore() : AffinityLock.acquireCore();
+    }
+
+    public static AffinityLock acquireLock(boolean bind) {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireLock(bind) : AffinityLock.acquireLock(bind);
+    }
+
+    public static AffinityLock acquireCore(boolean bind) {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireCore(bind) : AffinityLock.acquireCore(bind);
+    }
+
+    private static boolean isNonForkingAffinityAvailable() {
+        BootClassPath bootClassPath = BootClassPath.INSTANCE;
+        return bootClassPath.has("java.lang.ThreadTrackingGroup") && bootClassPath.has("java.lang.ThreadLifecycleListener");
+    }
 }
