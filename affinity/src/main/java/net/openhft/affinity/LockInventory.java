@@ -92,7 +92,12 @@ class LockInventory {
         return acquireLock(bind, cpuId, strategies);
     }
 
-    public final synchronized void bindWhileCore(int logicalCoreID) {
+    public final synchronized void bindWholeCore(int logicalCoreID) {
+        if (logicalCoreID < 0) {
+            LOGGER.warning("Can't bind core since it was not possible to reserve it!");
+            return;
+        }
+
         int core = toPhysicalCore(logicalCoreID);
         for (AffinityLock al : physicalCoreLocks.get(core)) {
             if (al.isBound() && al.assignedThread != null && al.assignedThread.isAlive()) {

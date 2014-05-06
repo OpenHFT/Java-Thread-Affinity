@@ -22,6 +22,8 @@ import net.openhft.affinity.impl.PosixJNAAffinity;
 import net.openhft.affinity.impl.WindowsJNAAffinity;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.logging.Logger;
 
@@ -39,19 +41,64 @@ public enum AffinitySupport {
 
     static {
         String osName = System.getProperty("os.name");
-        if (osName.contains("Win") && isJNAAvailable() && WindowsJNAAffinity.LOADED) {
+        if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
             LOGGER.fine("Using Windows JNA-based affinity control implementation");
             AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
-        } else if (osName.contains("x") && isJNAAvailable() && PosixJNAAffinity.LOADED) {
+        } else if (osName.contains("x") && isPosixJNAAffinityUsable()) {
             LOGGER.fine("Using Posix JNA-based affinity control implementation");
             AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
-        } else if (osName.contains("Mac") && isJNAAvailable()) {
+        } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
             LOGGER.fine("Using MAC OSX JNA-based thread id implementation");
             AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
         } else {
             LOGGER.info("Using dummy affinity control implementation");
             AFFINITY_IMPL = NullAffinity.INSTANCE;
         }
+    }
+
+    private static boolean isWindowsJNAAffinityUsable() {
+        if (isJNAAvailable()) {
+            try {
+                return WindowsJNAAffinity.LOADED;
+            } catch (Throwable t) {
+                logThrowable(t, "Windows JNA-based affinity not usable because it failed to load!");
+                return false;
+            }
+        } else {
+            LOGGER.warning("Windows JNA-based affinity not usable due to JNA not being available!");
+            return false;
+        }
+    }
+
+    private static boolean isPosixJNAAffinityUsable() {
+        if (isJNAAvailable()) {
+            try {
+                return PosixJNAAffinity.LOADED;
+            } catch (Throwable t) {
+                logThrowable(t, "Posix JNA-based affinity not usable because it failed to load!");
+                return false;
+            }
+        } else {
+            LOGGER.warning("Posix JNA-based affinity not usable due to JNA not being available!");
+            return false;
+        }
+    }
+
+    private static boolean isMacJNAAffinityUsable() {
+        if (isJNAAvailable()) {
+            return true;
+        } else {
+            LOGGER.warning("MAX OSX JNA-based affinity not usable due to JNA not being available!");
+            return false;
+        }
+    }
+
+    private static void logThrowable(Throwable t, String description) {
+        StringWriter sw = new StringWriter();
+        sw.append(description);
+        sw.append(" Reason: ");
+        t.printStackTrace(new PrintWriter(sw));
+        LOGGER.warning(sw.toString());
     }
 
     public static long getAffinity() {
@@ -92,5 +139,26 @@ public enum AffinitySupport {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public static AffinityLock acquireLock() {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireLock() : AffinityLock.acquireLock();
+    }
+
+    public static AffinityLock acquireCore() {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireCore() : AffinityLock.acquireCore();
+    }
+
+    public static AffinityLock acquireLock(boolean bind) {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireLock(bind) : AffinityLock.acquireLock(bind);
+    }
+
+    public static AffinityLock acquireCore(boolean bind) {
+        return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireCore(bind) : AffinityLock.acquireCore(bind);
+    }
+
+    private static boolean isNonForkingAffinityAvailable() {
+        BootClassPath bootClassPath = BootClassPath.INSTANCE;
+        return bootClassPath.has("java.lang.ThreadTrackingGroup") && bootClassPath.has("java.lang.ThreadLifecycleListener");
     }
 }
