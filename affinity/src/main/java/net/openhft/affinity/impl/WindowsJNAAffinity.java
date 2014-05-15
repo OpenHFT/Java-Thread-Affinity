@@ -24,9 +24,8 @@ import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link net.openhft.affinity.IAffinity} based on JNA call of
@@ -39,7 +38,7 @@ import java.util.logging.Logger;
 public enum WindowsJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
-    private static final Logger LOGGER = Logger.getLogger(WindowsJNAAffinity.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(WindowsJNAAffinity.class);
 
     @Override
     public long getAffinity() {
@@ -121,7 +120,7 @@ public enum WindowsJNAAffinity implements IAffinity {
             INSTANCE.getAffinity();
             loaded = true;
         } catch (UnsatisfiedLinkError e) {
-            LOGGER.log(Level.WARNING, "Unable to load jna library " + e);
+            LOGGER.warn("Unable to load jna library", e);
         }
         LOADED = loaded;
     }

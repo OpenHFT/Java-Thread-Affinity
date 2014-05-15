@@ -1,15 +1,15 @@
 package net.openhft.affinity;
 
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.NavigableMap;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 class LockInventory {
 
-    private static final Logger LOGGER = Logger.getLogger(LockInventory.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(LockInventory.class);
 
     private CpuLayout cpuLayout;
 
@@ -40,9 +40,8 @@ class LockInventory {
         for (int i = 0; i < cpuLayout.cpus(); i++) {
             boolean base = ((AffinityLock.BASE_AFFINITY >> i) & 1) != 0;
             boolean reservable = ((AffinityLock.RESERVED_AFFINITY >> i) & 1) != 0;
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.fine("cpu " + i + " base= " + base + " reservable= " + reservable);
-            }
+
+            LOGGER.trace("cpu " + i + " base={} reservable= {}", i, base, reservable);
             AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);
 
             int layoutId = lock.cpuId();
@@ -67,9 +66,9 @@ class LockInventory {
                 }
             }
         }
-        if (LOGGER.isLoggable(Level.WARNING)) {
-            LOGGER.warning("No reservable CPU for " + Thread.currentThread());
-        }
+
+        LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
+
         return newLock(-1, false, false);
     }
 
@@ -86,29 +85,29 @@ class LockInventory {
                 return al;
             }
         }
-        if (LOGGER.isLoggable(Level.WARNING)) {
-            LOGGER.warning("No reservable Core for " + Thread.currentThread());
-        }
+
+        LOGGER.warn("No reservable Core for {}", Thread.currentThread());
+
         return acquireLock(bind, cpuId, strategies);
     }
 
     public final synchronized void bindWholeCore(int logicalCoreID) {
         if (logicalCoreID < 0) {
-            LOGGER.warning("Can't bind core since it was not possible to reserve it!");
+            LOGGER.warn("Can't bind core since it was not possible to reserve it!");
             return;
         }
 
         int core = toPhysicalCore(logicalCoreID);
         for (AffinityLock al : physicalCoreLocks.get(core)) {
             if (al.isBound() && al.assignedThread != null && al.assignedThread.isAlive()) {
-                LOGGER.severe("cpu " + al.cpuId() + " already bound to " + al.assignedThread);
+                LOGGER.warn("cpu {} already bound to {}", al.cpuId(), al.assignedThread);
             } else {
                 al.bound = true;
                 al.assignedThread = Thread.currentThread();
             }
         }
 
-        if (LOGGER.isLoggable(Level.INFO)) {
+        if (LOGGER.isInfoEnabled()) {
             StringBuilder sb = new StringBuilder().append("Assigning core ").append(core);
             String sep = ": cpus ";
             for (AffinityLock al : physicalCoreLocks.get(core)) {
@@ -125,12 +124,11 @@ class LockInventory {
         for (AffinityLock al : logicalCoreLocks) {
             Thread at = al.assignedThread;
             if (at == t) {
-                if (LOGGER.isLoggable(Level.INFO))
-                    LOGGER.info("Releasing cpu " + al.cpuId() + " from " + t);
+                LOGGER.info("Releasing cpu {} from {}", al.cpuId(), t);
                 al.assignedThread = null;
                 al.bound = false;
             } else if (at != null && !at.isAlive()) {
-                LOGGER.warning("Releasing cpu " + al.cpuId() + " from " + t + " as it is not alive.");
+                LOGGER.warn("Releasing cpu {} from {} as it is not alive.", al.cpuId(), t);
                 al.assignedThread = null;
                 al.bound = false;
             }

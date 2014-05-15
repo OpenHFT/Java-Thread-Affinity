@@ -16,14 +16,16 @@
 
 package net.openhft.affinity.impl;
 
-import com.sun.jna.*;
+import com.sun.jna.LastErrorException;
+import com.sun.jna.Library;
+import com.sun.jna.Native;
+import com.sun.jna.Platform;
+import com.sun.jna.PointerType;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link IAffinity} based on JNA call of
@@ -38,7 +40,7 @@ import java.util.logging.Logger;
 public enum PosixJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
-    private static final Logger LOGGER = Logger.getLogger(PosixJNAAffinity.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(PosixJNAAffinity.class);
     private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
 
     @Override
@@ -193,7 +195,7 @@ public enum PosixJNAAffinity implements IAffinity {
             INSTANCE.getAffinity();
             loaded = true;
         } catch (UnsatisfiedLinkError e) {
-            LOGGER.log(Level.WARNING, "Unable to load jna library " + e);
+            LOGGER.warn("Unable to load jna library {}", e);
         }
         LOADED = loaded;
     }

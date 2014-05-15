@@ -20,11 +20,11 @@ import net.openhft.affinity.impl.NoCpuLayout;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This utility class support locking a thread to a single core, or reserving a whole core for a thread.
@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  * @author peter.lawrey
  */
 public class AffinityLock {
-    private static final Logger LOGGER = Logger.getLogger(AffinityLock.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
 
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
@@ -52,7 +52,7 @@ public class AffinityLock {
                 cpuLayout(VanillaCpuLayout.fromCpuInfo());
             }
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING, "Unable to load /proc/cpuinfo", e);
+            LOGGER.warn("Unable to load /proc/cpuinfo", e);
         }
     }
 
@@ -81,7 +81,7 @@ public class AffinityLock {
         if (reservedAffinity == null || reservedAffinity.trim().isEmpty()) {
             long reserverable = ((1 << PROCESSORS) - 1) ^ BASE_AFFINITY;
             if (reserverable == 0 && PROCESSORS > 1) {
-                LOGGER.log(Level.INFO, "No isolated CPUs found, so assuming CPUs 1 to " + (PROCESSORS - 1) + " available.");
+                LOGGER.info("No isolated CPUs found, so assuming CPUs 1 to {} available.",(PROCESSORS - 1));
                 return ((1 << PROCESSORS) - 2);
             }
             return reserverable;
@@ -216,8 +216,7 @@ public class AffinityLock {
         } else if (cpuId >= 0) {
             bound = true;
             assignedThread = Thread.currentThread();
-            if (LOGGER.isLoggable(Level.INFO))
-                LOGGER.info("Assigning cpu " + cpuId + " to " + assignedThread);
+            LOGGER.info("Assigning cpu {} to {}", cpuId, assignedThread);
         }
         if (cpuId >= 0)
             AffinitySupport.setAffinity(1L << cpuId);
@@ -226,8 +225,11 @@ public class AffinityLock {
     final boolean canReserve() {
         if (!reservable) return false;
         if (assignedThread != null) {
-            if (assignedThread.isAlive()) return false;
-            LOGGER.severe("Lock assigned to " + assignedThread + " but this thread is dead.");
+            if (assignedThread.isAlive()) {
+                return false;
+            }
+
+            LOGGER.warn("Lock assigned to {} but this thread is dead.", assignedThread);
         }
         return true;
     }
@@ -255,7 +257,7 @@ public class AffinityLock {
     @Override
     protected void finalize() throws Throwable {
         if (reservable) {
-            LOGGER.warning("Affinity lock for " + assignedThread + " was discarded rather than release()d in a controlled manner.");
+            LOGGER.warn("Affinity lock for {} was discarded rather than release()d in a controlled manner.", assignedThread);
             release();
         }
         super.finalize();

@@ -21,11 +21,12 @@ import net.openhft.affinity.impl.OSXJNAAffinity;
 import net.openhft.affinity.impl.PosixJNAAffinity;
 import net.openhft.affinity.impl.WindowsJNAAffinity;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.logging.Logger;
 
 /**
  * Library to wrap low level JNI or JNA calls.  Can be called without needing to know the actual implementation used.
@@ -36,19 +37,19 @@ public enum AffinitySupport {
     ;
     @NotNull
     private static final IAffinity AFFINITY_IMPL;
-    private static final Logger LOGGER = Logger.getLogger(AffinitySupport.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(AffinitySupport.class);
     private static Boolean JNAAvailable;
 
     static {
         String osName = System.getProperty("os.name");
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
-            LOGGER.fine("Using Windows JNA-based affinity control implementation");
+            LOGGER.trace("Using Windows JNA-based affinity control implementation");
             AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
         } else if (osName.contains("x") && isPosixJNAAffinityUsable()) {
-            LOGGER.fine("Using Posix JNA-based affinity control implementation");
+            LOGGER.trace("Using Posix JNA-based affinity control implementation");
             AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
         } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
-            LOGGER.fine("Using MAC OSX JNA-based thread id implementation");
+            LOGGER.trace("Using MAC OSX JNA-based thread id implementation");
             AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
         } else {
             LOGGER.info("Using dummy affinity control implementation");
@@ -65,7 +66,7 @@ public enum AffinitySupport {
                 return false;
             }
         } else {
-            LOGGER.warning("Windows JNA-based affinity not usable due to JNA not being available!");
+            LOGGER.warn("Windows JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
@@ -79,7 +80,7 @@ public enum AffinitySupport {
                 return false;
             }
         } else {
-            LOGGER.warning("Posix JNA-based affinity not usable due to JNA not being available!");
+            LOGGER.warn("Posix JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
@@ -88,7 +89,7 @@ public enum AffinitySupport {
         if (isJNAAvailable()) {
             return true;
         } else {
-            LOGGER.warning("MAX OSX JNA-based affinity not usable due to JNA not being available!");
+            LOGGER.warn("MAX OSX JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
@@ -98,7 +99,7 @@ public enum AffinitySupport {
         sw.append(description);
         sw.append(" Reason: ");
         t.printStackTrace(new PrintWriter(sw));
-        LOGGER.warning(sw.toString());
+        LOGGER.warn(sw.toString());
     }
 
     public static long getAffinity() {
@@ -135,7 +136,7 @@ public enum AffinitySupport {
             tid.setAccessible(true);
             final Thread thread = Thread.currentThread();
             tid.setLong(thread, threadId);
-            Logger.getAnonymousLogger().info("Set " + thread.getName() + " to thread id " + threadId);
+            LOGGER.info("Set {} to thread id {}", thread.getName(), threadId);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

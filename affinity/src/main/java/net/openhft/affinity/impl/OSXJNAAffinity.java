@@ -21,10 +21,10 @@ import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import net.openhft.affinity.IAffinity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This is essentially the same as the NullAffinity implementation but with concrete
@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  */
 public enum OSXJNAAffinity implements IAffinity {
     INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(OSXJNAAffinity.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(OSXJNAAffinity.class);
 
     @Override
     public long getAffinity() {
@@ -42,8 +42,7 @@ public enum OSXJNAAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final long affinity) {
-        if (LOGGER.isLoggable(Level.FINE))
-            LOGGER.fine("unable to set mask to " + Long.toHexString(affinity) + " as the JNIa nd JNA libraries and not loaded");
+        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Long.toHexString(affinity));
     }
 
     @Override
