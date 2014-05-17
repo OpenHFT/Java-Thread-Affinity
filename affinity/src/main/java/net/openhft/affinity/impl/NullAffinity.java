@@ -18,17 +18,17 @@ package net.openhft.affinity.impl;
 
 
 import net.openhft.affinity.IAffinity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author peter.lawrey
  */
 public enum NullAffinity implements IAffinity {
     INSTANCE;
-    private static final Logger LOGGER = Logger.getLogger(NullAffinity.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(NullAffinity.class);
 
     @Override
     public long getAffinity() {
@@ -37,8 +37,7 @@ public enum NullAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final long affinity) {
-        if (LOGGER.isLoggable(Level.FINE))
-            LOGGER.fine("unable to set mask to " + Long.toHexString(affinity) + " as the JNIa nd JNA libraries and not loaded");
+        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Long.toHexString(affinity));
     }
 
     @Override

@@ -1,16 +1,17 @@
 package net.openhft.affinity;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.misc.URLClassPath;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 enum BootClassPath {
     INSTANCE;
 
-    private final Logger logger = Logger.getLogger(BootClassPath.class.getName());
+    private final static Logger LOGGER = LoggerFactory.getLogger(BootClassPath.class);
 
     private final URLClassPath bootClassPath = new URLClassPath(getBootClassPathURLs());
 
@@ -22,10 +23,10 @@ enum BootClassPath {
     private URL[] getBootClassPathURLs() {
         try {
             String bootClassPath = System.getProperty("sun.boot.class.path");
-            logger.fine("Boot class-path is: " + bootClassPath);
+            LOGGER.trace("Boot class-path is: {}",bootClassPath);
 
             String pathSeparator = System.getProperty("path.separator");
-            logger.fine("Path separator is: '" + pathSeparator + "'");
+            LOGGER.trace("Path separator is: '{}'", pathSeparator);
 
             String[] pathElements = bootClassPath.split(pathSeparator);
             URL[] pathURLs = new URL[pathElements.length];
@@ -35,7 +36,7 @@ enum BootClassPath {
 
             return pathURLs;
         } catch (MalformedURLException e) {
-            logger.warning("Parsing the boot class-path failed! Reason: " + e.getMessage());
+            LOGGER.warn("Parsing the boot class-path failed! Reason: {}", e.getMessage());
             return new URL[0];
         }
     }
