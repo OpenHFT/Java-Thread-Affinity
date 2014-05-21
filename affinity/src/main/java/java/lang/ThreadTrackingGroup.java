@@ -17,7 +17,7 @@ public class ThreadTrackingGroup extends ThreadGroup {
 
     @Override
     void add(Thread t) {
-        System.out.println("ThreadTrackingGroup.add: " + t); //todo: remove
+        //  System.out.println("ThreadTrackingGroup.add: " + t); //todo: remove
         super.add(t);
         listener.started(t);
     }
