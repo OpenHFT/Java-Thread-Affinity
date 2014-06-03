@@ -110,8 +110,15 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
                             com.sun.jna.platform.win32;resolution:=optional,
+                            com.sun.jna.platform.*;resolution:=optional,
                             *
                         </Import-Package>
+                        <Export-Package>
+                            !java.*,
+                            !com.sun.jna.*,
+                            !com.sun.jna.platform.*,
+                            *
+                        </Export-Package>
                     </instructions>
                 </configuration>
             </plugin>
