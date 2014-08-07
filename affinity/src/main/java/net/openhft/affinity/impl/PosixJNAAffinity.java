@@ -107,6 +107,19 @@ public enum PosixJNAAffinity implements IAffinity {
             return ret;
         } catch (LastErrorException e) {
             throw new IllegalStateException("sched_getcpu( ) errorNo=" + e.getErrorCode(), e);
+        } catch (UnsatisfiedLinkError ule) {
+            try { 
+                final IntByReference cpu = new IntByReference();
+                final IntByReference node = new IntByReference();
+                final int ret = lib.syscall(318, cpu, node, null);
+                if (ret != 0) {
+                    throw new IllegalStateException("getcpu( ) return " + ret);
+                }
+
+                return cpu.getValue();
+            } catch (LastErrorException lee) {
+                throw new IllegalStateException("getcpu( ) errorNo=" + lee.getErrorCode(), lee);
+            }
         }
     }
 
@@ -183,6 +196,10 @@ public enum PosixJNAAffinity implements IAffinity {
                               final PointerType cpuset) throws LastErrorException;
 
         int sched_getcpu() throws LastErrorException;
+      
+        int getcpu(final IntByReference cpu,
+                   final IntByReference node,
+                   final PointerType tcache) throws LastErrorException;
 
         int getpid() throws LastErrorException;
 
