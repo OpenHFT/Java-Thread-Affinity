@@ -130,10 +130,7 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            !java.*,
-                            !com.sun.jna.*,
-                            !com.sun.jna.platform.*,
-                            *
+                            net.openhft.affinity.*
                         </Export-Package>
                     </instructions>
                 </configuration>
