@@ -37,6 +37,7 @@
 
     <modules>
         <module>affinity</module>
+        <module>affinity-test</module>
     </modules>
 
 </project>
