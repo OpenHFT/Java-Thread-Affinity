@@ -28,8 +28,8 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>lang-test</artifactId>
-    <version>2.1.2-SNAPSHOT</version>
+    <artifactId>affinity-test</artifactId>
+    <version>2.1.3-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
@@ -176,7 +176,7 @@
                         </Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
-                            net.openhft.affinity
+                            net.openhft.affinity.osgi
                         </Export-Package>
                         <Import-Package>
                             *
