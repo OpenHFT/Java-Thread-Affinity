@@ -34,18 +34,15 @@ import java.io.IOException;
  * @author peter.lawrey
  */
 public class AffinityLock {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
-
-    // TODO It seems like on virtualized platforms .availableProcessors() value can change at
-    // TODO runtime. We should think about how to adopt to such change
-
     // Static fields and methods.
     public static final String AFFINITY_RESERVED = "affinity.reserved";
 
+    // TODO It seems like on virtualized platforms .availableProcessors() value can change at
+    // TODO runtime. We should think about how to adopt to such change
     public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
     public static final long BASE_AFFINITY = AffinitySupport.getAffinity();
     public static final long RESERVED_AFFINITY = getReservedAffinity0();
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
     private static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
 
     static {
@@ -57,10 +54,37 @@ public class AffinityLock {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
         }
     }
+    /**
+     * Logical ID of the CPU to which this lock belongs to.
+     */
+    private final int cpuId;
+    /**
+     * CPU to which this lock belongs to is of general use.
+     */
+    private final boolean base;
+    /**
+     * CPU to which this lock belongs to is reservable.
+     */
+    private final boolean reservable;
+    /**
+     * An inventory build from the CPU layout which keeps track of the various locks
+     * belonging to each CPU.
+     */
+    private final LockInventory lockInventory;
+    boolean bound = false;
+    @Nullable
+    Thread assignedThread;
+
+    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+        this.lockInventory = lockInventory;
+        this.cpuId = cpuId;
+        this.base = base;
+        this.reservable = reservable;
+    }
 
     /**
      * Set the CPU layout for this machine.  CPUs which are not mentioned will be ignored.
-     * <p></p>
+     * <p>
      * Changing the layout will have no impact on thread which have already been assigned.
      * It only affects subsequent assignments.
      *
@@ -102,7 +126,7 @@ public class AffinityLock {
 
     /**
      * Assign any free core to this thread.
-     * <p></p>
+     * <p>
      * In reality, only one cpu is assigned, the rest of the threads for that core are reservable so they are not used.
      *
      * @return A handle for the current AffinityLock.
@@ -113,7 +137,7 @@ public class AffinityLock {
 
     /**
      * Assign a cpu which can be bound to the current thread or another thread.
-     * <p></p>
+     * <p>
      * This can be used for defining your thread layout centrally and passing the handle via dependency injection.
      *
      * @param bind if true, bind the current thread, if false, reserve a cpu which can be bound later.
@@ -125,7 +149,7 @@ public class AffinityLock {
 
     /**
      * Assign a core(and all its cpus) which can be bound to the current thread or another thread.
-     * <p></p>
+     * <p>
      * This can be used for defining your thread layout centrally and passing the handle via dependency injection.
      *
      * @param bind if true, bind the current thread, if false, reserve a cpu which can be bound later.
@@ -143,46 +167,12 @@ public class AffinityLock {
         return LOCK_INVENTORY.acquireCore(bind, cpuId, strategies);
     }
 
-
     /**
      * @return All the current locks as a String.
      */
     @NotNull
     public static String dumpLocks() {
         return LOCK_INVENTORY.dumpLocks();
-    }
-
-    /**
-     * Logical ID of the CPU to which this lock belongs to.
-     */
-    private final int cpuId;
-
-    /**
-     * CPU to which this lock belongs to is of general use.
-     */
-    private final boolean base;
-
-    /**
-     * CPU to which this lock belongs to is reservable.
-     */
-    private final boolean reservable;
-
-    /**
-     * An inventory build from the CPU layout which keeps track of the various locks
-     * belonging to each CPU.
-     */
-    private final LockInventory lockInventory;
-
-    boolean bound = false;
-
-    @Nullable
-    Thread assignedThread;
-
-    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
-        this.lockInventory = lockInventory;
-        this.cpuId = cpuId;
-        this.base = base;
-        this.reservable = reservable;
     }
 
     /**
@@ -238,7 +228,7 @@ public class AffinityLock {
 
     /**
      * Give another affinity lock relative to this one based on a list of strategies.
-     * <p></p>
+     * <p>
      * The strategies are evaluated in order to (like a search path) to find the next appropriate thread.
      * If ANY is not the last strategy, a warning is logged and no cpu is assigned (leaving the OS to choose)
      *

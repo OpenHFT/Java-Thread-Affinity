@@ -18,11 +18,7 @@
 
 package net.openhft.affinity.impl;
 
-import com.sun.jna.LastErrorException;
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.Platform;
-import com.sun.jna.PointerType;
+import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
@@ -33,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * Implementation of {@link IAffinity} based on JNA call of
  * sched_setaffinity(3)/sched_getaffinity(3) from 'c' library. Applicable for most
  * linux/unix platforms
- * <p></p>
+ * <p>
  * TODO Support assignment to core 64 and above
  *
  * @author peter.lawrey
