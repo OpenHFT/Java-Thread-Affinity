@@ -107,7 +107,7 @@ public class AffinityLock {
         if (reservedAffinity == null || reservedAffinity.trim().isEmpty()) {
             long reserverable = ((1 << PROCESSORS) - 1) ^ BASE_AFFINITY;
             if (reserverable == 0 && PROCESSORS > 1) {
-                LOGGER.info("No isolated CPUs found, so assuming CPUs 1 to {} available.",(PROCESSORS - 1));
+                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
                 return ((1 << PROCESSORS) - 2);
             }
             return reserverable;
