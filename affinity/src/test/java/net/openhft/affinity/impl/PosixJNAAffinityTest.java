@@ -37,13 +37,13 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
 
     @Override
     public IAffinity getImpl() {
-        return PosixJNAAffinity.INSTANCE;
+        return AffinitySupport.getAffinityImpl();
     }
 
     @Test
     public void testGettid() {
-        System.out.println("pid=" + PosixJNAAffinity.INSTANCE.getProcessId());
-        System.out.println("tid=" + PosixJNAAffinity.INSTANCE.getThreadId());
+        System.out.println("pid=" + getImpl().getProcessId());
+        System.out.println("tid=" + getImpl().getThreadId());
         AffinitySupport.setThreadId();
 
         for (int j = 0; j < 3; j++) {

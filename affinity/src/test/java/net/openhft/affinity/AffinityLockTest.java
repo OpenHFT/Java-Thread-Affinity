@@ -21,6 +21,8 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import static org.junit.Assert.assertNotSame;
  */
 @SuppressWarnings("ALL")
 public class AffinityLockTest {
+    private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
     @Test
     public void dumpLocksI7() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
@@ -164,6 +167,8 @@ public class AffinityLockTest {
 
     @Test
     public void testIssue19() {
+        System.out.println("AffinityLock.PROCESSORS=" + AffinityLock.PROCESSORS);
+
         AffinityLock al = AffinityLock.acquireLock();
         List<AffinityLock> locks = new ArrayList<AffinityLock>();
         locks.add(al);
@@ -184,7 +189,8 @@ public class AffinityLockTest {
 
     @Test
     public void testAffinity() throws InterruptedException {
-        System.out.println("Started");
+        // System.out.println("Started");
+        logger.info("Started");
         displayStatus();
         final AffinityLock al = acquireLock();
         System.out.println("Main locked");
