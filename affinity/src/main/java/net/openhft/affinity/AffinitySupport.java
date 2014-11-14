@@ -18,10 +18,7 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.impl.NullAffinity;
-import net.openhft.affinity.impl.OSXJNAAffinity;
-import net.openhft.affinity.impl.PosixJNAAffinity;
-import net.openhft.affinity.impl.WindowsJNAAffinity;
+import net.openhft.affinity.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +44,17 @@ public enum AffinitySupport {
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
             LOGGER.trace("Using Windows JNA-based affinity control implementation");
             AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
-        } else if (osName.contains("x") && isPosixJNAAffinityUsable()) {
-            LOGGER.trace("Using Posix JNA-based affinity control implementation");
-            AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
+        } else if (osName.contains("x")) {
+            if(osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
+                LOGGER.trace("Using Linux JNA-based affinity control implementation");
+                AFFINITY_IMPL = LinuxJNAAffinity.INSTANCE;
+            } else if(isPosixJNAAffinityUsable()) {
+                LOGGER.trace("Using Posix JNA-based affinity control implementation");
+                AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
+            } else {
+                LOGGER.info("Using dummy affinity control implementation");
+                AFFINITY_IMPL = NullAffinity.INSTANCE;
+            }
         } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
             LOGGER.trace("Using MAC OSX JNA-based thread id implementation");
             AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
@@ -59,6 +64,10 @@ public enum AffinitySupport {
         }
     }
 
+    public static IAffinity getAffinityImpl() {
+        return AFFINITY_IMPL;
+    }
+    
     private static boolean isWindowsJNAAffinityUsable() {
         if (isJNAAvailable()) {
             try {
@@ -83,6 +92,20 @@ public enum AffinitySupport {
             }
         } else {
             LOGGER.warn("Posix JNA-based affinity not usable due to JNA not being available!");
+            return false;
+        }
+    }
+
+    private static boolean isLinuxJNAAffinityUsable() {
+        if (isJNAAvailable()) {
+            try {
+                return LinuxJNAAffinity.LOADED;
+            } catch (Throwable t) {
+                logThrowable(t, "Linux JNA-based affinity not usable because it failed to load!");
+                return false;
+            }
+        } else {
+            LOGGER.warn("Linux JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }

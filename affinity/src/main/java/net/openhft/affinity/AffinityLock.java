@@ -34,6 +34,8 @@ import java.io.IOException;
  * @author peter.lawrey
  */
 public class AffinityLock {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
+
     // Static fields and methods.
     public static final String AFFINITY_RESERVED = "affinity.reserved";
 
@@ -42,7 +44,6 @@ public class AffinityLock {
     public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
     public static final long BASE_AFFINITY = AffinitySupport.getAffinity();
     public static final long RESERVED_AFFINITY = getReservedAffinity0();
-    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
     private static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
 
     static {
@@ -288,5 +289,10 @@ public class AffinityLock {
         else
             sb.append("CPU not available");
         return sb.toString();
+    }
+
+    public static void main(String[] args) {
+
+        System.out.println("Test");
     }
 }

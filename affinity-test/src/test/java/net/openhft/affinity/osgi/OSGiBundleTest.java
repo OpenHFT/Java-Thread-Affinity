@@ -35,7 +35,7 @@ import static org.ops4j.pax.exam.CoreOptions.*;
 
 //@Ignore
 @RunWith(PaxExam.class)
-public class OSGiBundleTest extends OSGiTestBase {
+public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     @Inject
     BundleContext context;
 
@@ -77,7 +77,7 @@ public class OSGiBundleTest extends OSGiTestBase {
         final String exports = bundle.getHeaders().get("Export-Package");
         final String[] packages = exports.split(",");
         
-        assertEquals(2, packages.length);
+        assertTrue(packages.length >= 2);
         assertTrue(packages[0].startsWith("net.openhft.affinity;") 
                 || packages[0].startsWith("net.openhft.affinity.impl;"));
         assertTrue(packages[1].startsWith("net.openhft.affinity;") 
