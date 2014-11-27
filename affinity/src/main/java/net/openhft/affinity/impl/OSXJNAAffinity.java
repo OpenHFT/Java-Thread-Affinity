@@ -36,6 +36,7 @@ import java.lang.management.ManagementFactory;
 public enum OSXJNAAffinity implements IAffinity {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(OSXJNAAffinity.class);
+    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     @Override
     public long getAffinity() {
@@ -60,10 +61,14 @@ public enum OSXJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        int tid = CLibrary.INSTANCE.pthread_self();
-        //The tid assumed to be an unsigned 24 bit, see net.openhft.lang.Jvm.getMaxPid()
-        int tid_24 = tid & 0xFFFFFF;
-        return tid_24;
+        Integer tid = THREAD_ID.get();
+        if (tid == null) {
+            tid = CLibrary.INSTANCE.pthread_self();
+            //The tid assumed to be an unsigned 24 bit, see net.openhft.lang.Jvm.getMaxPid()
+            tid = tid & 0xFFFFFF;
+            THREAD_ID.set(tid);
+        }
+        return tid;
     }
 
     interface CLibrary extends Library {
