@@ -41,6 +41,7 @@ public enum WindowsJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsJNAAffinity.class);
+    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     @Override
     public long getAffinity() {
@@ -99,7 +100,10 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        return Kernel32.INSTANCE.GetCurrentThreadId();
+        Integer tid = THREAD_ID.get();
+        if (tid == null)
+            THREAD_ID.set(tid = Kernel32.INSTANCE.GetCurrentThreadId());
+        return tid;
     }
 
 
