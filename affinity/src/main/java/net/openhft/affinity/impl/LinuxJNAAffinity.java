@@ -1,10 +1,9 @@
 package net.openhft.affinity.impl;
 
-import com.sun.jna.*;
+import com.sun.jna.Platform;
 import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public enum LinuxJNAAffinity implements IAffinity {
     INSTANCE;

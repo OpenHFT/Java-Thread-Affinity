@@ -44,7 +44,6 @@ public class VanillaCpuLayoutTest {
                 "7: CpuInfo{socketId=0, coreId=3, threadId=1}\n", vcl.toString());
     }
 
-
     @Test
     public void testFromCpuInfoOthers() throws IOException {
         {

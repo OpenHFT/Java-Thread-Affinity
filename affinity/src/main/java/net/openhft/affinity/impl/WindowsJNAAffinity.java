@@ -87,7 +87,6 @@ public enum WindowsJNAAffinity implements IAffinity {
         }
     }
 
-
     @Override
     public int getCpu() {
         return -1;
@@ -105,7 +104,6 @@ public enum WindowsJNAAffinity implements IAffinity {
             THREAD_ID.set(tid = Kernel32.INSTANCE.GetCurrentThreadId());
         return tid;
     }
-
 
     /**
      * @author BegemoT

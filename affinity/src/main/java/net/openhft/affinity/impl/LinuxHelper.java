@@ -30,7 +30,6 @@ public class LinuxHelper {
                 "domainname"
         );
 
-
         /** Name of the implementation of the operating system.  */
         public byte[] sysname = new byte[_UTSNAME_LENGTH];
 

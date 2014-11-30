@@ -18,7 +18,6 @@
 
 package net.openhft.affinity.impl;
 
-
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
