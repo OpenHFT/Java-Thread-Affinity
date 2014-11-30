@@ -63,7 +63,6 @@ public class VanillaCpuLayout implements CpuLayout {
             }
             throw new AssertionError(error);
         }
-
     }
 
     @NotNull

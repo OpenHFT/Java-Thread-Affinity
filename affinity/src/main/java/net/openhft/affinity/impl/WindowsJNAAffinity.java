@@ -55,7 +55,6 @@ public enum WindowsJNAAffinity implements IAffinity {
                 throw new IllegalStateException("GetProcessAffinityMask(( -1 ), &(" + cpuset1 + "), &(" + cpuset2 + ") ) return " + ret);
 
             return cpuset1.getValue();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -70,7 +69,6 @@ public enum WindowsJNAAffinity implements IAffinity {
         int pid = getTid();
         try {
             lib.SetThreadAffinityMask(pid, aff);
-
         } catch (LastErrorException e) {
             throw new IllegalStateException("SetThreadAffinityMask((" + pid + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
@@ -81,7 +79,6 @@ public enum WindowsJNAAffinity implements IAffinity {
 
         try {
             return lib.GetCurrentThread();
-
         } catch (LastErrorException e) {
             throw new IllegalStateException("GetCurrentThread( ) errorNo=" + e.getErrorCode(), e);
         }

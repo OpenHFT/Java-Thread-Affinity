@@ -75,6 +75,5 @@ public enum OSXJNAAffinity implements IAffinity {
                 Native.loadLibrary("libpthread.dylib", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
-
     }
 }

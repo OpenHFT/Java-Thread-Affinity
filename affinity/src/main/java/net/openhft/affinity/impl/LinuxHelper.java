@@ -86,7 +86,6 @@ public class LinuxHelper {
                 break;
             }
             return release.substring(0, len);
-
         }
 
         public String getVersion() {
@@ -171,7 +170,6 @@ public class LinuxHelper {
         public static boolean __CPU_ISSET(int cpu, cpu_set_t cpuset ) {
             return (cpuset.__bits[__CPUELT(cpu)].longValue() & __CPUMASK(cpu)) != 0;
         }
-
     }
 
     interface CLibrary extends Library {
@@ -266,7 +264,6 @@ public class LinuxHelper {
                 }
             }
         }
-
     }
 
     public static int getpid() {
