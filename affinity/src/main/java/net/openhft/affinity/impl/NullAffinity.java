@@ -18,7 +18,6 @@
 
 package net.openhft.affinity.impl;
 
-
 import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +56,5 @@ public enum NullAffinity implements IAffinity {
     public int getThreadId() {
         throw new UnsupportedOperationException();
     }
-
 
 }

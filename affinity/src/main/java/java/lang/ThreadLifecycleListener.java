@@ -18,7 +18,6 @@
 
 package java.lang;
 
-
 /**
  * A listener for various events in a Thread's life: creation, termination, etc.
  */

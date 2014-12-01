@@ -177,7 +177,6 @@ public enum PosixJNAAffinity implements IAffinity {
         return systemProp != null && systemProp.contains("_64");
     }
 
-
     /**
      * @author BegemoT
      */

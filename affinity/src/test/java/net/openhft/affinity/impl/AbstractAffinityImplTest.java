@@ -25,7 +25,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-
 /**
  * @author cheremin
  * @since 29.12.11,  20:25
@@ -35,7 +34,6 @@ public abstract class AbstractAffinityImplTest {
     protected static final int CORES = Runtime.getRuntime().availableProcessors();
 
     public abstract IAffinity getImpl();
-
 
     @Test
     public void getAffinityCompletesGracefully() throws Exception {

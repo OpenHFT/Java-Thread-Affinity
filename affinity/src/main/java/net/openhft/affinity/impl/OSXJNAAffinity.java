@@ -18,7 +18,6 @@
 
 package net.openhft.affinity.impl;
 
-
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
@@ -76,6 +75,5 @@ public enum OSXJNAAffinity implements IAffinity {
                 Native.loadLibrary("libpthread.dylib", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
-
     }
 }
