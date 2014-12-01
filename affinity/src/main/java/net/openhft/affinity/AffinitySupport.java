@@ -38,7 +38,7 @@ public enum AffinitySupport {
     private static final IAffinity AFFINITY_IMPL;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinitySupport.class);
     private static Boolean JNAAvailable;
-
+    
     static {
         String osName = System.getProperty("os.name");
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
@@ -58,6 +58,9 @@ public enum AffinitySupport {
         } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
             LOGGER.trace("Using MAC OSX JNA-based thread id implementation");
             AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
+        } else if (osName.contains("SunOS") && isSolarisJNAAffinityUsable()) {
+            LOGGER.trace("Using Solaris JNA-based thread id implementation");
+            AFFINITY_IMPL = SolarisJNAAffinity.INSTANCE;
         } else {
             LOGGER.info("Using dummy affinity control implementation");
             AFFINITY_IMPL = NullAffinity.INSTANCE;
@@ -115,6 +118,15 @@ public enum AffinitySupport {
             return true;
         } else {
             LOGGER.warn("MAX OSX JNA-based affinity not usable due to JNA not being available!");
+            return false;
+        }
+    }
+
+    private static boolean isSolarisJNAAffinityUsable() {
+        if (isJNAAvailable()) {
+            return true;
+        } else {
+            LOGGER.warn("Solaris JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
