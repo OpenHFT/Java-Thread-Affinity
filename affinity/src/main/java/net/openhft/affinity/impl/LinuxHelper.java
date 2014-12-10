@@ -3,14 +3,11 @@ package net.openhft.affinity.impl;
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class LinuxHelper {
-    private static final Logger logger = LoggerFactory.getLogger(LinuxHelper.class);
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0,0,0);
     private static final VersionHelper VERSION_2_6 = new VersionHelper(2,6,0);
@@ -114,11 +111,11 @@ public class LinuxHelper {
         try {
             if(CLibrary.INSTANCE.uname(uname) == 0) {
                 ver = new VersionHelper(uname.getRealeaseVersion());
-                logger.info("uname: " + uname);
             }
         } catch(Throwable e) {
-            logger.warn("Failed to determine Linux version: " + e);
+            //logger.warn("Failed to determine Linux version: " + e);
         }
+
         version = ver;
     }
 
