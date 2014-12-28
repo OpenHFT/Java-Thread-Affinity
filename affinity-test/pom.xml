@@ -31,7 +31,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>affinity-test</artifactId>
-    <version>2.1.6-SNAPSHOT</version>
+    <version>2.1.7-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
