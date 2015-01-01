@@ -29,8 +29,6 @@ import java.net.URL;
 enum BootClassPath {
     INSTANCE;
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(BootClassPath.class);
-
     private final URLClassPath bootClassPath = new URLClassPath(getBootClassPathURLs());
 
     public final boolean has(String binaryClassName) {
@@ -39,6 +37,7 @@ enum BootClassPath {
     }
 
     private URL[] getBootClassPathURLs() {
+        Logger LOGGER = LoggerFactory.getLogger(BootClassPath.class);
         try {
             String bootClassPath = System.getProperty("sun.boot.class.path");
             LOGGER.trace("Boot class-path is: {}",bootClassPath);
