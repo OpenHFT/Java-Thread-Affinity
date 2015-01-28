@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 
@@ -33,7 +34,7 @@ import java.io.IOException;
  *
  * @author peter.lawrey
  */
-public class AffinityLock {
+public class AffinityLock implements Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
 
     // Static fields and methods.
@@ -245,6 +246,11 @@ public class AffinityLock {
      */
     public void release() {
         lockInventory.release();
+    }
+
+    @Override
+    public void close() {
+        release();
     }
 
     @Override

@@ -19,7 +19,6 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.openhft.affinity.AffinityLock.acquireLock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 
@@ -192,23 +190,26 @@ public class AffinityLockTest {
         // System.out.println("Started");
         logger.info("Started");
         displayStatus();
-        final AffinityLock al = acquireLock();
-        System.out.println("Main locked");
-        displayStatus();
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                AffinityLock al2 = al.acquireLock(AffinityStrategies.ANY);
-                System.out.println("Thread-0 locked");
-                displayStatus();
-                al2.release();
-            }
-        });
-        t.start();
-        t.join();
-        System.out.println("Thread-0 unlocked");
-        displayStatus();
-        al.release();
+        final AffinityLock al = AffinityLock.acquireLock();
+        try {
+            System.out.println("Main locked");
+            displayStatus();
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.ANY);
+                    System.out.println("Thread-0 locked");
+                    displayStatus();
+                    al2.release();
+                }
+            });
+            t.start();
+            t.join();
+            System.out.println("Thread-0 unlocked");
+            displayStatus();
+        } finally {
+            al.close();
+        }
         System.out.println("All unlocked");
         displayStatus();
     }
