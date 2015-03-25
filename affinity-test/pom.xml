@@ -24,18 +24,21 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.1.2</version>
+        <version>1.1.4</version>
         <relativePath/>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>affinity-test</artifactId>
     <version>2.3-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
     <description>Java Thread Affinity library</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
     
     <dependencyManagement>
         <dependencies>
@@ -124,6 +127,16 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgument>-Xlint:deprecation</compilerArgument>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
             <!--
                 generate maven dependencies versions file that can be used later
                 to install the right bundle in test phase.
