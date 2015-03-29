@@ -96,3 +96,22 @@ If you want to get/set the affinity directly you can do
 [Java Thread Affinity support group](https://groups.google.com/forum/?hl=en-GB#!forum/java-thread-affinity)
 
 For an article on how much difference affinity can make and how to use it http://vanillajava.blogspot.com/2013/07/micro-jitter-busy-waiting-and-binding.html
+
+# Questions and Answers
+
+## Question
+I am currently working on a project related to deadlock detection in multithreaded programs in java. We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+Being a beginner, I have little knowledge and thus need your assistance. We need to know how to run threads on specified cpu number and then switch threads when one is waiting. 
+
+## Answer
+
+Use :
+
+``` java
+AffinityLock.setAffinity (1L << n);
+```
+
+where n is the cpu you want to run the thread on.
+
+
+
