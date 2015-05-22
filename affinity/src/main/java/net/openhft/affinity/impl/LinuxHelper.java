@@ -212,6 +212,7 @@ public class LinuxHelper {
         final int size = version.isSameOrNewer(VERSION_2_6) ? cpu_set_t.SIZE_OF_CPU_SET_T : NativeLong.SIZE;
         if(Platform.is64Bit()) {
             cpuset.__bits[0].setValue(affinity);
+
         } else {
             cpuset.__bits[0].setValue(affinity & 0xFFFFFFFFL);
             cpuset.__bits[1].setValue((affinity >>> 32) & 0xFFFFFFFFL);
@@ -253,6 +254,7 @@ public class LinuxHelper {
                     final IntByReference cpu = new IntByReference();
                     if(getcpu.invokeInt(new Object[] { cpu, null, null }) < 0) {
                         throw new IllegalStateException("getcpu() failed; errno=" + Native.getLastError());
+
                     } else {
                         return cpu.getValue();
                     }

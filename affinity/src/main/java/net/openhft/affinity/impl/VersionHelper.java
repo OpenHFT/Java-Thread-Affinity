@@ -18,6 +18,7 @@ public class VersionHelper {
             major = parts.length > 0 ? Integer.parseInt(parts[0]) : 0;
             minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
             release = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+
         } else {
             major = minor = release = 0;
         }
@@ -33,6 +34,7 @@ public class VersionHelper {
             return this.major == ver.major
                     && this.minor == ver.minor
                     && this.release == ver.release;
+
         } else {
             return false;
         }

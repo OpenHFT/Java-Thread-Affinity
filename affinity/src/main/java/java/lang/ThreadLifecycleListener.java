@@ -40,5 +40,4 @@ public interface ThreadLifecycleListener {
      * @param t the thread that has been terminated
      */
     void terminated(Thread t);
-
 }

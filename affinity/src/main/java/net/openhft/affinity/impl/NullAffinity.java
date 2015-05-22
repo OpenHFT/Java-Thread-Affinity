@@ -56,5 +56,4 @@ public enum NullAffinity implements IAffinity {
     public int getThreadId() {
         throw new UnsupportedOperationException();
     }
-
 }

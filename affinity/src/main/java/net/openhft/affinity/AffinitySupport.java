@@ -44,13 +44,16 @@ public enum AffinitySupport {
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
             LOGGER.trace("Using Windows JNA-based affinity control implementation");
             AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
+
         } else if (osName.contains("x")) {
             if(osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
                 LOGGER.trace("Using Linux JNA-based affinity control implementation");
                 AFFINITY_IMPL = LinuxJNAAffinity.INSTANCE;
+
             } else if(isPosixJNAAffinityUsable()) {
                 LOGGER.trace("Using Posix JNA-based affinity control implementation");
                 AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
+
             } else {
                 LOGGER.info("Using dummy affinity control implementation");
                 AFFINITY_IMPL = NullAffinity.INSTANCE;
@@ -58,9 +61,11 @@ public enum AffinitySupport {
         } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
             LOGGER.trace("Using MAC OSX JNA-based thread id implementation");
             AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
+
         } else if (osName.contains("SunOS") && isSolarisJNAAffinityUsable()) {
             LOGGER.trace("Using Solaris JNA-based thread id implementation");
             AFFINITY_IMPL = SolarisJNAAffinity.INSTANCE;
+
         } else {
             LOGGER.info("Using dummy affinity control implementation");
             AFFINITY_IMPL = NullAffinity.INSTANCE;
@@ -116,6 +121,7 @@ public enum AffinitySupport {
     private static boolean isMacJNAAffinityUsable() {
         if (isJNAAvailable()) {
             return true;
+
         } else {
             LOGGER.warn("MAX OSX JNA-based affinity not usable due to JNA not being available!");
             return false;
@@ -125,6 +131,7 @@ public enum AffinitySupport {
     private static boolean isSolarisJNAAffinityUsable() {
         if (isJNAAvailable()) {
             return true;
+
         } else {
             LOGGER.warn("Solaris JNA-based affinity not usable due to JNA not being available!");
             return false;

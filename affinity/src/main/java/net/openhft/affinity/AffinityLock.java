@@ -207,6 +207,7 @@ public class AffinityLock implements Closeable {
 
         if (wholeCore) {
             lockInventory.bindWholeCore(cpuId);
+
         } else if (cpuId >= 0) {
             bound = true;
             assignedThread = Thread.currentThread();

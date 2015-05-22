@@ -121,6 +121,7 @@ public class AffinityLockTest {
             System.out.println("Cannot run affinity test as no threads gave been reserved.");
             System.out.println("Use isolcpus= in grub.conf or use -D" + AffinityLock.AFFINITY_RESERVED + "={hex mask}");
             return;
+
         } else if (!new File("/proc/cpuinfo").exists()) {
             System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
             return;
@@ -155,6 +156,7 @@ public class AffinityLockTest {
             assertNotSame(alForAnotherThread.cpuId(), alForAnotherThread2.cpuId());
 
             alForAnotherThread2.release();
+
         } else {
             assertNotSame(alForAnotherThread, al);
             assertNotSame(alForAnotherThread.cpuId(), al.cpuId());

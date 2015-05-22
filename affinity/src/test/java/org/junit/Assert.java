@@ -130,10 +130,12 @@ public class Assert {
                                     Object actual) {
         if (equalsRegardingNull(expected, actual)) {
             return;
+
         } else if (expected instanceof String && actual instanceof String) {
             String cleanMessage = message == null ? "" : message;
             throw new ComparisonFailure(cleanMessage, (String) expected,
                     (String) actual);
+
         } else {
             failNotEquals(message, expected, actual);
         }
@@ -775,6 +777,7 @@ public class Assert {
             return formatted + "expected: "
                     + formatClassAndValue(expected, expectedString)
                     + " but was: " + formatClassAndValue(actual, actualString);
+
         } else {
             return formatted + "expected:<" + expectedString + "> but was:<"
                     + actualString + ">";
