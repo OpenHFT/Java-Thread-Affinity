@@ -136,8 +136,8 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <executable>src/main/c/Makefile</executable>
-                            <workingDirectory>src/main/c</workingDirectory>
+                            <executable>${project.basedir}/${native.source.dir}/Makefile</executable>
+                            <workingDirectory>${project.basedir}/${native.source.dir}</workingDirectory>
                         </configuration>
                     </execution>
                 </executions>
