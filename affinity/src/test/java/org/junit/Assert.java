@@ -544,11 +544,8 @@ public class Assert {
         if (Double.compare(d1, d2) == 0) {
             return false;
         }
-        if ((Math.abs(d1 - d2) <= delta)) {
-            return false;
-        }
+        return (Math.abs(d1 - d2) > delta);
 
-        return true;
     }
 
     /**

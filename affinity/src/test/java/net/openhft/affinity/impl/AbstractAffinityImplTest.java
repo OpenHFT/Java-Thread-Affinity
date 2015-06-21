@@ -34,12 +34,12 @@ public abstract class AbstractAffinityImplTest {
     public abstract IAffinity getImpl();
 
     @Test
-    public void getAffinityCompletesGracefully() throws Exception {
+    public void getAffinityCompletesGracefully() {
         getImpl().getAffinity();
     }
 
     @Test
-    public void getAffinityReturnsValidValue() throws Exception {
+    public void getAffinityReturnsValidValue() {
         final long affinity = getImpl().getAffinity();
         assertTrue(
                 "Affinity mask " + affinity + " must be >0",
