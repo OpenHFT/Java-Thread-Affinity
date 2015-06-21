@@ -10,8 +10,7 @@ TARGET := $(TARGET_DIR)/libCEInternals.so
 
 WORKING_DIR := $(TARGET_DIR)/../jni
 
-JAVA_CLASSES = software.chronicle.enterprise.internals.impl.NativeAffinity \
-    software.chronicle.enterprise.internals.hotspot.WBJvm
+JAVA_CLASSES = software.chronicle.enterprise.internals.impl.NativeAffinity
 
 JNI_STUBS := $(subst .,_,$(JAVA_CLASSES))
 JNI_HEADERS := $(patsubst %,$(WORKING_DIR)/%.h,$(JNI_STUBS))
@@ -33,6 +32,8 @@ else
 JAVAH_CLASSPATH = $(JAVA_BUILD_DIR)
 endif
 
+.PHONY : clean
+
 all: $(TARGET)
 
 $(TARGET): $(JNI_HEADERS) $(JNI_SOURCES)
@@ -42,3 +43,5 @@ $(JNI_HEADERS): $(JNI_JAVA_SOURCES)
 	mkdir -p $(TARGET_DIR)/jni
 	javah -force -classpath $(JAVAH_CLASSPATH) -d $(WORKING_DIR) $(JAVA_CLASSES)
 
+clean:
+	rm $(TARGET)
