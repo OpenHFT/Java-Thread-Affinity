@@ -195,9 +195,8 @@ public class VanillaCpuLayout implements CpuLayout {
         if (coresPerSocket != that.coresPerSocket) return false;
         if (sockets != that.sockets) return false;
         if (threadsPerCore != that.threadsPerCore) return false;
-        if (!cpuDetails.equals(that.cpuDetails)) return false;
+        return cpuDetails.equals(that.cpuDetails);
 
-        return true;
     }
 
     @Override
@@ -240,9 +239,8 @@ public class VanillaCpuLayout implements CpuLayout {
 
             if (coreId != cpuInfo.coreId) return false;
             if (socketId != cpuInfo.socketId) return false;
-            if (threadId != cpuInfo.threadId) return false;
+            return threadId == cpuInfo.threadId;
 
-            return true;
         }
 
         @Override
