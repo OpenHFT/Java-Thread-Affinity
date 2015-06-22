@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.util.BitSet;
 
 /**
  * This is essentially the same as the NullAffinity implementation but with concrete
@@ -36,13 +37,14 @@ public enum SolarisJNAAffinity implements IAffinity {
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     @Override
-    public long getAffinity() {
-        return -1;
+    public BitSet getAffinity()
+    {
+        return null;
     }
 
     @Override
-    public void setAffinity(final long affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Long.toHexString(affinity));
+    public void setAffinity(final BitSet affinity) {
+        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Utilities.toHexString(affinity));
     }
 
     @Override

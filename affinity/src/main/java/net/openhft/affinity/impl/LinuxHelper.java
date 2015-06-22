@@ -21,6 +21,7 @@ import com.sun.jna.ptr.IntByReference;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
 public class LinuxHelper {
@@ -222,25 +223,27 @@ public class LinuxHelper {
         return cpuset;
     }
 
-    public static void sched_setaffinity(final long affinity) {
+    public static void sched_setaffinity(final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
         final cpu_set_t cpuset = new cpu_set_t();
         final int size = version.isSameOrNewer(VERSION_2_6) ? cpu_set_t.SIZE_OF_CPU_SET_T : NativeLong.SIZE;
-        if(Platform.is64Bit()) {
-            cpuset.__bits[0].setValue(affinity);
-
-        } else {
-            cpuset.__bits[0].setValue(affinity & 0xFFFFFFFFL);
-            cpuset.__bits[1].setValue((affinity >>> 32) & 0xFFFFFFFFL);
+        final long[] bits = affinity.toLongArray();
+        for (int i = 0; i < bits.length; i++) {
+            if (Platform.is64Bit()) {
+                cpuset.__bits[i].setValue(bits[i]);
+            } else {
+                cpuset.__bits[i*2].setValue(bits[i] & 0xFFFFFFFFL);
+                cpuset.__bits[i*2+1].setValue((bits[i] >>> 32) & 0xFFFFFFFFL);
+            }
         }
         try {
             if(lib.sched_setaffinity(0, size, cpuset) != 0) {
                 throw new IllegalStateException("sched_setaffinity(0, " + size +
-                        ", 0x" + Long.toHexString(affinity) + " failed; errno=" + Native.getLastError());
+                        ", 0x" + Utilities.toHexString(affinity) + " failed; errno=" + Native.getLastError());
             }
         } catch (LastErrorException e) {
             throw new IllegalStateException("sched_setaffinity(0, " + size +
-                    ", 0x" + Long.toHexString(affinity) + " failed; errno=" + e.getErrorCode(), e);
+                    ", 0x" + Utilities.toHexString(affinity) + " failed; errno=" + e.getErrorCode(), e);
         }
     }
 

@@ -27,6 +27,8 @@ import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.BitSet;
+
 /**
  * Implementation of {@link net.openhft.affinity.IAffinity} based on JNA call of
  * sched_SetThreadAffinityMask/GetProcessAffinityMask from Windows 'kernel32' library. Applicable for
@@ -42,32 +44,58 @@ public enum WindowsJNAAffinity implements IAffinity {
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     @Override
-    public long getAffinity() {
+    public BitSet getAffinity() {
         final CLibrary lib = CLibrary.INSTANCE;
         final LongByReference cpuset1 = new LongByReference(0);
         final LongByReference cpuset2 = new LongByReference(0);
         try {
 
             final int ret = lib.GetProcessAffinityMask(-1, cpuset1, cpuset2);
-            if (ret < 0)
+            // Successful result is positive, according to the docs
+            // https://msdn.microsoft.com/en-us/library/windows/desktop/ms683213%28v=vs.85%29.aspx
+            if (ret <= 0)
+            {
                 throw new IllegalStateException("GetProcessAffinityMask(( -1 ), &(" + cpuset1 + "), &(" + cpuset2 + ") ) return " + ret);
+            }
 
-            return cpuset1.getValue();
-        } catch (Exception e) {
+            long[] longs = new long[1];
+            longs[0] = cpuset1.getValue();
+            return BitSet.valueOf(longs);
+        }
+        catch (Exception e)
+        {
+            LOGGER.error(e.getMessage(), e);
             e.printStackTrace();
         }
-        return 0;
+
+        return new BitSet();
     }
 
     @Override
-    public void setAffinity(final long affinity) {
+    public void setAffinity(final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
 
-        WinDef.DWORD aff = new WinDef.DWORD(affinity);
+        WinDef.DWORD aff;
+        long[] longs = affinity.toLongArray();
+        switch (longs.length)
+        {
+            case 0:
+                aff = new WinDef.DWORD(0);
+                break;
+            case 1:
+                aff = new WinDef.DWORD(longs[0]);
+                break;
+            default:
+                throw new IllegalArgumentException("Windows API does not support more than 64 CPUs for thread affinity");
+        }
+
         int pid = getTid();
-        try {
+        try
+        {
             lib.SetThreadAffinityMask(pid, aff);
-        } catch (LastErrorException e) {
+        }
+        catch (LastErrorException e)
+        {
             throw new IllegalStateException("SetThreadAffinityMask((" + pid + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }

@@ -19,9 +19,14 @@ package net.openhft.affinity.impl;
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.LongByReference;
+import com.sun.jna.ptr.PointerByReference;
 import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.BitSet;
 
 /**
  * Implementation of {@link IAffinity} based on JNA call of
@@ -40,50 +45,87 @@ public enum PosixJNAAffinity implements IAffinity {
     private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
 
     @Override
-    public long getAffinity() {
+    public BitSet getAffinity()
+    {
         final CLibrary lib = CLibrary.INSTANCE;
-        // TODO where are systems with 64+ cores...
-        final LongByReference cpuset = new LongByReference(0L);
+        final int procs = Runtime.getRuntime().availableProcessors();
+
+        final int cpuSetSizeInLongs = (procs + 63) / 64;
+        final int cpuSetSizeInBytes = cpuSetSizeInLongs * 8;
+        final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
+        final PointerByReference cpuset = new PointerByReference(cpusetArray);
         try {
-            final int ret = lib.sched_getaffinity(0, Long.SIZE / 8, cpuset);
+            final int ret = lib.sched_getaffinity(0, cpuSetSizeInBytes, cpuset);
             if (ret < 0)
-                throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + cpuset + ") ) return " + ret);
-            return cpuset.getValue();
-        } catch (LastErrorException e) {
-            if (e.getErrorCode() != 22)
-                throw new IllegalStateException("sched_getaffinity((" + Long.SIZE / 8 + ") , &(" + cpuset + ") ) errorNo=" + e.getErrorCode(), e);
+            {
+                throw new IllegalStateException("sched_getaffinity((" + cpuSetSizeInBytes + ") , &(" + cpusetArray + ") ) return " + ret);
+            }
+            ByteBuffer buff = cpusetArray.getByteBuffer(0, cpuSetSizeInBytes);
+            return BitSet.valueOf(buff.array());
         }
+        catch (LastErrorException e)
+        {
+            if (e.getErrorCode() != 22)
+            {
+                throw new IllegalStateException("sched_getaffinity((" + cpuSetSizeInBytes + ") , &(" + cpusetArray + ") ) errorNo=" + e.getErrorCode(), e);
+            }
+        }
+
+        // fall back to the old method
         final IntByReference cpuset32 = new IntByReference(0);
-        try {
+        try
+        {
             final int ret = lib.sched_getaffinity(0, Integer.SIZE / 8, cpuset32);
             if (ret < 0)
+            {
                 throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) return " + ret);
-            return cpuset32.getValue() & 0xFFFFFFFFL;
-        } catch (LastErrorException e) {
+            }
+            long[] longs = new long[1];
+            longs[0] = cpuset32.getValue() & 0xFFFFFFFFL;
+            return BitSet.valueOf(longs);
+        }
+        catch (LastErrorException e)
+        {
             throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }
 
     @Override
-    public void setAffinity(final long affinity) {
+    public void setAffinity(final BitSet affinity) {
         int procs = Runtime.getRuntime().availableProcessors();
-        if (procs < 64 && (affinity & ((1L << procs) - 1)) == 0)
+        if (affinity.isEmpty())
+        {
             throw new IllegalArgumentException("Cannot set zero affinity");
-        final CLibrary lib = CLibrary.INSTANCE;
-        try {
-            //fixme: where are systems with more then 64 cores...
-            final int ret = lib.sched_setaffinity(0, Long.SIZE / 8, new LongByReference(affinity));
-            if (ret < 0) {
-                throw new IllegalStateException("sched_setaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) return " + ret);
-            }
-        } catch (LastErrorException e) {
-            if (e.getErrorCode() != 22 || (affinity & 0xFFFFFFFFL) != affinity)
-                throw new IllegalStateException("sched_setaffinity((" + Long.SIZE / 8 + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
-        if (procs < 32 && (affinity & ((1L << procs) - 1)) == 0)
-            throw new IllegalArgumentException("Cannot set zero affinity for 32-bit set affinity");
+
+        final CLibrary lib = CLibrary.INSTANCE;
+        byte[] buff = affinity.toByteArray();
+        final int cpuSetSizeInBytes = buff.length;
+        final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
+        try
+        {
+            cpusetArray.write(0, buff, 0, buff.length);
+            final int ret = lib.sched_setaffinity(0, cpuSetSizeInBytes, new PointerByReference(cpusetArray));
+            if (ret < 0)
+            {
+                throw new IllegalStateException("sched_setaffinity((" + cpuSetSizeInBytes + ") , &(" + affinity + ") ) return " + ret);
+            }
+        }
+        catch (LastErrorException e)
+        {
+            if (e.getErrorCode() != 22 || !Arrays.equals(buff, cpusetArray.getByteArray(0, cpuSetSizeInBytes)))
+            {
+                throw new IllegalStateException("sched_setaffinity((" + cpuSetSizeInBytes + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
+            }
+        }
+
+        final int value = (int) affinity.toLongArray()[0];
+        if (value == 0)
+        {
+            throw new IllegalArgumentException("Cannot set zero affinity");
+        }
         final IntByReference cpuset32 = new IntByReference(0);
-        cpuset32.setValue((int) affinity);
+        cpuset32.setValue(value);
         try {
             final int ret = lib.sched_setaffinity(0, Integer.SIZE / 8, cpuset32);
             if (ret < 0)

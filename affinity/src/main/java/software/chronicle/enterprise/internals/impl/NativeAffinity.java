@@ -3,6 +3,8 @@ package software.chronicle.enterprise.internals.impl;
 
 import net.openhft.affinity.IAffinity;
 
+import java.util.BitSet;
+
 public enum NativeAffinity implements IAffinity {
     INSTANCE;
 
@@ -12,9 +14,9 @@ public enum NativeAffinity implements IAffinity {
         LOADED = loadAffinityNativeLibrary();
     }
 
-    private native static long getAffinity0();
+    private native static byte[] getAffinity0();
 
-    private native static void setAffinity0(long affinity);
+    private native static void setAffinity0(byte[] affinity);
 
     private native static int getCpu0();
 
@@ -32,13 +34,20 @@ public enum NativeAffinity implements IAffinity {
     }
 
     @Override
-    public long getAffinity() {
-        return getAffinity0();
+    public BitSet getAffinity()
+    {
+        final byte[] buff = getAffinity0();
+        if (buff == null)
+        {
+            return null;
+        }
+        return BitSet.valueOf(buff);
     }
 
     @Override
-    public void setAffinity(long affinity) {
-        setAffinity0(affinity);
+    public void setAffinity(BitSet affinity)
+    {
+        setAffinity0(affinity.toByteArray());
     }
 
     @Override

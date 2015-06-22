@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.util.BitSet;
 
 /**
  * This utility class support locking a thread to a single core, or reserving a whole core for a thread.
@@ -41,8 +42,8 @@ public class AffinityLock implements Closeable {
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
     public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
-    public static final long BASE_AFFINITY = AffinitySupport.getAffinity();
-    public static final long RESERVED_AFFINITY = getReservedAffinity0();
+    public static final BitSet BASE_AFFINITY = AffinitySupport.getAffinity();
+    public static final BitSet RESERVED_AFFINITY = getReservedAffinity0();
     private static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
 
     static {
@@ -102,17 +103,29 @@ public class AffinityLock implements Closeable {
         return LOCK_INVENTORY.getCpuLayout();
     }
 
-    private static long getReservedAffinity0() {
+    private static BitSet getReservedAffinity0()
+    {
         String reservedAffinity = System.getProperty(AFFINITY_RESERVED);
-        if (reservedAffinity == null || reservedAffinity.trim().isEmpty()) {
-            long reserverable = ((1 << PROCESSORS) - 1) ^ BASE_AFFINITY;
-            if (reserverable == 0 && PROCESSORS > 1) {
+        if (reservedAffinity == null || reservedAffinity.trim().isEmpty())
+        {
+            BitSet reserverable = new BitSet(PROCESSORS);
+            reserverable.set(0, PROCESSORS - 1, true);
+            reserverable.and(BASE_AFFINITY);
+            if (reserverable.isEmpty() && PROCESSORS > 1)
+            {
                 LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
-                return ((1 << PROCESSORS) - 2);
+                reserverable = new BitSet(PROCESSORS);
+                // make the first CPU unavailable
+                reserverable.set(1, PROCESSORS - 1, true);
+                reserverable.set(0, false);
+                return reserverable;
             }
             return reserverable;
         }
-        return Long.parseLong(reservedAffinity, 16);
+
+        long[] longs = new long[1];
+        longs[0] = Long.parseLong(reservedAffinity, 16);
+        return BitSet.valueOf(longs);
     }
 
     /**
@@ -212,7 +225,11 @@ public class AffinityLock implements Closeable {
             LOGGER.info("Assigning cpu {} to {}", cpuId, assignedThread);
         }
         if (cpuId >= 0)
-            AffinitySupport.setAffinity(1L << cpuId);
+        {
+            BitSet affinity = new BitSet();
+            affinity.set(cpuId, true);
+            AffinitySupport.setAffinity(affinity);
+        }
     }
 
     final boolean canReserve() {

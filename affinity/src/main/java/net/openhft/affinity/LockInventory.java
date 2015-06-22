@@ -53,9 +53,10 @@ class LockInventory {
             return;
         }
         reset(cpuLayout);
-        for (int i = 0; i < cpuLayout.cpus(); i++) {
-            boolean base = ((AffinityLock.BASE_AFFINITY >> i) & 1) != 0;
-            boolean reservable = ((AffinityLock.RESERVED_AFFINITY >> i) & 1) != 0;
+        for (int i = 0; i < cpuLayout.cpus(); i++)
+        {
+            final boolean base = AffinityLock.BASE_AFFINITY.get(i);;
+            final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
 
             LOGGER.trace("cpu " + i + " base={} reservable= {}", i, base, reservable);
             AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);

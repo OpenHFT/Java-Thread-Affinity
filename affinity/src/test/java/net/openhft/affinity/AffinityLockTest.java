@@ -115,7 +115,7 @@ public class AffinityLockTest {
 
     @Test
     public void assignReleaseThread() throws IOException {
-        if (AffinityLock.RESERVED_AFFINITY == 0) {
+        if (AffinityLock.RESERVED_AFFINITY.isEmpty()) {
             System.out.println("Cannot run affinity test as no threads gave been reserved.");
             System.out.println("Use isolcpus= in grub.conf or use -D" + AffinityLock.AFFINITY_RESERVED + "={hex mask}");
             return;
@@ -128,13 +128,13 @@ public class AffinityLockTest {
 
         assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
         AffinityLock al = AffinityLock.acquireLock();
-        assertEquals(1, Long.bitCount(AffinitySupport.getAffinity()));
+        assertEquals(1, AffinitySupport.getAffinity().cardinality());
         al.release();
         assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
 
         assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
         AffinityLock al2 = AffinityLock.acquireCore();
-        assertEquals(1, Long.bitCount(AffinitySupport.getAffinity()));
+        assertEquals(1, AffinitySupport.getAffinity().cardinality());
         al2.release();
         assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
     }

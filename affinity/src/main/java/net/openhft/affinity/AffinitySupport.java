@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.util.BitSet;
 
 /**
  * Library to wrap low level JNI or JNA calls.  Can be called without needing to know the actual implementation used.
@@ -144,11 +145,11 @@ public enum AffinitySupport {
         LOGGER.warn(sw.toString());
     }
 
-    public static long getAffinity() {
+    public static BitSet getAffinity() {
         return AFFINITY_IMPL.getAffinity();
     }
 
-    public static void setAffinity(final long affinity) {
+    public static void setAffinity(final BitSet affinity) {
         AFFINITY_IMPL.setAffinity(affinity);
     }
 

@@ -16,6 +16,8 @@
 
 package net.openhft.affinity;
 
+import java.util.BitSet;
+
 /**
  * Implementation interface
  *
@@ -24,14 +26,14 @@ package net.openhft.affinity;
  */
 public interface IAffinity {
     /**
-     * @return returns affinity mask for current thread, or -1 if unknown
+     * @return returns affinity mask for current thread, or null if unknown
      */
-    long getAffinity();
+    BitSet getAffinity();
 
     /**
      * @param affinity sets affinity mask of current thread to specified value
      */
-    void setAffinity(final long affinity);
+    void setAffinity(final BitSet affinity);
 
     /**
      * @return the current cpu id, or -1 if unknown.

@@ -21,6 +21,12 @@ import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.LinkedList;
+
 public enum LinuxJNAAffinity implements IAffinity {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(LinuxJNAAffinity.class);
@@ -28,14 +34,68 @@ public enum LinuxJNAAffinity implements IAffinity {
 
     // TODO: FIXME!!! CHANGE IAffinity TO SUPPORT PLATFORMS WITH 64+ CORES FIXME!!!
     @Override
-    public long getAffinity() {
+    public BitSet getAffinity() {
         final LinuxHelper.cpu_set_t cpuset = LinuxHelper.sched_getaffinity();
-        return cpuset.__bits[0].longValue();
+
+        boolean collect = false;
+        ArrayList<Byte> bytes = new ArrayList<Byte>();
+
+        ByteBuffer buff = null;
+        if (Platform.is64Bit())
+        {
+            buff = ByteBuffer.allocate(Long.SIZE / 8);
+        }
+        else
+        {
+            buff = ByteBuffer.allocate(Integer.SIZE / 8);
+        }
+
+        for (int i = cpuset.__bits.length - 1; i >= 0; --i)
+        {
+            if (!collect && cpuset.__bits[i].longValue() != 0)
+            {
+                collect = true;
+            }
+
+            if (collect)
+            {
+                if (Platform.is64Bit())
+                {
+                    buff.putLong(cpuset.__bits[i].longValue());
+                }
+                else
+                {
+                    buff.putInt((int) cpuset.__bits[i].longValue());
+                }
+
+                final byte[] arr = buff.array();
+                //for (int j = arr.length - 1; j >= 0; --j)
+                for (int j = 0; j < arr.length; j++)
+                {
+                    bytes.add(arr[j]);
+                }
+            }
+        }
+
+        if (!bytes.isEmpty())
+        {
+            byte[] data = new byte[bytes.size()];
+            for (int i = 0; i < bytes.size(); i++)
+            {
+                // don't forget to reverse the order of long values
+                data[data.length - i - 1] = bytes.get(i);
+            }
+            return BitSet.valueOf(data);
+        }
+        else
+        {
+            return new BitSet();
+        }
     }
 
     // TODO: FIXME!!! CHANGE IAffinity TO SUPPORT PLATFORMS WITH 64+ CORES FIXME!!!
     @Override
-    public void setAffinity(final long affinity) {
+    public void setAffinity(final BitSet affinity) {
         LinuxHelper.sched_setaffinity(affinity);
     }
 
