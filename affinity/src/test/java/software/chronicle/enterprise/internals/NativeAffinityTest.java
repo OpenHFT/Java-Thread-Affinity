@@ -44,12 +44,12 @@ public class NativeAffinityTest {
     }
 
     @Test
-    public void getAffinityCompletesGracefully() throws Exception {
+    public void getAffinityCompletesGracefully() {
         System.out.println("affinity: " + Utilities.toBinaryString(getImpl().getAffinity()));
     }
 
     @Test
-    public void getAffinityReturnsValidValue() throws Exception {
+    public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
         assertTrue(
                 "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty",
@@ -63,7 +63,7 @@ public class NativeAffinityTest {
     }
 
     @Test
-    public void setAffinityCompletesGracefully() throws Exception {
+    public void setAffinityCompletesGracefully() {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
@@ -71,7 +71,7 @@ public class NativeAffinityTest {
 
     @Test
     @Ignore("TODO Fix.")
-    public void getAffinityReturnsValuePreviouslySet() throws Exception {
+    public void getAffinityReturnsValuePreviouslySet() {
         final IAffinity impl = getImpl();
         final int cores = CORES;
         for (int core = 0; core < cores; core++) {
@@ -89,7 +89,7 @@ public class NativeAffinityTest {
     }
 
     private void getAffinityReturnsValuePreviouslySet(final IAffinity impl,
-                                                      final BitSet mask) throws Exception {
+                                                      final BitSet mask) {
 
         impl.setAffinity(mask);
         final BitSet _mask = impl.getAffinity();
@@ -97,7 +97,7 @@ public class NativeAffinityTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         getImpl().setAffinity(CORES_MASK);
     }
 

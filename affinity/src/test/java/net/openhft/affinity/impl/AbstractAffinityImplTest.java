@@ -62,7 +62,7 @@ public abstract class AbstractAffinityImplTest {
     }
 
     @Test
-    public void setAffinityCompletesGracefully() throws Exception {
+    public void setAffinityCompletesGracefully() {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
@@ -70,7 +70,7 @@ public abstract class AbstractAffinityImplTest {
 
     @Test
     @Ignore("TODO FIX")
-    public void getAffinityReturnsValuePreviouslySet() throws Exception {
+    public void getAffinityReturnsValuePreviouslySet() {
         final IAffinity impl = getImpl();
         final int cores = CORES;
         for (int core = 0; core < cores; core++) {
@@ -81,7 +81,7 @@ public abstract class AbstractAffinityImplTest {
     }
 
     private void getAffinityReturnsValuePreviouslySet(final IAffinity impl,
-                                                      final BitSet mask) throws Exception {
+                                                      final BitSet mask) {
 
         impl.setAffinity(mask);
         final BitSet _mask = impl.getAffinity();
@@ -89,7 +89,7 @@ public abstract class AbstractAffinityImplTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         try {
             getImpl().setAffinity(CORES_MASK);
         } catch (Exception e) {
