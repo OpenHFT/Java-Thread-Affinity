@@ -239,11 +239,11 @@ public class LinuxHelper {
         try {
             if(lib.sched_setaffinity(0, size, cpuset) != 0) {
                 throw new IllegalStateException("sched_setaffinity(0, " + size +
-                        ", 0x" + Utilities.toHexString(affinity) + " failed; errno=" + Native.getLastError());
+                        ", 0x" + Utilities.toHexString(affinity) + ") failed; errno=" + Native.getLastError());
             }
         } catch (LastErrorException e) {
             throw new IllegalStateException("sched_setaffinity(0, " + size +
-                    ", 0x" + Utilities.toHexString(affinity) + " failed; errno=" + e.getErrorCode(), e);
+                    ", 0x" + Utilities.toHexString(affinity) + ") failed; errno=" + e.getErrorCode(), e);
         }
     }
 
