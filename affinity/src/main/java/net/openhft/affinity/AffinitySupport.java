@@ -20,6 +20,7 @@ import net.openhft.affinity.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -37,7 +38,7 @@ public enum AffinitySupport {
     private static final IAffinity AFFINITY_IMPL;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinitySupport.class);
     private static Boolean JNAAvailable;
-    
+
     static {
         String osName = System.getProperty("os.name");
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
@@ -45,11 +46,14 @@ public enum AffinitySupport {
             AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
 
         } else if (osName.contains("x")) {
-            if(osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
+            if (osName.startsWith("Linux") && NativeAffinity.LOADED) {
+                LOGGER.trace("Using Linux JNI-based affinity control implementation");
+                AFFINITY_IMPL = NativeAffinity.INSTANCE;
+            } else if (osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
                 LOGGER.trace("Using Linux JNA-based affinity control implementation");
                 AFFINITY_IMPL = LinuxJNAAffinity.INSTANCE;
 
-            } else if(isPosixJNAAffinityUsable()) {
+            } else if (isPosixJNAAffinityUsable()) {
                 LOGGER.trace("Using Posix JNA-based affinity control implementation");
                 AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
 
@@ -74,7 +78,7 @@ public enum AffinitySupport {
     public static IAffinity getAffinityImpl() {
         return AFFINITY_IMPL;
     }
-    
+
     private static boolean isWindowsJNAAffinityUsable() {
         if (isJNAAvailable()) {
             try {
