@@ -157,6 +157,12 @@ public enum AffinitySupport {
         AFFINITY_IMPL.setAffinity(affinity);
     }
 
+    public static void setAffinity(int cpu) {
+        BitSet affinity = new BitSet(Runtime.getRuntime().availableProcessors());
+        affinity.set(cpu);
+        setAffinity(affinity);
+    }
+
     public static int getCpu() {
         return AFFINITY_IMPL.getCpu();
     }
