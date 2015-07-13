@@ -52,6 +52,7 @@ public class JNIClockTest {
     @Ignore("Long running")
     public void testJitter() {
         Affinity.setAffinity(2);
+        assertEquals(2, Affinity.getCpu());
         int samples = 100000, count = 0;
         long[] time = new long[samples];
         long[] length = new long[samples];
