@@ -20,7 +20,6 @@ import net.openhft.affinity.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -46,10 +45,11 @@ public enum AffinitySupport {
             AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
 
         } else if (osName.contains("x")) {
-            if (osName.startsWith("Linux") && NativeAffinity.LOADED) {
+            /*if (osName.startsWith("Linux") && NativeAffinity.LOADED) {
                 LOGGER.trace("Using Linux JNI-based affinity control implementation");
                 AFFINITY_IMPL = NativeAffinity.INSTANCE;
-            } else if (osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
+            } else*/
+            if (osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
                 LOGGER.trace("Using Linux JNA-based affinity control implementation");
                 AFFINITY_IMPL = LinuxJNAAffinity.INSTANCE;
 
