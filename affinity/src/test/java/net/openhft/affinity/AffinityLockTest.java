@@ -126,17 +126,17 @@ public class AffinityLockTest {
         }
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
 
-        assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
         AffinityLock al = AffinityLock.acquireLock();
-        assertEquals(1, AffinitySupport.getAffinity().cardinality());
+        assertEquals(1, Affinity.getAffinity().cardinality());
         al.release();
-        assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
 
-        assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
         AffinityLock al2 = AffinityLock.acquireCore();
-        assertEquals(1, AffinitySupport.getAffinity().cardinality());
+        assertEquals(1, Affinity.getAffinity().cardinality());
         al2.release();
-        assertEquals(AffinityLock.BASE_AFFINITY, AffinitySupport.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
 
     @Test
@@ -182,7 +182,7 @@ public class AffinityLockTest {
 
     @Test
     public void testGettid() {
-        System.out.println("cpu= " + AffinitySupport.getCpu());
+        System.out.println("cpu= " + Affinity.getCpu());
     }
 
     @Test
@@ -215,6 +215,6 @@ public class AffinityLockTest {
     }
 
     private void displayStatus() {
-        System.out.println(Thread.currentThread() + " on " + AffinitySupport.getCpu() + "\n" + AffinityLock.dumpLocks());
+        System.out.println(Thread.currentThread() + " on " + Affinity.getCpu() + "\n" + AffinityLock.dumpLocks());
     }
 }

@@ -19,10 +19,7 @@ package software.chronicle.enterprise.internals;
 import net.openhft.affinity.IAffinity;
 import net.openhft.affinity.impl.LinuxJNAAffinity;
 import net.openhft.affinity.impl.Utilities;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.BitSet;
@@ -74,6 +71,7 @@ public class NativeAffinityTest {
     }
 
     @Test
+    @Ignore("TODO AFFINITY-25")
     public void getAffinityReturnsValuePreviouslySet() {
         String osName = System.getProperty("os.name");
         if (!osName.startsWith("Linux")) {
@@ -90,6 +88,7 @@ public class NativeAffinityTest {
     }
 
     @Test
+    @Ignore("TODO AFFINITY-25")
     public void JNAwithJNI() {
         String osName = System.getProperty("os.name");
         if (!osName.startsWith("Linux")) {

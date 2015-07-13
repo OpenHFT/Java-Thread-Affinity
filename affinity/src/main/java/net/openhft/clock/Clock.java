@@ -23,10 +23,8 @@ import net.openhft.clock.impl.SystemClock;
  * Static factory for available {@link IClock} interface implementation
  *
  * @author Peter.Lawrey
- * @author cheremin
- * @since 29.12.11,  19:02
  */
-public final class ClockSupport {
+public final class Clock {
     public static final IClock INSTANCE;
 
     static {
@@ -42,6 +40,10 @@ public final class ClockSupport {
      */
     public static long ticks() {
         return INSTANCE.ticks();
+    }
+
+    public static long nanoTime() {
+        return toNanos(ticks());
     }
 
     public static long toNanos(long ticks) {

@@ -42,7 +42,7 @@ public class AffinityLock implements Closeable {
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
     public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
-    public static final BitSet BASE_AFFINITY = AffinitySupport.getAffinity();
+    public static final BitSet BASE_AFFINITY = Affinity.getAffinity();
     public static final BitSet RESERVED_AFFINITY = getReservedAffinity0();
     private static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
 
@@ -228,7 +228,7 @@ public class AffinityLock implements Closeable {
         {
             BitSet affinity = new BitSet();
             affinity.set(cpuId, true);
-            AffinitySupport.setAffinity(affinity);
+            Affinity.setAffinity(affinity);
         }
     }
 

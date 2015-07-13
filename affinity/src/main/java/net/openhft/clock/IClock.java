@@ -26,5 +26,5 @@ public interface IClock {
 
     long toNanos(long ticks);
 
-    double toMicros(long ticks);
+    double toMicros(double ticks);
 }

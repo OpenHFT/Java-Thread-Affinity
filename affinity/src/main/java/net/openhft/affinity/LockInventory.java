@@ -152,7 +152,7 @@ class LockInventory {
                 al.bound = false;
             }
         }
-        AffinitySupport.setAffinity(AffinityLock.BASE_AFFINITY);
+        Affinity.setAffinity(AffinityLock.BASE_AFFINITY);
     }
 
     public final synchronized String dumpLocks() {

@@ -6,6 +6,7 @@ import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
+
 import static org.junit.Assert.assertTrue;
 
 /**

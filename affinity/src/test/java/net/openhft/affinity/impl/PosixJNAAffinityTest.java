@@ -16,6 +16,7 @@
 
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.Affinity;
 import net.openhft.affinity.AffinitySupport;
 import net.openhft.affinity.IAffinity;
 import org.junit.Assume;
@@ -35,7 +36,7 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
 
     @Override
     public IAffinity getImpl() {
-        return AffinitySupport.getAffinityImpl();
+        return Affinity.getAffinityImpl();
     }
 
     @Test

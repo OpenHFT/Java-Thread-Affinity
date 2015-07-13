@@ -101,7 +101,7 @@ public enum JNIClock implements IClock {
     }
 
     @Override
-    public double toMicros(long ticks) {
+    public double toMicros(double ticks) {
         return ticks * RDTSC_MICRO_FACTOR;
     }
 }

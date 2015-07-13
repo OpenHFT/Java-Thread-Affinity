@@ -44,7 +44,7 @@ public enum SystemClock implements IClock {
     }
 
     @Override
-    public double toMicros(long ticks) {
+    public double toMicros(double ticks) {
         return ticks / 1e3;
     }
 
