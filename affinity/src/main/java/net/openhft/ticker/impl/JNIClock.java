@@ -14,10 +14,10 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.openhft.clock.impl;
+package net.openhft.ticker.impl;
 
 
-import net.openhft.clock.IClock;
+import net.openhft.ticker.ITicker;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.logging.Logger;
@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * @author cheremin
  * @since 29.12.11,  18:56
  */
-public enum JNIClock implements IClock {
+public enum JNIClock implements ITicker {
     INSTANCE;
 
     private static final Logger LOGGER = Logger.getLogger(JNIClock.class.getName());

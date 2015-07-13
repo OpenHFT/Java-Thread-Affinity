@@ -10,7 +10,7 @@ TARGET := $(TARGET_DIR)/libCEInternals.so
 
 WORKING_DIR := $(TARGET_DIR)/../jni
 
-JAVA_CLASSES = software.chronicle.enterprise.internals.impl.NativeAffinity net.openhft.clock.impl.JNIClock
+JAVA_CLASSES = software.chronicle.enterprise.internals.impl.NativeAffinity net.openhft.ticker.impl.JNIClock
 
 JNI_STUBS := $(subst .,_,$(JAVA_CLASSES))
 JNI_HEADERS := $(patsubst %,$(WORKING_DIR)/%.h,$(JNI_STUBS))

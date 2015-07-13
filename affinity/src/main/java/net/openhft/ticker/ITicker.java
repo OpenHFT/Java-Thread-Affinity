@@ -14,12 +14,12 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.openhft.clock;
+package net.openhft.ticker;
 
 /**
  * Created by peter on 13/07/15.
  */
-public interface IClock {
+public interface ITicker {
     long nanoTime();
 
     long ticks();

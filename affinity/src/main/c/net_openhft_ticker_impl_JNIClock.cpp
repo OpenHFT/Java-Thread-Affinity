@@ -19,7 +19,7 @@
 #endif
 
 #include <jni.h>
-#include "net_openhft_clock_impl_JNIClock.h"
+#include "net_openhft_ticker_impl_JNIClock.h"
 
 #if defined(__i386__)
 static __inline__ unsigned long long rdtsc(void) {
@@ -54,7 +54,7 @@ static __inline__ unsigned long long rdtsc (void) {
  * Method:    rdtsc0
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_net_openhft_clock_impl_JNIClock_rdtsc0
+JNIEXPORT jlong JNICALL Java_net_openhft_ticker_impl_JNIClock_rdtsc0
    (JNIEnv *env, jclass c) {
    return (jlong) rdtsc();
 }

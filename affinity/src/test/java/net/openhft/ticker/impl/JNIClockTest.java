@@ -14,7 +14,7 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.openhft.clock.impl;
+package net.openhft.ticker.impl;
 
 import net.openhft.affinity.Affinity;
 import org.junit.Ignore;

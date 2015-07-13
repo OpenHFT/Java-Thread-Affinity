@@ -14,9 +14,9 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.openhft.clock.impl;
+package net.openhft.ticker.impl;
 
-import net.openhft.clock.IClock;
+import net.openhft.ticker.ITicker;
 
 /**
  * Default implementation, use plain {@link System#nanoTime()}
@@ -24,7 +24,7 @@ import net.openhft.clock.IClock;
  * @author cheremin
  * @since 29.12.11,  18:54
  */
-public enum SystemClock implements IClock {
+public enum SystemClock implements ITicker {
     INSTANCE;
 
 

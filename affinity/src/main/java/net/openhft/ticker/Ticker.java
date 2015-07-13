@@ -14,18 +14,18 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.openhft.clock;
+package net.openhft.ticker;
 
-import net.openhft.clock.impl.JNIClock;
-import net.openhft.clock.impl.SystemClock;
+import net.openhft.ticker.impl.JNIClock;
+import net.openhft.ticker.impl.SystemClock;
 
 /**
- * Static factory for available {@link IClock} interface implementation
+ * Static factory for available {@link ITicker} interface implementation
  *
  * @author Peter.Lawrey
  */
-public final class Clock {
-    public static final IClock INSTANCE;
+public final class Ticker {
+    public static final ITicker INSTANCE;
 
     static {
         if (JNIClock.LOADED) {
