@@ -12,12 +12,10 @@
   ~     GNU Lesser General Public License for more details.
   ~
   ~     You should have received a copy of the GNU Lesser General Public License
-  ~     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  ~     along with this program.  If not, see <http://www.gnu.org/licenses />.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <groupId>net.openhft</groupId>
@@ -28,7 +26,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>affinity</artifactId>
-    <version>3.0-SNAPSHOT</version>
+    <version>3.0</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity</name>
@@ -113,10 +111,9 @@
                         </goals>
                         <configuration>
                             <target>
-                                <property name="makefile"
-                                          value="${project.basedir}/${native.source.dir}/Makefile"/>
+                                <property name="makefile" value="${project.basedir}/${native.source.dir}/Makefile" />
                                 <!-- make it executable -->
-                                <chmod file="${makefile}" perm="u+x"/>
+                                <chmod file="${makefile}" perm="u+x" />
                             </target>
                         </configuration>
                     </execution>
@@ -225,7 +222,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
         </developerConnection>
-        <tag>master</tag>
+        <tag>affinity-3.0</tag>
     </scm>
 
 </project>
