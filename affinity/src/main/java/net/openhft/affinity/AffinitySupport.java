@@ -19,11 +19,14 @@ package net.openhft.affinity;
 import java.lang.reflect.Field;
 
 /**
- * Created by peter on 13/07/15.
+ * For backward compatibility with Affinity 2.x
  */
 @Deprecated
 public class AffinitySupport {
 
+    public static int getThreadId() {
+        return Affinity.getThreadId();
+    }
     public static void setThreadId() {
         try {
             int threadId = Affinity.getThreadId();
