@@ -26,22 +26,30 @@ import java.util.TreeMap;
 class LockInventory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LockInventory.class);
-
-    private CpuLayout cpuLayout;
-
-    /**
-     * The lock belonging to each logical core. 1-to-1 relationship
-     */
-    private AffinityLock[] logicalCoreLocks;
-
     /**
      * The locks belonging to physical cores. Since a physical core can host multiple logical cores
      * the relationship is one to many.
      */
     private final NavigableMap<Integer, AffinityLock[]> physicalCoreLocks = new TreeMap<Integer, AffinityLock[]>();
+    private CpuLayout cpuLayout;
+    /**
+     * The lock belonging to each logical core. 1-to-1 relationship
+     */
+    private AffinityLock[] logicalCoreLocks;
 
     public LockInventory(CpuLayout cpuLayout) {
         set(cpuLayout);
+    }
+
+    public static String dumpLocks(@NotNull AffinityLock[] locks) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < locks.length; i++) {
+            AffinityLock al = locks[i];
+            sb.append(i).append(": ");
+            sb.append(al.toString());
+            sb.append('\n');
+        }
+        return sb.toString();
     }
 
     public final synchronized CpuLayout getCpuLayout() {
@@ -55,7 +63,7 @@ class LockInventory {
         reset(cpuLayout);
         for (int i = 0; i < cpuLayout.cpus(); i++)
         {
-            final boolean base = AffinityLock.BASE_AFFINITY.get(i);;
+            final boolean base = AffinityLock.BASE_AFFINITY.get(i);
             final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
 
             LOGGER.trace("cpu " + i + " base={} reservable= {}", i, base, reservable);
@@ -171,16 +179,5 @@ class LockInventory {
 
     private int toPhysicalCore(int layoutId) {
         return cpuLayout.socketId(layoutId) * cpuLayout.coresPerSocket() + cpuLayout.coreId(layoutId);
-    }
-
-    public static String dumpLocks(@NotNull AffinityLock[] locks) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < locks.length; i++) {
-            AffinityLock al = locks[i];
-            sb.append(i).append(": ");
-            sb.append(al.toString());
-            sb.append('\n');
-        }
-        return sb.toString();
     }
 }
