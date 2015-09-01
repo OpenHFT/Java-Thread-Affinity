@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.util.BitSet;
 
 /**
@@ -32,9 +33,9 @@ import java.util.BitSet;
  */
 public enum Affinity {
     ;
+    static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
     @NotNull
     private static final IAffinity AFFINITY_IMPL;
-    static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
     private static Boolean JNAAvailable;
 
     static {
@@ -152,14 +153,14 @@ public enum Affinity {
         return AFFINITY_IMPL.getAffinity();
     }
 
-    public static void setAffinity(final BitSet affinity) {
-        AFFINITY_IMPL.setAffinity(affinity);
-    }
-
     public static void setAffinity(int cpu) {
         BitSet affinity = new BitSet(Runtime.getRuntime().availableProcessors());
         affinity.set(cpu);
         setAffinity(affinity);
+    }
+
+    public static void setAffinity(final BitSet affinity) {
+        AFFINITY_IMPL.setAffinity(affinity);
     }
 
     public static int getCpu() {
@@ -168,6 +169,19 @@ public enum Affinity {
 
     public static int getThreadId() {
         return AFFINITY_IMPL.getThreadId();
+    }
+
+    public static void setThreadId() {
+        try {
+            int threadId = Affinity.getThreadId();
+            final Field tid = Thread.class.getDeclaredField("tid");
+            tid.setAccessible(true);
+            final Thread thread = Thread.currentThread();
+            tid.setLong(thread, threadId);
+            Affinity.LOGGER.info("Set {} to thread id {}", thread.getName(), threadId);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static boolean isJNAAvailable() {

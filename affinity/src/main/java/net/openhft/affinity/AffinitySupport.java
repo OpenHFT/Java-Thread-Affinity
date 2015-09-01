@@ -16,8 +16,6 @@
 
 package net.openhft.affinity;
 
-import java.lang.reflect.Field;
-
 /**
  * For backward compatibility with Affinity 2.x
  */
@@ -28,16 +26,7 @@ public class AffinitySupport {
         return Affinity.getThreadId();
     }
     public static void setThreadId() {
-        try {
-            int threadId = Affinity.getThreadId();
-            final Field tid = Thread.class.getDeclaredField("tid");
-            tid.setAccessible(true);
-            final Thread thread = Thread.currentThread();
-            tid.setLong(thread, threadId);
-            Affinity.LOGGER.info("Set {} to thread id {}", thread.getName(), threadId);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        Affinity.setThreadId();
     }
 
 }
