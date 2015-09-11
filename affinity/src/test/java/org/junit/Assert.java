@@ -622,7 +622,6 @@ public class Assert {
      *                 <code>actual</code> for which both numbers are still
      *                 considered equal.
      */
-
     static public void assertEquals(float expected, float actual, float delta) {
         assertEquals(null, expected, actual, delta);
     }
