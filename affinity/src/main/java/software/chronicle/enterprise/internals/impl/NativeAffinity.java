@@ -1,6 +1,5 @@
 package software.chronicle.enterprise.internals.impl;
 
-
 import net.openhft.affinity.IAffinity;
 
 import java.util.BitSet;

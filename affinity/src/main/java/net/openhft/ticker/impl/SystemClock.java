@@ -27,7 +27,6 @@ import net.openhft.ticker.ITicker;
 public enum SystemClock implements ITicker {
     INSTANCE;
 
-
     @Override
     public long nanoTime() {
         return System.nanoTime();
@@ -47,6 +46,5 @@ public enum SystemClock implements ITicker {
     public double toMicros(double ticks) {
         return ticks / 1e3;
     }
-
 
 }

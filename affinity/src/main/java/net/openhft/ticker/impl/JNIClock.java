@@ -16,7 +16,6 @@
 
 package net.openhft.ticker.impl;
 
-
 import net.openhft.ticker.ITicker;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
@@ -32,13 +31,13 @@ import java.util.logging.Logger;
 public enum JNIClock implements ITicker {
     INSTANCE;
 
-    private static final Logger LOGGER = Logger.getLogger(JNIClock.class.getName());
     public static final boolean LOADED;
+    private static final Logger LOGGER = Logger.getLogger(JNIClock.class.getName());
     private static final int FACTOR_BITS = 17;
+    private static final long START;
     private static long RDTSC_FACTOR = 1 << FACTOR_BITS;
     private static double RDTSC_MICRO_FACTOR = 1e-3;
     private static long CPU_FREQUENCY = 1000;
-    private static final long START;
 
     static {
         boolean loaded;
@@ -59,11 +58,6 @@ public enum JNIClock implements ITicker {
         }
         LOADED = loaded;
         START = start;
-    }
-
-
-    public long nanoTime() {
-        return tscToNano(rdtsc0() - START);
     }
 
     static long tscToNano(final long tsc) {
@@ -89,6 +83,10 @@ public enum JNIClock implements ITicker {
     }
 
     native static long rdtsc0();
+
+    public long nanoTime() {
+        return tscToNano(rdtsc0() - START);
+    }
 
     @Override
     public long ticks() {
