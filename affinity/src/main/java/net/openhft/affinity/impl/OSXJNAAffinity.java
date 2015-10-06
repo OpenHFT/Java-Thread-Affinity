@@ -39,7 +39,7 @@ public enum OSXJNAAffinity implements IAffinity {
     @Override
     public BitSet getAffinity()
     {
-        return null;
+        return new BitSet();
     }
 
     @Override
