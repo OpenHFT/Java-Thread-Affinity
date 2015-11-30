@@ -24,6 +24,7 @@ class InterrupedThread implements Runnable {
         try {
             Thread.sleep(Integer.MAX_VALUE);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 }
