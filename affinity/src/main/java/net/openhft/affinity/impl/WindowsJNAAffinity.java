@@ -41,6 +41,18 @@ public enum WindowsJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsJNAAffinity.class);
+
+    static {
+        boolean loaded = false;
+        try {
+            INSTANCE.getAffinity();
+            loaded = true;
+        } catch (UnsatisfiedLinkError e) {
+            LOGGER.warn("Unable to load jna library", e);
+        }
+        LOADED = loaded;
+    }
+
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     @Override
@@ -65,7 +77,6 @@ public enum WindowsJNAAffinity implements IAffinity {
         catch (Exception e)
         {
             LOGGER.error(e.getMessage(), e);
-            e.printStackTrace();
         }
 
         return new BitSet();
@@ -139,16 +150,5 @@ public enum WindowsJNAAffinity implements IAffinity {
         void SetThreadAffinityMask(final int pid, final WinDef.DWORD lpProcessAffinityMask) throws LastErrorException;
 
         int GetCurrentThread() throws LastErrorException;
-    }
-
-    static {
-        boolean loaded = false;
-        try {
-            INSTANCE.getAffinity();
-            loaded = true;
-        } catch (UnsatisfiedLinkError e) {
-            LOGGER.warn("Unable to load jna library", e);
-        }
-        LOADED = loaded;
     }
 }
