@@ -25,6 +25,7 @@ public class AffinitySupport {
     public static int getThreadId() {
         return Affinity.getThreadId();
     }
+
     public static void setThreadId() {
         Affinity.setThreadId();
     }

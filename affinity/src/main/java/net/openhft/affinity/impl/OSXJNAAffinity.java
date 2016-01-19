@@ -29,6 +29,7 @@ import java.util.BitSet;
 /**
  * This is essentially the same as the NullAffinity implementation but with concrete
  * support for getThreadId().
+ *
  * @author daniel.shaya
  */
 public enum OSXJNAAffinity implements IAffinity {
@@ -37,8 +38,7 @@ public enum OSXJNAAffinity implements IAffinity {
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     @Override
-    public BitSet getAffinity()
-    {
+    public BitSet getAffinity() {
         return new BitSet();
     }
 

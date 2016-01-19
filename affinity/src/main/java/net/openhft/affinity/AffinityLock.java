@@ -34,16 +34,14 @@ import java.util.BitSet;
  * @author peter.lawrey
  */
 public class AffinityLock implements Closeable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
-
     // Static fields and methods.
     public static final String AFFINITY_RESERVED = "affinity.reserved";
-
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
     public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
     public static final BitSet BASE_AFFINITY = Affinity.getAffinity();
     public static final BitSet RESERVED_AFFINITY = getReservedAffinity0();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
     private static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
 
     static {
@@ -55,6 +53,7 @@ public class AffinityLock implements Closeable {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
         }
     }
+
     /**
      * Logical ID of the CPU to which this lock belongs to.
      */
@@ -103,16 +102,13 @@ public class AffinityLock implements Closeable {
         return LOCK_INVENTORY.getCpuLayout();
     }
 
-    private static BitSet getReservedAffinity0()
-    {
+    private static BitSet getReservedAffinity0() {
         String reservedAffinity = System.getProperty(AFFINITY_RESERVED);
-        if (reservedAffinity == null || reservedAffinity.trim().isEmpty())
-        {
+        if (BASE_AFFINITY != null && (reservedAffinity == null || reservedAffinity.trim().isEmpty())) {
             BitSet reserverable = new BitSet(PROCESSORS);
             reserverable.set(0, PROCESSORS - 1, true);
             reserverable.and(BASE_AFFINITY);
-            if (reserverable.isEmpty() && PROCESSORS > 1)
-            {
+            if (reserverable.isEmpty() && PROCESSORS > 1) {
                 LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
                 reserverable = new BitSet(PROCESSORS);
                 // make the first CPU unavailable
@@ -188,6 +184,10 @@ public class AffinityLock implements Closeable {
         return LOCK_INVENTORY.dumpLocks();
     }
 
+    public static void main(String[] args) {
+        System.out.println("Test");
+    }
+
     /**
      * Assigning the current thread has a side effect of preventing the lock being used again until it is released.
      *
@@ -224,8 +224,7 @@ public class AffinityLock implements Closeable {
             assignedThread = Thread.currentThread();
             LOGGER.info("Assigning cpu {} to {}", cpuId, assignedThread);
         }
-        if (cpuId >= 0)
-        {
+        if (cpuId >= 0) {
             BitSet affinity = new BitSet();
             affinity.set(cpuId, true);
             Affinity.setAffinity(affinity);
@@ -311,9 +310,5 @@ public class AffinityLock implements Closeable {
         else
             sb.append("CPU not available");
         return sb.toString();
-    }
-
-    public static void main(String[] args) {
-        System.out.println("Test");
     }
 }

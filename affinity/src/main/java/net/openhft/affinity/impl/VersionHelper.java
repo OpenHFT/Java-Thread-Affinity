@@ -29,7 +29,7 @@ public class VersionHelper {
     }
 
     public VersionHelper(String ver) {
-        if(ver != null && (ver = ver.trim()).length() > 0) {
+        if (ver != null && (ver = ver.trim()).length() > 0) {
             final String[] parts = ver.split("\\.");
             major = parts.length > 0 ? Integer.parseInt(parts[0]) : 0;
             minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
@@ -45,8 +45,8 @@ public class VersionHelper {
     }
 
     public boolean equals(Object o) {
-        if(o != null && (o instanceof VersionHelper)) {
-            VersionHelper ver = (VersionHelper)o;
+        if (o != null && (o instanceof VersionHelper)) {
+            VersionHelper ver = (VersionHelper) o;
             return this.major == ver.major
                     && this.minor == ver.minor
                     && this.release == ver.release;
@@ -63,15 +63,15 @@ public class VersionHelper {
     @SuppressWarnings({"UnusedDeclaration"})
     public boolean majorMinorEquals(final VersionHelper ver) {
         return ver != null
-            && this.major == ver.major
-            && this.minor == ver.minor;
+                && this.major == ver.major
+                && this.minor == ver.minor;
     }
 
     public boolean isSameOrNewer(final VersionHelper ver) {
         return ver != null
-            && this.major >= ver.major
-            && this.minor >= ver.minor 
-            && this.release >= ver.release;
+                && this.major >= ver.major
+                && this.minor >= ver.minor
+                && this.release >= ver.release;
     }
 }
 

@@ -18,7 +18,6 @@ package net.openhft.affinity.impl;
 
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
-import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
@@ -43,10 +42,55 @@ public enum PosixJNAAffinity implements IAffinity {
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(PosixJNAAffinity.class);
     private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
+    private static final int PROCESS_ID;
+    private static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
+    private static final boolean IS64BIT = is64Bit0();
+    private static final int SYS_gettid = is64Bit() ? 186 : 224;
+    private static final Object[] NO_ARGS = {};
+
+    static {
+        int processId;
+        try {
+            processId = CLibrary.INSTANCE.getpid();
+        } catch (Exception ignored) {
+            processId = -1;
+        }
+        PROCESS_ID = processId;
+    }
+
+    static {
+        boolean loaded = false;
+        try {
+            INSTANCE.getAffinity();
+            loaded = true;
+        } catch (UnsatisfiedLinkError e) {
+            LOGGER.warn("Unable to load jna library {}", e);
+        }
+        LOADED = loaded;
+    }
+
+    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<Integer>();
+
+    public static boolean is64Bit() {
+        return IS64BIT;
+    }
+
+    private static boolean is64Bit0() {
+        String systemProp;
+        systemProp = System.getProperty("com.ibm.vm.bitmode");
+        if (systemProp != null) {
+            return "64".equals(systemProp);
+        }
+        systemProp = System.getProperty("sun.arch.data.model");
+        if (systemProp != null) {
+            return "64".equals(systemProp);
+        }
+        systemProp = System.getProperty("java.vm.version");
+        return systemProp != null && systemProp.contains("_64");
+    }
 
     @Override
-    public BitSet getAffinity()
-    {
+    public BitSet getAffinity() {
         final CLibrary lib = CLibrary.INSTANCE;
         final int procs = Runtime.getRuntime().availableProcessors();
 
@@ -56,36 +100,28 @@ public enum PosixJNAAffinity implements IAffinity {
         final PointerByReference cpuset = new PointerByReference(cpusetArray);
         try {
             final int ret = lib.sched_getaffinity(0, cpuSetSizeInBytes, cpuset);
-            if (ret < 0)
-            {
+            if (ret < 0) {
                 throw new IllegalStateException("sched_getaffinity((" + cpuSetSizeInBytes + ") , &(" + cpusetArray + ") ) return " + ret);
             }
             ByteBuffer buff = cpusetArray.getByteBuffer(0, cpuSetSizeInBytes);
             return BitSet.valueOf(buff.array());
-        }
-        catch (LastErrorException e)
-        {
-            if (e.getErrorCode() != 22)
-            {
+        } catch (LastErrorException e) {
+            if (e.getErrorCode() != 22) {
                 throw new IllegalStateException("sched_getaffinity((" + cpuSetSizeInBytes + ") , &(" + cpusetArray + ") ) errorNo=" + e.getErrorCode(), e);
             }
         }
 
         // fall back to the old method
         final IntByReference cpuset32 = new IntByReference(0);
-        try
-        {
+        try {
             final int ret = lib.sched_getaffinity(0, Integer.SIZE / 8, cpuset32);
-            if (ret < 0)
-            {
+            if (ret < 0) {
                 throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) return " + ret);
             }
             long[] longs = new long[1];
             longs[0] = cpuset32.getValue() & 0xFFFFFFFFL;
             return BitSet.valueOf(longs);
-        }
-        catch (LastErrorException e)
-        {
+        } catch (LastErrorException e) {
             throw new IllegalStateException("sched_getaffinity((" + Integer.SIZE / 8 + ") , &(" + cpuset32 + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }
@@ -93,8 +129,7 @@ public enum PosixJNAAffinity implements IAffinity {
     @Override
     public void setAffinity(final BitSet affinity) {
         int procs = Runtime.getRuntime().availableProcessors();
-        if (affinity.isEmpty())
-        {
+        if (affinity.isEmpty()) {
             throw new IllegalArgumentException("Cannot set zero affinity");
         }
 
@@ -102,26 +137,20 @@ public enum PosixJNAAffinity implements IAffinity {
         byte[] buff = affinity.toByteArray();
         final int cpuSetSizeInBytes = buff.length;
         final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
-        try
-        {
+        try {
             cpusetArray.write(0, buff, 0, buff.length);
             final int ret = lib.sched_setaffinity(0, cpuSetSizeInBytes, new PointerByReference(cpusetArray));
-            if (ret < 0)
-            {
+            if (ret < 0) {
                 throw new IllegalStateException("sched_setaffinity((" + cpuSetSizeInBytes + ") , &(" + affinity + ") ) return " + ret);
             }
-        }
-        catch (LastErrorException e)
-        {
-            if (e.getErrorCode() != 22 || !Arrays.equals(buff, cpusetArray.getByteArray(0, cpuSetSizeInBytes)))
-            {
+        } catch (LastErrorException e) {
+            if (e.getErrorCode() != 22 || !Arrays.equals(buff, cpusetArray.getByteArray(0, cpuSetSizeInBytes))) {
                 throw new IllegalStateException("sched_setaffinity((" + cpuSetSizeInBytes + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
             }
         }
 
         final int value = (int) affinity.toLongArray()[0];
-        if (value == 0)
-        {
+        if (value == 0) {
             throw new IllegalArgumentException("Cannot set zero affinity");
         }
         final IntByReference cpuset32 = new IntByReference(0);
@@ -146,7 +175,7 @@ public enum PosixJNAAffinity implements IAffinity {
         } catch (LastErrorException e) {
             throw new IllegalStateException("sched_getcpu( ) errorNo=" + e.getErrorCode(), e);
         } catch (UnsatisfiedLinkError ule) {
-            try { 
+            try {
                 final IntByReference cpu = new IntByReference();
                 final IntByReference node = new IntByReference();
                 final int ret = lib.syscall(318, cpu, node, null);
@@ -161,24 +190,10 @@ public enum PosixJNAAffinity implements IAffinity {
         }
     }
 
-    private static final int PROCESS_ID;
-
     @Override
     public int getProcessId() {
         return PROCESS_ID;
     }
-
-    static {
-        int processId;
-        try {
-            processId = CLibrary.INSTANCE.getpid();
-        } catch (Exception ignored) {
-            processId = -1;
-        }
-        PROCESS_ID = processId;
-    }
-
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<Integer>();
 
     @Override
     public int getThreadId() {
@@ -189,32 +204,6 @@ public enum PosixJNAAffinity implements IAffinity {
             return tid;
         }
         return -1;
-    }
-
-    private static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
-
-    private static final boolean IS64BIT = is64Bit0();
-
-    private static final int SYS_gettid = is64Bit() ? 186 : 224;
-
-    private static final Object[] NO_ARGS = {};
-
-    public static boolean is64Bit() {
-        return IS64BIT;
-    }
-
-    private static boolean is64Bit0() {
-        String systemProp;
-        systemProp = System.getProperty("com.ibm.vm.bitmode");
-        if (systemProp != null) {
-            return "64".equals(systemProp);
-        }
-        systemProp = System.getProperty("sun.arch.data.model");
-        if (systemProp != null) {
-            return "64".equals(systemProp);
-        }
-        systemProp = System.getProperty("java.vm.version");
-        return systemProp != null && systemProp.contains("_64");
     }
 
     /**
@@ -233,7 +222,7 @@ public enum PosixJNAAffinity implements IAffinity {
                               final PointerType cpuset) throws LastErrorException;
 
         int sched_getcpu() throws LastErrorException;
-      
+
         int getcpu(final IntByReference cpu,
                    final IntByReference node,
                    final PointerType tcache) throws LastErrorException;
@@ -241,16 +230,5 @@ public enum PosixJNAAffinity implements IAffinity {
         int getpid() throws LastErrorException;
 
         int syscall(int number, Object... args) throws LastErrorException;
-    }
-
-    static {
-        boolean loaded = false;
-        try {
-            INSTANCE.getAffinity();
-            loaded = true;
-        } catch (UnsatisfiedLinkError e) {
-            LOGGER.warn("Unable to load jna library {}", e);
-        }
-        LOADED = loaded;
     }
 }

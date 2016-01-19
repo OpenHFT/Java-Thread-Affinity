@@ -65,17 +65,14 @@ public enum WindowsJNAAffinity implements IAffinity {
             final int ret = lib.GetProcessAffinityMask(-1, cpuset1, cpuset2);
             // Successful result is positive, according to the docs
             // https://msdn.microsoft.com/en-us/library/windows/desktop/ms683213%28v=vs.85%29.aspx
-            if (ret <= 0)
-            {
+            if (ret <= 0) {
                 throw new IllegalStateException("GetProcessAffinityMask(( -1 ), &(" + cpuset1 + "), &(" + cpuset2 + ") ) return " + ret);
             }
 
             long[] longs = new long[1];
             longs[0] = cpuset1.getValue();
             return BitSet.valueOf(longs);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
         }
 
@@ -88,8 +85,7 @@ public enum WindowsJNAAffinity implements IAffinity {
 
         WinDef.DWORD aff;
         long[] longs = affinity.toLongArray();
-        switch (longs.length)
-        {
+        switch (longs.length) {
             case 0:
                 aff = new WinDef.DWORD(0);
                 break;
@@ -101,12 +97,9 @@ public enum WindowsJNAAffinity implements IAffinity {
         }
 
         int pid = getTid();
-        try
-        {
+        try {
             lib.SetThreadAffinityMask(pid, aff);
-        }
-        catch (LastErrorException e)
-        {
+        } catch (LastErrorException e) {
             throw new IllegalStateException("SetThreadAffinityMask((" + pid + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
     }

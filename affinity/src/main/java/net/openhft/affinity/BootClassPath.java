@@ -38,7 +38,7 @@ enum BootClassPath {
         Logger LOGGER = LoggerFactory.getLogger(BootClassPath.class);
         try {
             String bootClassPath = System.getProperty("sun.boot.class.path");
-            LOGGER.trace("Boot class-path is: {}",bootClassPath);
+            LOGGER.trace("Boot class-path is: {}", bootClassPath);
 
             String pathSeparator = System.getProperty("path.separator");
             LOGGER.trace("Path separator is: '{}'", pathSeparator);

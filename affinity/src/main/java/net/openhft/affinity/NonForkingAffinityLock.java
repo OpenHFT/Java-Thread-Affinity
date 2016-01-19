@@ -34,6 +34,10 @@ public class NonForkingAffinityLock extends AffinityLock implements ThreadLifecy
         }
     };
 
+    NonForkingAffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+        super(cpuId, base, reservable, lockInventory);
+    }
+
     /**
      * Assign any free cpu to this thread.
      *
@@ -114,37 +118,6 @@ public class NonForkingAffinityLock extends AffinityLock implements ThreadLifecy
         return LOCK_INVENTORY.dumpLocks();
     }
 
-    NonForkingAffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
-        super(cpuId, base, reservable, lockInventory);
-    }
-
-    @Override
-    public void bind(boolean wholeCore) {
-        super.bind(wholeCore);
-        Thread thread = Thread.currentThread();
-        changeGroupOfThread(thread, new ThreadTrackingGroup(thread.getThreadGroup(), this));
-    }
-
-    @Override
-    public void release() {
-        Thread thread = Thread.currentThread();
-        changeGroupOfThread(thread, thread.getThreadGroup().getParent());
-        super.release();
-    }
-
-    @Override
-    public void started(Thread t) {
-        wrapRunnableOfThread(t, this);
-    }
-
-    @Override
-    public void startFailed(Thread t) {
-    }
-
-    @Override
-    public void terminated(Thread t) {
-    }
-
     private static Field makeThreadFieldModifiable(String fieldName) {
         try {
             Field field = Thread.class.getDeclaredField(fieldName);
@@ -179,5 +152,32 @@ public class NonForkingAffinityLock extends AffinityLock implements ThreadLifecy
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Failed wrapping " + Thread.class.getName() + "'s '" + TARGET_FIELD.getName() + "' field! Reason: " + e.getMessage());
         }
+    }
+
+    @Override
+    public void bind(boolean wholeCore) {
+        super.bind(wholeCore);
+        Thread thread = Thread.currentThread();
+        changeGroupOfThread(thread, new ThreadTrackingGroup(thread.getThreadGroup(), this));
+    }
+
+    @Override
+    public void release() {
+        Thread thread = Thread.currentThread();
+        changeGroupOfThread(thread, thread.getThreadGroup().getParent());
+        super.release();
+    }
+
+    @Override
+    public void started(Thread t) {
+        wrapRunnableOfThread(t, this);
+    }
+
+    @Override
+    public void startFailed(Thread t) {
+    }
+
+    @Override
+    public void terminated(Thread t) {
     }
 }

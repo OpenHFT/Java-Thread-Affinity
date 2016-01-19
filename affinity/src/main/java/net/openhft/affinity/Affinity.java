@@ -153,14 +153,14 @@ public enum Affinity {
         return AFFINITY_IMPL.getAffinity();
     }
 
+    public static void setAffinity(final BitSet affinity) {
+        AFFINITY_IMPL.setAffinity(affinity);
+    }
+
     public static void setAffinity(int cpu) {
         BitSet affinity = new BitSet(Runtime.getRuntime().availableProcessors());
         affinity.set(cpu);
         setAffinity(affinity);
-    }
-
-    public static void setAffinity(final BitSet affinity) {
-        AFFINITY_IMPL.setAffinity(affinity);
     }
 
     public static int getCpu() {
