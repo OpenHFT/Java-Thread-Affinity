@@ -7,7 +7,10 @@ import java.util.BitSet;
 /**
  * Created by andre on 20/06/15.
  */
-public class Utilities {
+public final class Utilities {
+    private Utilities() {
+        throw new InstantiationError( "Must not instantiate this class" );
+    }
     /**
      * Creates a hexademical representation of the bit set
      *
