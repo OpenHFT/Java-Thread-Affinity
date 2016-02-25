@@ -152,11 +152,13 @@ class LockInventory {
                 LOGGER.info("Releasing cpu {} from {}", al.cpuId(), t);
                 al.assignedThread = null;
                 al.bound = false;
+                al.boundHere = null;
 
             } else if (at != null && !at.isAlive()) {
                 LOGGER.warn("Releasing cpu {} from {} as it is not alive.", al.cpuId(), t);
                 al.assignedThread = null;
                 al.bound = false;
+                al.boundHere = null;
             }
         }
         Affinity.setAffinity(AffinityLock.BASE_AFFINITY);

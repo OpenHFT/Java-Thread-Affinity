@@ -74,6 +74,7 @@ public class AffinityLock implements Closeable {
     boolean bound = false;
     @Nullable
     Thread assignedThread;
+    Throwable boundHere;
 
     AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
         this.lockInventory = lockInventory;
@@ -188,6 +189,12 @@ public class AffinityLock implements Closeable {
         System.out.println("Test");
     }
 
+    private static boolean areAssertionsEnabled() {
+        boolean debug = false;
+        assert debug = true;
+        return debug;
+    }
+
     /**
      * Assigning the current thread has a side effect of preventing the lock being used again until it is released.
      *
@@ -216,6 +223,8 @@ public class AffinityLock implements Closeable {
         if (bound && assignedThread != null && assignedThread.isAlive())
             throw new IllegalStateException("cpu " + cpuId + " already bound to " + assignedThread);
 
+        if (areAssertionsEnabled())
+            boundHere = new Throwable("Bound here");
         if (wholeCore) {
             lockInventory.bindWholeCore(cpuId);
 
@@ -270,8 +279,8 @@ public class AffinityLock implements Closeable {
 
     @Override
     protected void finalize() throws Throwable {
-        if (reservable) {
-            LOGGER.warn("Affinity lock for {} was discarded rather than release()d in a controlled manner.", assignedThread);
+        if (bound) {
+            LOGGER.warn("Affinity lock for " + assignedThread + " was discarded rather than release()d in a controlled manner.", boundHere);
             release();
         }
         super.finalize();

@@ -188,7 +188,8 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            net.openhft.affinity.*
+                            net.openhft.affinity.*;-noimport:=true,
+                            net.openhft.ticker.*;-noimport:=true
                         </Export-Package>
                     </instructions>
                 </configuration>
