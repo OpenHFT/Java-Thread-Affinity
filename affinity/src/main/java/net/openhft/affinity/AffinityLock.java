@@ -185,10 +185,6 @@ public class AffinityLock implements Closeable {
         return LOCK_INVENTORY.dumpLocks();
     }
 
-    public static void main(String[] args) {
-        System.out.println("Test");
-    }
-
     private static boolean areAssertionsEnabled() {
         boolean debug = false;
         assert debug = true;
