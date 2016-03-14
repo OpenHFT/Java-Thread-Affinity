@@ -107,7 +107,7 @@ public class AffinityLock implements Closeable {
         String reservedAffinity = System.getProperty(AFFINITY_RESERVED);
         if (BASE_AFFINITY != null && (reservedAffinity == null || reservedAffinity.trim().isEmpty())) {
             BitSet reserverable = new BitSet(PROCESSORS);
-            reserverable.set(0, PROCESSORS - 1, true);
+            reserverable.set(0, PROCESSORS, true);
             reserverable.and(BASE_AFFINITY);
             if (reserverable.isEmpty() && PROCESSORS > 1) {
                 LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
