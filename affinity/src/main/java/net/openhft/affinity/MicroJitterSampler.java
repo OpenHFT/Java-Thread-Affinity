@@ -44,7 +44,7 @@ After 2430 seconds, the average per hour was
 /**
  * User: peter.lawrey Date: 30/06/13 Time: 13:13
  */
-class MicroJitterSampler {
+public class MicroJitterSampler {
 
     private static final long[] DELAY = {
             2 * 1000, 3 * 1000, 4 * 1000, 6 * 1000, 8 * 1000, 10 * 1000, 14 * 1000,
@@ -59,7 +59,7 @@ class MicroJitterSampler {
     private long totalTime = 0;
 
     public static void main(String... ignored) throws InterruptedException {
-//        AffinityLock al = AffinityLock.acquireLock();
+        AffinityLock al = AffinityLock.acquireLock();
 
         // warmup.
         new MicroJitterSampler().sample(1000 * 1000 * 1000);
