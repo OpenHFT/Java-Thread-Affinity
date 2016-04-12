@@ -29,7 +29,7 @@ public class JNIClockTest {
 
     @Test
     @Ignore("TODO Fix")
-    public void testNanoTime() throws Exception {
+    public void testNanoTime() throws InterruptedException {
         for (int i = 0; i < 20000; i++)
             System.nanoTime();
         Affinity.setAffinity(2);
