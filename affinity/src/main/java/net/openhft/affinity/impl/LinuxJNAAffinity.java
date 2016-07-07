@@ -56,7 +56,6 @@ public enum LinuxJNAAffinity implements IAffinity {
 
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
-
     @Override
     public BitSet getAffinity() {
         final LinuxHelper.cpu_set_t cpuset = LinuxHelper.sched_getaffinity();
