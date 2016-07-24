@@ -19,7 +19,11 @@ package net.openhft.affinity;
 /**
  * @author peter.lawrey
  */
-public class AffinitySupportMain {
+public final class AffinitySupportMain {
+    private AffinitySupportMain() {
+        throw new InstantiationError( "Must not instantiate this class" );
+    }
+
     public static void main(String... args) {
         AffinityLock al = AffinityLock.acquireLock();
         try {

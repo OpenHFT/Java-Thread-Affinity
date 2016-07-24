@@ -26,10 +26,13 @@ import static net.openhft.affinity.AffinityStrategies.*;
 /**
  * @author peter.lawrey
  */
-public class AffinityThreadFactoryMain {
+public final class AffinityThreadFactoryMain {
     private static final ExecutorService ES = Executors.newFixedThreadPool(4,
             new AffinityThreadFactory("bg", SAME_CORE, DIFFERENT_SOCKET, ANY));
 
+    private AffinityThreadFactoryMain(){
+        throw new InstantiationError( "Must not instantiate this class" );
+    }
     public static void main(String... args) throws InterruptedException {
         for (int i = 0; i < 12; i++)
             ES.submit(new Callable<Void>() {

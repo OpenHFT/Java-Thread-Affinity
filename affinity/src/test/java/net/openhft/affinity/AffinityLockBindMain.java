@@ -21,7 +21,11 @@ import static net.openhft.affinity.AffinityStrategies.*;
 /**
  * @author peter.lawrey
  */
-public class AffinityLockBindMain {
+public final class AffinityLockBindMain {
+    private AffinityLockBindMain() {
+        throw new InstantiationError( "Must not instantiate this class" );
+    }
+
     public static void main(String... args) throws InterruptedException {
         AffinityLock al = AffinityLock.acquireLock();
         try {

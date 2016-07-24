@@ -35,6 +35,10 @@ public final class Ticker {
         }
     }
 
+    private Ticker() {
+        throw new InstantiationError( "Must not instantiate this class" );
+    }
+
     /**
      * @return The current value of the system timer, in nanoseconds.
      */
