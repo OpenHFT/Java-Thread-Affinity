@@ -10,6 +10,18 @@ See the affinity/src/test/java for working examples of how to use this library.
 V2.2 - Latest build.
 V2.0.1 - Added getThreadId for the process if of the thread.
 
+### Installing JNA on Ubuntu
+
+----
+sudo apt-get install libjna-java
+----
+
+### Installing JAN on Centos
+
+----
+sudo yum install jna
+----
+
 ## How does allocation work?
 The library will read your /proc/cpuinfo if you have one or provide one and it will determine your CPU layout.  If you don't have one it will assume every CPU is on one Socket.
 
