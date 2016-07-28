@@ -5,24 +5,24 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.function.Supplier;
 
 
 /**
  * @author Rob Austin.
  */
-public class LockCheck {
+class LockCheck {
 
     static final String TMP = System.getProperty("java.io.tmpdir");
-    public static final String TARGET = System.getProperty("project.build.directory", findTarget());
     private static final String OS = System.getProperty("os.name").toLowerCase();
     static final boolean IS_LINUX = OS.startsWith("linux");
-    private ThreadLocal<SimpleDateFormat> df = ThreadLocal.withInitial(new Supplier() {
+
+    private ThreadLocal<SimpleDateFormat> df = new ThreadLocal() {
+
         @Override
-        public Object get() {
+        protected Object initialValue() {
             return new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
         }
-    });
+    };
 
     private static String findTarget() {
         for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {
@@ -41,10 +41,10 @@ public class LockCheck {
      * @return
      * @throws IOException
      */
-    public boolean isCoreAlreadyAssigned(int core, long processID) throws IOException {
+    boolean isCoreAlreadyAssigned(int core, long processID) throws IOException {
 
-        File file = new File(tmpDir(), "core-" + core);
-        boolean exists = file.exists();
+        final File file = new File(tmpDir(), "core-" + core + ".lock");
+        final boolean exists = file.exists();
 
         if (!exists) {
             // create a lock file
@@ -58,7 +58,6 @@ public class LockCheck {
             }
             return false;
         }
-
     }
 
     private void replacePid(long processID, File file) throws IOException {
@@ -90,7 +89,7 @@ public class LockCheck {
     }
 
     int getPid(int core) throws IOException {
-        return getPid(new File(tmpDir(), "core-" + core));
+        return getPid(new File(tmpDir(), "core-" + core + ".lock"));
     }
 
     private int getPid(@NotNull File coreFile) throws IOException {
@@ -111,6 +110,5 @@ public class LockCheck {
 
         return tempDir;
     }
-
 
 }
