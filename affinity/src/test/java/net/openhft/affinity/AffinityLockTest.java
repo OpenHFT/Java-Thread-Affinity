@@ -139,6 +139,7 @@ public class AffinityLockTest {
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
 
+
     @Test
     public void testIssue21() throws IOException {
         if (!new File("/proc/cpuinfo").exists()) {
@@ -157,7 +158,8 @@ public class AffinityLockTest {
 
         } else {
             assertNotSame(alForAnotherThread, al);
-            assertNotSame(alForAnotherThread.cpuId(), al.cpuId());
+            if (alForAnotherThread.cpuId() != -1)
+                assertNotSame(alForAnotherThread.cpuId(), al.cpuId());
         }
         alForAnotherThread.release();
         al.release();
