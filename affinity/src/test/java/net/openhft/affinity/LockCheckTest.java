@@ -1,6 +1,7 @@
 package net.openhft.affinity;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,37 +19,30 @@ public class LockCheckTest {
 
     @Before
     public void before() {
-        System.setProperty("java.io.tmpdir", LockCheck.TMP + "/" + System.nanoTime());
+        Assume.assumeTrue(IS_LINUX);
+        System.setProperty("java.io.tmpdir", LockCheck.TARGET + "/" + System.nanoTime());
     }
 
     @Test
     public void test() throws IOException {
-        if (IS_LINUX) {
-
-            Assert.assertTrue(LockCheck.isCpuFree(CPU));
-            LockCheck.updateCpu(CPU);
-            Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(CPU));
-        }
+        Assert.assertTrue(LockCheck.isCpuFree(CPU));
+        LockCheck.updateCpu(CPU);
+        Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(CPU));
     }
 
     @Test
     public void testPidOnLinux() {
 
-
-        if (IS_LINUX)
-            Assert.assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
-
+        Assert.assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
     }
 
     @Test
     public void testReplace() throws IOException {
         CPU++;
-        if (IS_LINUX) {
+        Assert.assertTrue(LockCheck.isCpuFree(CPU + 1));
+        LockCheck.replacePid(CPU, 123L);
+        Assert.assertEquals(123L, LockCheck.getProcessForCpu(CPU));
 
-            Assert.assertTrue(LockCheck.isCpuFree(CPU + 1));
-            LockCheck.replacePid(CPU, 123L);
-            Assert.assertEquals(123L, LockCheck.getProcessForCpu(CPU));
-        }
     }
 
 

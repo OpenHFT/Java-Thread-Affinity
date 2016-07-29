@@ -29,7 +29,8 @@ import java.io.IOException;
 import java.util.BitSet;
 
 /**
- * This utility class support locking a thread to a single core, or reserving a whole core for a thread.
+ * This utility class support locking a thread to a single core, or reserving a whole core for a
+ * thread.
  *
  * @author peter.lawrey
  */
@@ -67,8 +68,8 @@ public class AffinityLock implements Closeable {
      */
     private final boolean reservable;
     /**
-     * An inventory build from the CPU layout which keeps track of the various locks
-     * belonging to each CPU.
+     * An inventory build from the CPU layout which keeps track of the various locks belonging to
+     * each CPU.
      */
     private final LockInventory lockInventory;
     boolean bound = false;
@@ -84,10 +85,9 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * Set the CPU layout for this machine.  CPUs which are not mentioned will be ignored.
-     * <p>
-     * Changing the layout will have no impact on thread which have already been assigned.
-     * It only affects subsequent assignments.
+     * Set the CPU layout for this machine.  CPUs which are not mentioned will be ignored. <p>
+     * Changing the layout will have no impact on thread which have already been assigned. It only
+     * affects subsequent assignments.
      *
      * @param cpuLayout for this application to use for this machine.
      */
@@ -135,9 +135,8 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * Assign any free core to this thread.
-     * <p>
-     * In reality, only one cpu is assigned, the rest of the threads for that core are reservable so they are not used.
+     * Assign any free core to this thread. <p> In reality, only one cpu is assigned, the rest of
+     * the threads for that core are reservable so they are not used.
      *
      * @return A handle for the current AffinityLock.
      */
@@ -146,11 +145,11 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * Assign a cpu which can be bound to the current thread or another thread.
-     * <p>
-     * This can be used for defining your thread layout centrally and passing the handle via dependency injection.
+     * Assign a cpu which can be bound to the current thread or another thread. <p> This can be used
+     * for defining your thread layout centrally and passing the handle via dependency injection.
      *
-     * @param bind if true, bind the current thread, if false, reserve a cpu which can be bound later.
+     * @param bind if true, bind the current thread, if false, reserve a cpu which can be bound
+     *             later.
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireLock(boolean bind) {
@@ -159,10 +158,11 @@ public class AffinityLock implements Closeable {
 
     /**
      * Assign a core(and all its cpus) which can be bound to the current thread or another thread.
-     * <p>
-     * This can be used for defining your thread layout centrally and passing the handle via dependency injection.
+     * <p> This can be used for defining your thread layout centrally and passing the handle via
+     * dependency injection.
      *
-     * @param bind if true, bind the current thread, if false, reserve a cpu which can be bound later.
+     * @param bind if true, bind the current thread, if false, reserve a cpu which can be bound
+     *             later.
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireCore(boolean bind) {
@@ -192,7 +192,8 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * Assigning the current thread has a side effect of preventing the lock being used again until it is released.
+     * Assigning the current thread has a side effect of preventing the lock being used again until
+     * it is released.
      *
      * @param bind      whether to bind the thread as well
      * @param wholeCore whether to reserve all the thread in the same core.
@@ -237,6 +238,10 @@ public class AffinityLock implements Closeable {
     }
 
     final boolean canReserve() {
+
+        if (!LockCheck.isCpuFree(cpuId))
+            return false;
+
         if (!reservable) return false;
         if (assignedThread != null) {
             if (assignedThread.isAlive()) {
@@ -249,10 +254,10 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * Give another affinity lock relative to this one based on a list of strategies.
-     * <p>
-     * The strategies are evaluated in order to (like a search path) to find the next appropriate thread.
-     * If ANY is not the last strategy, a warning is logged and no cpu is assigned (leaving the OS to choose)
+     * Give another affinity lock relative to this one based on a list of strategies. <p> The
+     * strategies are evaluated in order to (like a search path) to find the next appropriate
+     * thread. If ANY is not the last strategy, a warning is logged and no cpu is assigned (leaving
+     * the OS to choose)
      *
      * @param strategies To determine if you want the same/different core/socket.
      * @return A matching AffinityLock.

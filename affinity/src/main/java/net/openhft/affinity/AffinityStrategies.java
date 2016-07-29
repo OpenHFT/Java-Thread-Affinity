@@ -16,8 +16,6 @@
 
 package net.openhft.affinity;
 
-import java.io.IOException;
-
 /**
  * Pre-defined strategies for determining which thread to pick next.
  *
@@ -31,21 +29,7 @@ public enum AffinityStrategies implements AffinityStrategy {
     ANY {
         @Override
         public boolean matches(int cpuId, int cpuId2) {
-            if (LockCheck.IS_LINUX) {
-                if (cpuId == -1 && cpuId2 != -1)
-                    return isFreeCpu(cpuId2);
-                else if (cpuId != -1 && cpuId2 == -1)
-                    return isFreeCpu(cpuId);
-            }
             return true;
-        }
-
-        private boolean isFreeCpu(int cpuId) {
-            try {
-                return LockCheck.isCpuFree(cpuId);
-            } catch (IOException e) {
-                return true;
-            }
         }
     },
     /**

@@ -34,7 +34,10 @@ enum LockCheck {
         return Long.parseLong(processName.split("@")[0]);
     }
 
-    static boolean isCpuFree(int cpu) throws IOException {
+    public static boolean isCpuFree(int cpu) {
+
+        if (!IS_LINUX)
+            return true;
 
         final File file = toFile(cpu);
         final boolean exists = file.exists();
@@ -42,7 +45,13 @@ enum LockCheck {
         if (!exists) {
             return true;
         } else {
-            int currentProcess = getProcessForCpu(file);
+            int currentProcess = 0;
+            try {
+                currentProcess = getProcessForCpu(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return true;
+            }
             if (!isProcessRunning(currentProcess)) {
                 file.delete();
                 return true;
@@ -75,17 +84,13 @@ enum LockCheck {
     /**
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
-     *
-     * @param processID
-     * @param coreFile
-     * @throws IOException
      */
     private synchronized static void storePid(long processID, File coreFile) throws IOException {
-        RandomAccessFile f = new RandomAccessFile(coreFile, "rw");
-        f.seek(0); // to the beginning
-        String processIDStr = Long.toString(processID);
-        f.write((processIDStr + "\n" + df.format(new Date())).getBytes());
-        f.close();
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(coreFile), "utf-8"))) {
+            String processIDStr = Long.toString(processID);
+            writer.write(processIDStr + "\n" + df.format(new Date()));
+        }
     }
 
     static int getProcessForCpu(int core) throws IOException {
@@ -110,10 +115,14 @@ enum LockCheck {
     }
 
     static void updateCpu(int cpu) {
+        if (!IS_LINUX)
+            return;
         try {
             replacePid(toFile(cpu), getPID());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
 }
