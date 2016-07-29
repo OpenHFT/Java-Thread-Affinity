@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
@@ -39,7 +38,7 @@ public enum Affinity {
     @NotNull
     private static final IAffinity AFFINITY_IMPL;
     private static Boolean JNAAvailable;
-    private static LockCheck LOCK_CHECK = new LockCheck();
+
 
     static {
         String osName = System.getProperty("os.name");
@@ -156,14 +155,14 @@ public enum Affinity {
         return AFFINITY_IMPL.getAffinity();
     }
 
-    public static void setAffinity(final BitSet affinity) {
-        AFFINITY_IMPL.setAffinity(affinity);
-    }
-
     public static void setAffinity(int cpu) {
         BitSet affinity = new BitSet(Runtime.getRuntime().availableProcessors());
         affinity.set(cpu);
         setAffinity(affinity);
+    }
+
+    public static void setAffinity(final BitSet affinity) {
+        AFFINITY_IMPL.setAffinity(affinity);
     }
 
     public static int getCpu() {
@@ -198,20 +197,7 @@ public enum Affinity {
         return JNAAvailable;
     }
 
-    public static long getPID() {
-        String processName =
-                java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-        return Long.parseLong(processName.split("@")[0]);
-    }
-
     public static AffinityLock acquireLock() {
-        if (LockCheck.IS_LINUX)
-
-            try {
-                LOCK_CHECK.isCoreAlreadyAssigned(getCpu(), getPID());
-            } catch (IOException e) {
-                // unknown state
-            }
         return isNonForkingAffinityAvailable() ? NonForkingAffinityLock.acquireLock() : AffinityLock.acquireLock();
     }
 

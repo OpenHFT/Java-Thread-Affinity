@@ -13,9 +13,9 @@ import java.util.Date;
 class LockCheck {
 
     static final String TMP = System.getProperty("java.io.tmpdir");
+    public static final String TARGET = System.getProperty("project.build.directory", findTarget());
     private static final String OS = System.getProperty("os.name").toLowerCase();
     static final boolean IS_LINUX = OS.startsWith("linux");
-
     private ThreadLocal<SimpleDateFormat> df = new ThreadLocal() {
 
         @Override
@@ -33,6 +33,32 @@ class LockCheck {
         return TMP + "/target";
     }
 
+    public static long getPID() {
+        String processName =
+                java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+        return Long.parseLong(processName.split("@")[0]);
+    }
+
+    boolean isFreeCpu(int cpu) throws IOException {
+        long processID = getPID();
+
+        final File file = toFile(cpu);
+        final boolean exists = file.exists();
+
+        if (!exists) {
+            // create a lock file
+            storePid(processID, file);
+            return true;
+        } else {
+            int currentProcess = getProcessForCore(file);
+            if (!isProcessRunning(currentProcess)) {
+                replacePid(file, processID);
+                return true;
+            }
+            return false;
+        }
+    }
+
     /**
      * stores the process id for a give pid
      *
@@ -41,9 +67,9 @@ class LockCheck {
      * @return
      * @throws IOException
      */
-    boolean isCoreAlreadyAssigned(int core, long processID) throws IOException {
+    private boolean isFreeCpu(int core, long processID) throws IOException {
 
-        final File file = new File(tmpDir(), "core-" + core + ".lock");
+        final File file = toFile(core);
         final boolean exists = file.exists();
 
         if (!exists) {
@@ -51,16 +77,25 @@ class LockCheck {
             storePid(processID, file);
             return true;
         } else {
-            int currentProcess = getPid(file);
+            int currentProcess = getProcessForCore(file);
             if (!isProcessRunning(currentProcess)) {
-                replacePid(processID, file);
+                replacePid(file, processID);
                 return true;
             }
             return false;
         }
     }
 
-    private void replacePid(long processID, File file) throws IOException {
+    @NotNull
+    private File toFile(int core) {
+        return new File(tmpDir(), "cpu-" + core + ".lock");
+    }
+
+    void replacePid(int core, long processID) throws IOException {
+        replacePid(toFile(core), processID);
+    }
+
+    private void replacePid(File file, long processID) throws IOException {
         file.delete();
         storePid(processID, file);
     }
@@ -88,16 +123,15 @@ class LockCheck {
         }
     }
 
-    int getPid(int core) throws IOException {
-        return getPid(new File(tmpDir(), "core-" + core + ".lock"));
+    int getProcessForCore(int core) throws IOException {
+        return getProcessForCore(toFile(core));
     }
 
-    private int getPid(@NotNull File coreFile) throws IOException {
+    private int getProcessForCore(@NotNull File coreFile) throws IOException {
 
         try (LineNumberReader reader = new LineNumberReader(
                 new BufferedReader(new InputStreamReader(new FileInputStream(coreFile), "utf-8")))) {
             String s = reader.readLine().trim();
-            System.out.println("" + s);
             return Integer.parseInt(s);
         }
     }

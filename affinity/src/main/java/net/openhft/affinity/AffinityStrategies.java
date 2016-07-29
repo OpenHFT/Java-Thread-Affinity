@@ -16,19 +16,37 @@
 
 package net.openhft.affinity;
 
+import java.io.IOException;
+
 /**
  * Pre-defined strategies for determining which thread to pick next.
  *
  * @author peter.lawrey
  */
 public enum AffinityStrategies implements AffinityStrategy {
+
+
     /**
      * Any free cpu.
      */
     ANY {
         @Override
         public boolean matches(int cpuId, int cpuId2) {
+            if (LockCheck.IS_LINUX) {
+                if (cpuId == -1 && cpuId2 != -1)
+                    return isFreeCpu(cpuId2);
+                else if (cpuId != -1 && cpuId2 == -1)
+                    return isFreeCpu(cpuId);
+            }
             return true;
+        }
+
+        private boolean isFreeCpu(int cpuId2) {
+            try {
+                return lc.isFreeCpu(cpuId2);
+            } catch (IOException e) {
+                return true;
+            }
         }
     },
     /**
@@ -73,5 +91,7 @@ public enum AffinityStrategies implements AffinityStrategy {
             CpuLayout cpuLayout = AffinityLock.cpuLayout();
             return cpuLayout.socketId(cpuId) != cpuLayout.socketId(cpuId2);
         }
-    }
+    };
+
+    LockCheck lc = new LockCheck();
 }

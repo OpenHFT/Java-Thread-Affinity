@@ -79,6 +79,8 @@ class LockInventory {
     }
 
     public final synchronized AffinityLock acquireLock(boolean bind, int cpuId, AffinityStrategy... strategies) {
+
+
         for (AffinityStrategy strategy : strategies) {
             // consider all processors except cpu 0 which is usually used by the OS.
             // if you have only one core, this library is not appropriate in any case.
