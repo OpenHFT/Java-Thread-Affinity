@@ -14,7 +14,6 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
  */
 public class LockCheckTest {
 
-    private static final int PROCESS_ID = 2222;
     private static int CPU = 1111;
 
     @Before
@@ -32,7 +31,6 @@ public class LockCheckTest {
 
     @Test
     public void testPidOnLinux() {
-
         Assert.assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
     }
 
@@ -42,7 +40,6 @@ public class LockCheckTest {
         Assert.assertTrue(LockCheck.isCpuFree(CPU + 1));
         LockCheck.replacePid(CPU, 123L);
         Assert.assertEquals(123L, LockCheck.getProcessForCpu(CPU));
-
     }
 
 

@@ -239,9 +239,9 @@ public class AffinityLock implements Closeable {
 
     final boolean canReserve() {
 
-        if (!LockCheck.isCpuFree(cpuId))
+       /* if (!LockCheck.isCpuFree(cpuId))
             return false;
-
+*/
         if (!reservable) return false;
         if (assignedThread != null) {
             if (assignedThread.isAlive()) {
