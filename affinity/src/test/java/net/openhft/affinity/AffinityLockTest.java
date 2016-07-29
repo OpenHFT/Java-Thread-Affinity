@@ -35,6 +35,7 @@ import static org.junit.Assert.assertNotSame;
 @SuppressWarnings("ALL")
 public class AffinityLockTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
+
     @Test
     public void dumpLocksI7() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
@@ -151,7 +152,8 @@ public class AffinityLockTest {
         if (Runtime.getRuntime().availableProcessors() > 2) {
             AffinityLock alForAnotherThread2 = al.acquireLock(AffinityStrategies.ANY);
             assertNotSame(alForAnotherThread, alForAnotherThread2);
-            assertNotSame(alForAnotherThread.cpuId(), alForAnotherThread2.cpuId());
+            if (alForAnotherThread.cpuId() != -1)
+                assertNotSame(alForAnotherThread.cpuId(), alForAnotherThread2.cpuId());
 
             alForAnotherThread2.release();
 
