@@ -139,7 +139,6 @@ public class AffinityLockTest {
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
 
-
     @Test
     public void testIssue21() throws IOException {
         if (!new File("/proc/cpuinfo").exists()) {
