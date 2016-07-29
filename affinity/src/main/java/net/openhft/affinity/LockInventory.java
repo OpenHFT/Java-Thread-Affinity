@@ -88,6 +88,7 @@ class LockInventory {
                 AffinityLock al = logicalCoreLocks[i];
                 if (al.canReserve() && (cpuId < 0 || strategy.matches(cpuId, al.cpuId()))) {
                     al.assignCurrentThread(bind, false);
+                    LockCheck.updateCpu(al.cpuId());
                     return al;
                 }
             }
@@ -108,6 +109,7 @@ class LockInventory {
 
                 final AffinityLock al = als[0];
                 al.assignCurrentThread(bind, true);
+                LockCheck.updateCpu(al.cpuId());
                 return al;
             }
         }

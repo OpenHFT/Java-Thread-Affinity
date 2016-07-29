@@ -25,7 +25,6 @@ import java.io.IOException;
  */
 public enum AffinityStrategies implements AffinityStrategy {
 
-
     /**
      * Any free cpu.
      */
@@ -41,9 +40,9 @@ public enum AffinityStrategies implements AffinityStrategy {
             return true;
         }
 
-        private boolean isFreeCpu(int cpuId2) {
+        private boolean isFreeCpu(int cpuId) {
             try {
-                return lc.isFreeCpu(cpuId2);
+                return LockCheck.isCpuFree(cpuId);
             } catch (IOException e) {
                 return true;
             }
@@ -93,5 +92,4 @@ public enum AffinityStrategies implements AffinityStrategy {
         }
     };
 
-    LockCheck lc = new LockCheck();
 }

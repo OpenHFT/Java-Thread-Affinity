@@ -14,7 +14,7 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
 public class LockCheckTest {
 
     private static final int PROCESS_ID = 2222;
-    private static int CORE = 1111;
+    private static int CPU = 1111;
 
     @Before
     public void before() {
@@ -24,29 +24,30 @@ public class LockCheckTest {
     @Test
     public void test() throws IOException {
         if (IS_LINUX) {
-            LockCheck lockCheck = new LockCheck();
-            Assert.assertTrue(lockCheck.isFreeCpu(CORE));
-            Assert.assertEquals(LockCheck.getPID(), lockCheck.getProcessForCore(CORE));
+
+            Assert.assertTrue(LockCheck.isCpuFree(CPU));
+            LockCheck.updateCpu(CPU);
+            Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(CPU));
         }
     }
 
     @Test
     public void testPidOnLinux() {
-        final LockCheck lockCheck = new LockCheck();
+
 
         if (IS_LINUX)
-            Assert.assertTrue(lockCheck.isProcessRunning(LockCheck.getPID()));
+            Assert.assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
 
     }
 
     @Test
     public void testReplace() throws IOException {
-        CORE++;
+        CPU++;
         if (IS_LINUX) {
-            LockCheck lockCheck = new LockCheck();
-            Assert.assertTrue(lockCheck.isFreeCpu(CORE + 1));
-            lockCheck.replacePid(CORE, 123L);
-            Assert.assertEquals(123L, lockCheck.getProcessForCore(CORE));
+
+            Assert.assertTrue(LockCheck.isCpuFree(CPU + 1));
+            LockCheck.replacePid(CPU, 123L);
+            Assert.assertEquals(123L, LockCheck.getProcessForCpu(CPU));
         }
     }
 
