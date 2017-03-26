@@ -1,4 +1,4 @@
-Java-Affinity
+Thread Affinity
 =============
 
 Lets you bind a thread to a given core, this can improve performance ( this libary works best on linux )
@@ -7,6 +7,8 @@ Lets you bind a thread to a given core, this can improve performance ( this liba
 OpenHFT Java Thread Affinity library
 
 See the affinity/src/test/java for working examples of how to use this library.
+
+[Thread Affinity usage Heatmap](http://jrvis.com/red-dwarf/?user=openhft&repo=Java-Thread-Affinity)
 
 ## Versions
 
