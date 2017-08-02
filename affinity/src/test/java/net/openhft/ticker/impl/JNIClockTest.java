@@ -23,7 +23,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-/**
+/*
  * Created by peter on 13/07/15.
  */
 public class JNIClockTest {

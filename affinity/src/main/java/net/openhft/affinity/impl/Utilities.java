@@ -21,7 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.util.BitSet;
 
-/**
+/*
  * Created by andre on 20/06/15.
  */
 public final class Utilities {

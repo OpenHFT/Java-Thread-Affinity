@@ -25,7 +25,7 @@ import java.util.BitSet;
 
 import static org.junit.Assert.assertEquals;
 
-/**
+/*
  * Created by peter on 23/03/16.
  */
 public class LinuxJNAAffinityTest {

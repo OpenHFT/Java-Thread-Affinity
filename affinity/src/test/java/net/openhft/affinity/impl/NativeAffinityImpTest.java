@@ -26,7 +26,7 @@ import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import static org.junit.Assert.assertTrue;
 
-/**
+/*
  * Created by andre on 22/06/15.
  */
 public class NativeAffinityImpTest extends AbstractAffinityImplTest
