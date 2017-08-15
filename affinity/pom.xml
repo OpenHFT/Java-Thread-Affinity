@@ -20,7 +20,7 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.1.10</version>
+        <version>1.1.12</version>
         <relativePath />
     </parent>
 
@@ -43,7 +43,7 @@
                 <groupId>net.openhft</groupId>
                 <artifactId>third-party-bom</artifactId>
                 <type>pom</type>
-                <version>3.5.9</version>
+                <version>3.6.0</version>
                 <scope>import</scope>
             </dependency>
         </dependencies>
@@ -90,6 +90,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.2</version>
                 <configuration>
                     <compilerArgument>-Xlint:deprecation</compilerArgument>
                     <source>1.7</source>
