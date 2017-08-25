@@ -1,40 +1,56 @@
 Thread Affinity
 =============
 
-Lets you bind a thread to a given core, this can improve performance ( this libary works best on linux )
+Lets you bind a thread to a given core, this can improve performance (this library works best on linux).
 
 
 OpenHFT Java Thread Affinity library
 
-See the affinity/src/test/java for working examples of how to use this library.
+See [affinity/src/test/java](https://github.com/OpenHFT/Java-Thread-Affinity/tree/master/affinity/src/test/java) 
+for working examples of how to use this library.
 
 [Thread Affinity usage Heatmap](http://jrvis.com/red-dwarf/?user=openhft&repo=Java-Thread-Affinity)
 
-## Versions
+## Changes
 
-V2.2 - Latest build.
-V2.0.1 - Added getThreadId for the process if of the thread.
+   - V3.1.1 - Upgraded JNA dependency to 4.4.0
+   - V2.0.1 - Added getThreadId for the process if of the thread.
+
+## Dependencies
+
+Java-Thread-Affinity will try to use [JNA](https://github.com/java-native-access/jna)
+to provide access to native thread-handling functions. JNA should be installed on
+your system to get the most from this library.
+
+### JNA version
+
+Java-Thread-Affinity currently depends on JNA version 4.4.0, which in turn
+depends on a version of GLIBC >= 2.14. If your operating system is an old one,
+with a version of GLIBC released before 2011, this library will not be able to 
+invoke native functions.
+
+To work around this problem, fork the repository, and override the `<version>` tag
+for the artifacts `jna` and `jna-platform` in the project's `pom` file.
 
 ### Installing JNA on Ubuntu
 
-----
-sudo apt-get install libjna-java
-----
 
-### Installing JAN on Centos
+    sudo apt-get install libjna-java
 
-----
-sudo yum install jna
-----
 
-## How does allocation work?
-The library will read your /proc/cpuinfo if you have one or provide one and it will determine your CPU layout.  If you don't have one it will assume every CPU is on one Socket.
+### Installing JNA on CentOS
+
+    sudo yum install jna
+
+
+## How CPU does allocation work?
+The library will read your `/proc/cpuinfo` if you have one or provide one and it will determine your CPU layout.  If you don't have one it will assume every CPU is on one CPU socket.
 
 The library looks for isolated CPUs determined by looking at the CPUs you are not running on by default. 
 i.e. if you have 16 CPUs but 8 of them are not available for general use (as determined by the affinity of the process on startup) it will start assigning to those CPUs.
 
 Note: if you have more than one process using this library you need to specify which CPUs the process can use otherwise it will assign the same CPUs to both processes.
-To control which CPUs a process can use, add -Daffinity.reserved={cpu-mark-in-hex} to the command line of the process
+To control which CPUs a process can use, add -Daffinity.reserved={cpu-mask-in-hex} to the command line of the process.
 
 Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
@@ -89,7 +105,7 @@ You can get the current thread id using
 
     int threadId = AffinitySupport.getThreadId();
 
-## determining which CPU you are running on.
+## Determining which CPU you are running on.
 You can get the current CPU being used by
 
     int cpuId = AffinitySupport.getCpu();
