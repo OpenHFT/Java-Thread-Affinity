@@ -43,8 +43,9 @@ public class AffinityLockTest {
     public void shouldDumpSystemProperties() throws Exception {
         if (System.getProperty("os.name").startsWith("Linux")) {
             final Process process = new ProcessBuilder().command("ldd", "--version").inheritIO().start();
-            if (!process.waitFor(1, TimeUnit.SECONDS)) {
-                System.out.println("ldd did not exit");
+            final int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                System.out.println("ldd did not exit cleanly: " + exitCode);
             }
         }
     }
