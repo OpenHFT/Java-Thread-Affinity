@@ -26,8 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -38,17 +36,6 @@ import static org.junit.Assert.assertNotSame;
 @SuppressWarnings("ALL")
 public class AffinityLockTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
-
-    @Test
-    public void shouldDumpSystemProperties() throws Exception {
-        if (System.getProperty("os.name").startsWith("Linux")) {
-            final Process process = new ProcessBuilder().command("ldd", "--version").inheritIO().start();
-            final int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                System.out.println("ldd did not exit cleanly: " + exitCode);
-            }
-        }
-    }
 
     @Test
     public void dumpLocksI7() throws IOException {
