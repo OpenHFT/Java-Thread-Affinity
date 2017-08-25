@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -36,6 +37,14 @@ import static org.junit.Assert.assertNotSame;
 @SuppressWarnings("ALL")
 public class AffinityLockTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
+
+    @Test
+    public void shouldDumpSystemProperties() throws Exception {
+        final Properties systemProperties = System.getProperties();
+        for (final String propertyName : systemProperties.stringPropertyNames()) {
+            System.out.printf("%s = %s%n", propertyName, systemProperties.getProperty(propertyName));
+        }
+    }
 
     @Test
     public void dumpLocksI7() throws IOException {
