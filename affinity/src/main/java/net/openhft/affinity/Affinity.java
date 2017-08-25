@@ -62,7 +62,6 @@ public enum Affinity {
 
             } else {
                 LOGGER.info("Using dummy affinity control implementation");
-                System.out.printf("Falling back to dummy affinity%n");
                 AFFINITY_IMPL = NullAffinity.INSTANCE;
             }
         } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
@@ -150,7 +149,6 @@ public enum Affinity {
         sw.append(description);
         sw.append(" Reason: ");
         t.printStackTrace(new PrintWriter(sw));
-        System.out.println(sw.toString());
         LOGGER.warn(sw.toString());
     }
 
@@ -195,7 +193,6 @@ public enum Affinity {
                 Class.forName("com.sun.jna.Platform");
                 JNAAvailable = true;
             } catch (ClassNotFoundException ignored) {
-                System.out.printf("JNA not available, check classpath%n");
                 JNAAvailable = false;
             }
         return JNAAvailable;

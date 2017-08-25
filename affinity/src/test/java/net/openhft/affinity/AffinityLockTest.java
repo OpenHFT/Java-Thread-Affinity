@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -40,9 +41,11 @@ public class AffinityLockTest {
 
     @Test
     public void shouldDumpSystemProperties() throws Exception {
-        final Properties systemProperties = System.getProperties();
-        for (final String propertyName : systemProperties.stringPropertyNames()) {
-            System.out.printf("%s = %s%n", propertyName, systemProperties.getProperty(propertyName));
+        if (System.getProperty("os.name").startsWith("Linux")) {
+            final Process process = new ProcessBuilder().command("ldd", "--version").inheritIO().start();
+            if (!process.waitFor(1, TimeUnit.SECONDS)) {
+                System.out.println("ldd did not exit");
+            }
         }
     }
 

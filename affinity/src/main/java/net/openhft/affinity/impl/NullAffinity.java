@@ -54,6 +54,6 @@ public enum NullAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        throw new UnsupportedOperationException(getClass().getSimpleName() + " does not implement this method");
+        throw new UnsupportedOperationException();
     }
 }
