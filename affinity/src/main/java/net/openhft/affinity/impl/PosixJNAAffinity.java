@@ -66,6 +66,7 @@ public enum PosixJNAAffinity implements IAffinity {
             loaded = true;
         } catch (UnsatisfiedLinkError e) {
             LOGGER.warn("Unable to load jna library {}", e);
+            System.out.printf("Unable to load jna library %s%n", e);
         }
         LOADED = loaded;
     }
