@@ -40,20 +40,30 @@ public class AffinityLock implements Closeable {
     public static final String AFFINITY_RESERVED = "affinity.reserved";
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
-    public static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
-    public static final BitSet BASE_AFFINITY = Affinity.getAffinity();
-    public static final BitSet RESERVED_AFFINITY = getReservedAffinity0();
+    public static final int PROCESSORS;
+
+    public static final BitSet BASE_AFFINITY;
+    public static final BitSet RESERVED_AFFINITY;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
-    private static final LockInventory LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
+    private static final LockInventory LOCK_INVENTORY;
 
     static {
+        int processors = Runtime.getRuntime().availableProcessors();
+        VanillaCpuLayout cpuLayout = null;
         try {
             if (new File("/proc/cpuinfo").exists()) {
-                cpuLayout(VanillaCpuLayout.fromCpuInfo());
+                cpuLayout = VanillaCpuLayout.fromCpuInfo();
+                processors = cpuLayout.cpus();
             }
         } catch (IOException e) {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
         }
+        PROCESSORS = processors;
+        BASE_AFFINITY = Affinity.getAffinity();
+        RESERVED_AFFINITY = getReservedAffinity0();
+        LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
+        if (cpuLayout != null)
+            LOCK_INVENTORY.set(cpuLayout);
     }
 
     /**
