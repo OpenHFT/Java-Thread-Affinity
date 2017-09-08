@@ -18,7 +18,7 @@
 package net.openhft.ticker;
 
 /*
- * Created by peter on 13/07/15.
+ * Created by Peter Lawrey on 13/07/15.
  */
 public interface ITicker {
     long nanoTime();
