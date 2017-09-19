@@ -70,9 +70,11 @@ public class VersionHelper {
 
     public boolean isSameOrNewer(final VersionHelper ver) {
         return ver != null
-                && this.major >= ver.major
-                && this.minor >= ver.minor
-                && this.release >= ver.release;
+                && (this.major > ver.major
+                    || this.major == ver.major
+                       && (this.minor > ver.minor
+                           || this.minor == ver.minor
+                              && this.release >= ver.release));
     }
 }
 
