@@ -22,7 +22,10 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import static net.openhft.affinity.LockCheck.IS_LINUX;
 
@@ -31,19 +34,21 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
  */
 public class LockCheckTest {
 
-    private static int CPU = 1111;
+    private static final String TMP = System.getProperty("java.io.tmpdir");
+    private static final String TARGET = System.getProperty("project.build.directory", findTarget());
+    private int cpu = 1111;
 
     @Before
     public void before() {
         Assume.assumeTrue(IS_LINUX);
-        System.setProperty("java.io.tmpdir", LockCheck.TARGET + "/" + System.nanoTime());
+        System.setProperty("java.io.tmpdir", TARGET + "/" + System.nanoTime());
     }
 
     @Test
     public void test() throws IOException {
-        Assert.assertTrue(LockCheck.isCpuFree(CPU));
-        LockCheck.updateCpu(CPU);
-        Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(CPU));
+        Assert.assertTrue(LockCheck.isCpuFree(cpu));
+        LockCheck.updateCpu(cpu);
+        Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
     }
 
     @Test
@@ -53,11 +58,40 @@ public class LockCheckTest {
 
     @Test
     public void testReplace() throws IOException {
-        CPU++;
-        Assert.assertTrue(LockCheck.isCpuFree(CPU + 1));
-        LockCheck.replacePid(CPU, 123L);
-        Assert.assertEquals(123L, LockCheck.getProcessForCpu(CPU));
+        cpu++;
+        Assert.assertTrue(LockCheck.isCpuFree(cpu + 1));
+        LockCheck.replacePid(cpu, 123L);
+        Assert.assertEquals(123L, LockCheck.getProcessForCpu(cpu));
     }
 
+    @Test
+    public void shouldNotBlowUpIfPidFileIsEmpty() throws Exception {
+        LockCheck.updateCpu(cpu);
 
+        final File file = LockCheck.toFile(cpu);
+        new RandomAccessFile(file, "rw").setLength(0);
+
+        LockCheck.isCpuFree(cpu);
+    }
+
+    @Test
+    public void shouldNotBlowUpIfPidFileIsCorrupt() throws Exception {
+        LockCheck.updateCpu(cpu);
+
+        final File file = LockCheck.toFile(cpu);
+        try (final FileWriter writer = new FileWriter(file, false)) {
+            writer.append("not a number\nnot a date");
+        }
+
+        LockCheck.isCpuFree(cpu);
+    }
+
+    private static String findTarget() {
+        for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {
+            File target = new File(dir, "target");
+            if (target.exists())
+                return target.getAbsolutePath();
+        }
+        return TMP + "/target";
+    }
 }
