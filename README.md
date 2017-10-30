@@ -123,6 +123,28 @@ If you want to get/set the affinity directly you can do
  
    long currentAffinity = AffinitySupport.getAffinity();
    AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
+   
+## Debugging affinity state
+
+For a detailed of view of the current affinity state (as seen by the library),
+execute the following script on Linux systems:
+
+```
+# change to the affinity lock-file directory (defaults to system property java.io.tmpdir)
+$ cd /tmp
+
+# dump affinity state
+$ for i in "$(ls cpu-*)"; 
+      do PID="$(cat $i | head -n1)"; TIMESTAMP="$(cat $i | tail -n1)"; 
+      echo "pid $PID locked at $TIMESTAMP in $i"; taskset -cp $PID; 
+      cat "/proc/$PID/cmdline"; echo; echo 
+  done
+
+  pid 14584 locked at 2017.10.30 at 10:33:24 GMT in cpu-3.lock
+  pid 14584's current affinity list: 3
+  /opt/jdk1.8.0_141/bin/java ...
+
+```
 
 # Support Material
 
