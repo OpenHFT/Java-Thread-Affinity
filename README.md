@@ -54,6 +54,14 @@ To control which CPUs a process can use, add -Daffinity.reserved={cpu-mask-in-he
 
 Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
+
+## References
+
+https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/How-it-works
+http://vanillajava.blogspot.co.uk/2013/07/micro-jitter-busy-waiting-and-binding.html
+
+
 ## isolcpus
 
 Java-Thread-Affinity requires that you first ioslcated some CPU's for its to use.
