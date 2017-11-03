@@ -54,6 +54,27 @@ To control which CPUs a process can use, add -Daffinity.reserved={cpu-mask-in-he
 
 Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
+
+## References
+
+https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+
+https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/How-it-works
+
+http://vanillajava.blogspot.co.uk/2013/07/micro-jitter-busy-waiting-and-binding.html
+
+
+## isolcpus
+
+Java-Thread-Affinity requires that you first ioslcate some CPU's for its to use.
+
+Once a CPU core is isolated, the Linux scheduler will not use the CPU core to run any user-space processes. The isolated CPUs will not participate in load balancing, and will not have tasks running on them unless explicitly assigned. You can manually assign processes to be run on the isolated CPU cores using taskset.
+
+To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, add the following to the kernel command line during boot:
+
+isolcpus=1,3
+
+
 ## Acquiring a CPU lock for a thread 
 You can acquire a lock for a CPU in the following matter
 
