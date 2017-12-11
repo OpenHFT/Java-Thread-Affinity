@@ -68,7 +68,7 @@ http://vanillajava.blogspot.co.uk/2013/07/micro-jitter-busy-waiting-and-binding.
 
 Java-Thread-Affinity requires that you first isolate some CPU's.
 
-Once a CPU core is isolated, the Linux scheduler will not use the CPU core to run any user-space processes. The isolated CPUs will not participate in load balancing, and will not have tasks running on them unless explicitly assigned. You can manually assign processes to be run on the isolated CPU cores using taskset.
+Once a CPU core is isolated, the Linux scheduler will not use the CPU core to run any user-space processes. The isolated CPUs will not participate in load balancing, and will not have tasks running on them unless explicitly assigned.
 
 To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, add the following to the kernel command line during boot:
 
