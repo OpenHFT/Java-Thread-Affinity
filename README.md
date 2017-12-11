@@ -43,7 +43,7 @@ for the artifacts `jna` and `jna-platform` in the project's `pom` file.
     sudo yum install jna
 
 
-## How CPU does allocation work?
+## How does CPU allocation work?
 The library will read your `/proc/cpuinfo` if you have one or provide one and it will determine your CPU layout.  If you don't have one it will assume every CPU is on one CPU socket.
 
 The library looks for isolated CPUs determined by looking at the CPUs you are not running on by default. 
