@@ -47,7 +47,7 @@ enum BootClassPath {
     private static Set<String> getResourcesOnBootClasspath() {
         final Logger logger = LoggerFactory.getLogger(BootClassPath.class);
         final Set<String> resources = new HashSet<>();
-        final String bootClassPath = System.getProperty("sun.boot.class.path");
+        final String bootClassPath = System.getProperty("sun.boot.class.path", "");
         logger.trace("Boot class-path is: {}", bootClassPath);
 
         final String pathSeparator = System.getProperty("path.separator");
