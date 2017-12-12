@@ -167,6 +167,19 @@ public class AffinityLock implements Closeable {
         return acquireLock(bind, -1, AffinityStrategies.ANY);
     }
 
+
+    /**
+     * Assign a cpu which can be bound to the current thread or another thread. <p> This can be used
+     * for defining your thread layout centrally and passing the handle via dependency injection.
+     *
+     * @param cpuId the CPU id to bind to
+     * @return A handle for an affinity lock.
+     */
+    public static AffinityLock acquireLock(int cpuId) {
+        return acquireLock(true, cpuId, AffinityStrategies.ANY);
+    }
+
+
     /**
      * Assign a core(and all its cpus) which can be bound to the current thread or another thread.
      * <p> This can be used for defining your thread layout centrally and passing the handle via
