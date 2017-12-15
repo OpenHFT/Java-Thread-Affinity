@@ -1,6 +1,6 @@
 Thread Affinity
 =============
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.openhft/compiler/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity)
 
 
 Lets you bind a thread to a given core, this can improve performance (this library works best on linux).
