@@ -70,11 +70,9 @@ public abstract class AbstractAffinityImplTest {
     }
 
     @Test
-    @Ignore("TODO FIX")
     public void getAffinityReturnsValuePreviouslySet() {
         final IAffinity impl = getImpl();
-        final int cores = CORES;
-        for (int core = 0; core < cores; core++) {
+        for (int core = 0; core < CORES; core++) {
             final BitSet mask = new BitSet();
             mask.set(core, true);
             getAffinityReturnsValuePreviouslySet(impl, mask);
