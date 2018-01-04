@@ -21,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -154,16 +157,9 @@ class LockInventory {
         for (AffinityLock al : logicalCoreLocks) {
             Thread at = al.assignedThread;
             if (at == t) {
-                LOGGER.info("Releasing cpu {} from {}", al.cpuId(), t);
-                al.assignedThread = null;
-                al.bound = false;
-                al.boundHere = null;
-
+                releaseAffinityLock(t, al, "Releasing cpu {} from {}");
             } else if (at != null && !at.isAlive()) {
-                LOGGER.warn("Releasing cpu {} from {} as it is not alive.", al.cpuId(), t);
-                al.assignedThread = null;
-                al.bound = false;
-                al.boundHere = null;
+                releaseAffinityLock(t, al, "Releasing cpu {} from {} as it is not alive.");
             }
         }
         Affinity.resetToBaseAffinity();
@@ -185,5 +181,19 @@ class LockInventory {
 
     private int toPhysicalCore(int layoutId) {
         return cpuLayout.socketId(layoutId) * cpuLayout.coresPerSocket() + cpuLayout.coreId(layoutId);
+    }
+
+    private void releaseAffinityLock(final Thread t, final AffinityLock al, final String format) {
+        LOGGER.info(format, al.cpuId(), t);
+        al.assignedThread = null;
+        al.bound = false;
+        al.boundHere = null;
+
+        final String lockFilePath = LockCheck.toFile(al.cpuId()).getAbsolutePath();
+        try {
+            Files.delete(Paths.get(lockFilePath));
+        } catch (IOException e) {
+            LOGGER.warn("Failed to delete lock file at " + lockFilePath);
+        }
     }
 }

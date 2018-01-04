@@ -24,11 +24,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author peter.lawrey
@@ -216,6 +220,17 @@ public class AffinityLockTest {
         }
         System.out.println("All unlocked");
         displayStatus();
+    }
+
+    @Test
+    public void lockFilesShouldBeRemovedOnRelease() {
+        final AffinityLock lock = AffinityLock.acquireLock();
+
+        assertThat(Files.exists(Paths.get(LockCheck.toFile(lock.cpuId()).getAbsolutePath())), is(true));
+
+        lock.release();
+
+        assertThat(Files.exists(Paths.get(LockCheck.toFile(lock.cpuId()).getAbsolutePath())), is(false));
     }
 
     private void displayStatus() {
