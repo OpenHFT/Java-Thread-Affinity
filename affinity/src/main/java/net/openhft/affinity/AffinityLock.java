@@ -61,9 +61,7 @@ public class AffinityLock implements Closeable {
         PROCESSORS = processors;
         BASE_AFFINITY = Affinity.getAffinity();
         RESERVED_AFFINITY = getReservedAffinity0();
-        LOCK_INVENTORY = new LockInventory(new NoCpuLayout(PROCESSORS));
-        if (cpuLayout != null)
-            LOCK_INVENTORY.set(cpuLayout);
+        LOCK_INVENTORY = new LockInventory(cpuLayout == null ? new NoCpuLayout(PROCESSORS) : cpuLayout);
     }
 
     /**

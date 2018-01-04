@@ -37,7 +37,6 @@ import static org.junit.Assert.assertThat;
 /**
  * @author peter.lawrey
  */
-@SuppressWarnings("ALL")
 public class AffinityLockTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
@@ -176,7 +175,7 @@ public class AffinityLockTest {
         System.out.println("AffinityLock.PROCESSORS=" + AffinityLock.PROCESSORS);
 
         AffinityLock al = AffinityLock.acquireLock();
-        List<AffinityLock> locks = new ArrayList<AffinityLock>();
+        List<AffinityLock> locks = new ArrayList<>();
         locks.add(al);
         for (int i = 0; i < 256; i++)
             locks.add(al = al.acquireLock(AffinityStrategies.DIFFERENT_SOCKET,
@@ -198,8 +197,7 @@ public class AffinityLockTest {
         // System.out.println("Started");
         logger.info("Started");
         displayStatus();
-        final AffinityLock al = AffinityLock.acquireLock();
-        try {
+        try (AffinityLock al = AffinityLock.acquireLock()) {
             System.out.println("Main locked");
             displayStatus();
             Thread t = new Thread(new Runnable() {
@@ -215,8 +213,6 @@ public class AffinityLockTest {
             t.join();
             System.out.println("Thread-0 unlocked");
             displayStatus();
-        } finally {
-            al.close();
         }
         System.out.println("All unlocked");
         displayStatus();
