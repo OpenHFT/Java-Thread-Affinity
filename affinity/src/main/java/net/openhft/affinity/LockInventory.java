@@ -83,16 +83,25 @@ class LockInventory {
     }
 
     public final synchronized AffinityLock acquireLock(boolean bind, int cpuId, AffinityStrategy... strategies) {
+        final boolean specificCpuRequested = !isAnyCpu(cpuId);
+        if (specificCpuRequested && cpuId != 0) {
+            final AffinityLock required = logicalCoreLocks[cpuId];
+            if (required.canReserve() && anyStrategyMatches(cpuId, cpuId, strategies)) {
+                updateLockForCurrentThread(bind, required, false);
+                return required;
+            }
+        }
 
+        LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
+                cpuId, Thread.currentThread());
 
         for (AffinityStrategy strategy : strategies) {
             // consider all processors except cpu 0 which is usually used by the OS.
             // if you have only one core, this library is not appropriate in any case.
             for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
                 AffinityLock al = logicalCoreLocks[i];
-                if (al.canReserve() && (cpuId < 0 || strategy.matches(cpuId, al.cpuId()))) {
-                    al.assignCurrentThread(bind, false);
-                    LockCheck.updateCpu(al.cpuId());
+                if (al.canReserve() && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))) {
+                    updateLockForCurrentThread(bind, al, false);
                     return al;
                 }
             }
@@ -100,7 +109,7 @@ class LockInventory {
 
         LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
 
-        return newLock(-1, false, false);
+        return newLock(AffinityLock.ANY_CPU, false, false);
     }
 
     public final synchronized AffinityLock acquireCore(boolean bind, int cpuId, AffinityStrategy... strategies) {
@@ -112,8 +121,7 @@ class LockInventory {
                         continue LOOP;
 
                 final AffinityLock al = als[0];
-                al.assignCurrentThread(bind, true);
-                LockCheck.updateCpu(al.cpuId());
+                updateLockForCurrentThread(bind, al, true);
                 return al;
             }
         }
@@ -195,5 +203,23 @@ class LockInventory {
         } catch (IOException e) {
             LOGGER.warn("Failed to delete lock file at " + lockFilePath);
         }
+    }
+
+    private static boolean anyStrategyMatches(final int cpuOne, final int cpuTwo, final AffinityStrategy[] strategies) {
+        for (AffinityStrategy strategy : strategies) {
+            if (strategy.matches(cpuOne, cpuTwo)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAnyCpu(final int cpuId) {
+        return cpuId == AffinityLock.ANY_CPU;
+    }
+
+    private static void updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean b) {
+        al.assignCurrentThread(bind, b);
+        LockCheck.updateCpu(al.cpuId());
     }
 }
