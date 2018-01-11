@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This is a ThreadFactory which assigns threads based the strategies provided.
@@ -56,17 +57,19 @@ public class AffinityThreadFactory implements ThreadFactory {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                AffinityLock al = lastAffinityLock == null ? AffinityLock.acquireLock() : lastAffinityLock.acquireLock(strategies);
-                try {
-                    if (al.cpuId() >= 0)
-                        lastAffinityLock = al;
+                try (AffinityLock ignored = acquireLockBasedOnLast()) {
                     r.run();
-                } finally {
-                    al.release();
                 }
             }
         }, name2);
         t.setDaemon(daemon);
         return t;
+    }
+
+    private synchronized AffinityLock acquireLockBasedOnLast() {
+        AffinityLock al = lastAffinityLock == null ? AffinityLock.acquireLock() : lastAffinityLock.acquireLock(strategies);
+        if (al.cpuId() >= 0)
+            lastAffinityLock = al;
+        return al;
     }
 }
