@@ -46,6 +46,7 @@ public class AffinityLock implements Closeable {
     public static final BitSet RESERVED_AFFINITY;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
     private static final LockInventory LOCK_INVENTORY;
+    static final int ANY_CPU = -1;
 
     static {
         int processors = Runtime.getRuntime().availableProcessors();
@@ -162,7 +163,7 @@ public class AffinityLock implements Closeable {
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireLock(boolean bind) {
-        return acquireLock(bind, -1, AffinityStrategies.ANY);
+        return acquireLock(bind, ANY_CPU, AffinityStrategies.ANY);
     }
 
 
@@ -188,7 +189,7 @@ public class AffinityLock implements Closeable {
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireCore(boolean bind) {
-        return acquireCore(bind, -1, AffinityStrategies.ANY);
+        return acquireCore(bind, ANY_CPU, AffinityStrategies.ANY);
     }
 
     private static AffinityLock acquireLock(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {

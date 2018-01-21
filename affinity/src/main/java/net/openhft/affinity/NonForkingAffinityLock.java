@@ -68,7 +68,7 @@ public class NonForkingAffinityLock extends AffinityLock implements ThreadLifecy
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireLock(boolean bind) {
-        return acquireLock(bind, -1, AffinityStrategies.ANY);
+        return acquireLock(bind, AffinityLock.ANY_CPU, AffinityStrategies.ANY);
     }
 
     /**
@@ -80,7 +80,7 @@ public class NonForkingAffinityLock extends AffinityLock implements ThreadLifecy
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireCore(boolean bind) {
-        return acquireCore(bind, -1, AffinityStrategies.ANY);
+        return acquireCore(bind, AffinityLock.ANY_CPU, AffinityStrategies.ANY);
     }
 
     private static AffinityLock acquireLock(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {
