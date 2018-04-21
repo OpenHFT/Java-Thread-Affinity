@@ -52,19 +52,16 @@ public enum NativeAffinity implements IAffinity {
     }
 
     @Override
-    public BitSet getAffinity()
-    {
+    public BitSet getAffinity() {
         final byte[] buff = getAffinity0();
-        if (buff == null)
-        {
+        if (buff == null) {
             return null;
         }
         return BitSet.valueOf(buff);
     }
 
     @Override
-    public void setAffinity(BitSet affinity)
-    {
+    public void setAffinity(BitSet affinity) {
         setAffinity0(affinity.toByteArray());
     }
 

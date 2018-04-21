@@ -56,6 +56,24 @@ class LockInventory {
         return sb.toString();
     }
 
+    private static boolean anyStrategyMatches(final int cpuOne, final int cpuTwo, final AffinityStrategy[] strategies) {
+        for (AffinityStrategy strategy : strategies) {
+            if (strategy.matches(cpuOne, cpuTwo)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAnyCpu(final int cpuId) {
+        return cpuId == AffinityLock.ANY_CPU;
+    }
+
+    private static void updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean b) {
+        al.assignCurrentThread(bind, b);
+        LockCheck.updateCpu(al.cpuId());
+    }
+
     public final synchronized CpuLayout getCpuLayout() {
         return cpuLayout;
     }
@@ -203,23 +221,5 @@ class LockInventory {
         } catch (IOException e) {
             LOGGER.warn("Failed to delete lock file at " + lockFilePath);
         }
-    }
-
-    private static boolean anyStrategyMatches(final int cpuOne, final int cpuTwo, final AffinityStrategy[] strategies) {
-        for (AffinityStrategy strategy : strategies) {
-            if (strategy.matches(cpuOne, cpuTwo)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static boolean isAnyCpu(final int cpuId) {
-        return cpuId == AffinityLock.ANY_CPU;
-    }
-
-    private static void updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean b) {
-        al.assignCurrentThread(bind, b);
-        LockCheck.updateCpu(al.cpuId());
     }
 }

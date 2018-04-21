@@ -21,11 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -38,11 +34,6 @@ enum BootClassPath {
     INSTANCE;
 
     private final Set<String> bootClassPathResources = Collections.unmodifiableSet(getResourcesOnBootClasspath());
-
-    public final boolean has(String binaryClassName) {
-        final String resourceClassName = binaryClassName.replace('.', '/').concat(".class");
-        return bootClassPathResources.contains(resourceClassName);
-    }
 
     private static Set<String> getResourcesOnBootClasspath() {
         final Logger logger = LoggerFactory.getLogger(BootClassPath.class);
@@ -86,7 +77,6 @@ enum BootClassPath {
                 }
             }
 
-
         } catch (IOException e) {
             logger.warn("Not a jar file: {}", path);
         }
@@ -111,5 +101,10 @@ enum BootClassPath {
         }
 
         return dirResources;
+    }
+
+    public final boolean has(String binaryClassName) {
+        final String resourceClassName = binaryClassName.replace('.', '/').concat(".class");
+        return bootClassPathResources.contains(resourceClassName);
     }
 }

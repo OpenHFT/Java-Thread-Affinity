@@ -25,7 +25,6 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-
 /**
  * @author Rob Austin.
  */
@@ -34,9 +33,9 @@ enum LockCheck {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LockCheck.class);
     private static final String OS = System.getProperty("os.name").toLowerCase();
+    static final boolean IS_LINUX = OS.startsWith("linux");
     private static final int EMPTY_PID = Integer.MIN_VALUE;
     private static SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
-    static final boolean IS_LINUX = OS.startsWith("linux");
 
     static long getPID() {
         String processName =

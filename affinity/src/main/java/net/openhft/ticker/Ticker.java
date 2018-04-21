@@ -37,7 +37,7 @@ public final class Ticker {
     }
 
     private Ticker() {
-        throw new InstantiationError( "Must not instantiate this class" );
+        throw new InstantiationError("Must not instantiate this class");
     }
 
     /**

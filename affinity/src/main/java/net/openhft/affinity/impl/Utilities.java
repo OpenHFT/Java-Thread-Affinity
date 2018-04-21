@@ -26,8 +26,9 @@ import java.util.BitSet;
  */
 public final class Utilities {
     private Utilities() {
-        throw new InstantiationError( "Must not instantiate this class" );
+        throw new InstantiationError("Must not instantiate this class");
     }
+
     /**
      * Creates a hexademical representation of the bit set
      *

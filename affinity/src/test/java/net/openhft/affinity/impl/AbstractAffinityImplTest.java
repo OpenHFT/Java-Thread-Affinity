@@ -19,7 +19,6 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.IAffinity;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.BitSet;
@@ -36,8 +35,7 @@ public abstract class AbstractAffinityImplTest {
     protected static final int CORES = Runtime.getRuntime().availableProcessors();
     protected static final BitSet CORES_MASK = new BitSet(CORES);
 
-    static
-    {
+    static {
         CORES_MASK.set(0, CORES, true);
     }
 
@@ -58,8 +56,8 @@ public abstract class AbstractAffinityImplTest {
         final long allCoresMask = (1L << CORES) - 1;
         assertTrue(
                 "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
-                        affinity.length() <= CORES_MASK.length()
-                );
+                affinity.length() <= CORES_MASK.length()
+        );
     }
 
     @Test

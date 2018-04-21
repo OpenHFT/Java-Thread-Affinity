@@ -103,5 +103,3 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
   return (jint) sched_getcpu();
 }
 
-
-

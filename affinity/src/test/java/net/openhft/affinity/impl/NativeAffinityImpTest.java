@@ -29,8 +29,7 @@ import static org.junit.Assert.assertTrue;
 /*
  * Created by andre on 22/06/15.
  */
-public class NativeAffinityImpTest extends AbstractAffinityImplTest
-{
+public class NativeAffinityImpTest extends AbstractAffinityImplTest {
     @BeforeClass
     public static void checkJniLibraryPresent() {
         Assume.assumeTrue(NativeAffinity.LOADED);
@@ -38,8 +37,7 @@ public class NativeAffinityImpTest extends AbstractAffinityImplTest
     }
 
     @Override
-    public IAffinity getImpl()
-    {
+    public IAffinity getImpl() {
         return NativeAffinity.INSTANCE;
     }
 

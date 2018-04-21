@@ -24,7 +24,7 @@ import static net.openhft.affinity.AffinityStrategies.*;
  */
 public final class AffinityLockBindMain {
     private AffinityLockBindMain() {
-        throw new InstantiationError( "Must not instantiate this class" );
+        throw new InstantiationError("Must not instantiate this class");
     }
 
     public static void main(String... args) throws InterruptedException {

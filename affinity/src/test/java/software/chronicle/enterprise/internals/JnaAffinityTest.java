@@ -88,7 +88,6 @@ public class JnaAffinityTest {
         }
     }
 
-
     @Test
     public void showOtherIds() {
         System.out.println("processId: " + LinuxJNAAffinity.INSTANCE.getProcessId());

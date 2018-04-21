@@ -2,9 +2,7 @@ Thread Affinity
 =============
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity)
 
-
 Lets you bind a thread to a given core, this can improve performance (this library works best on linux).
-
 
 OpenHFT Java Thread Affinity library
 
@@ -37,14 +35,11 @@ for the artifacts `jna` and `jna-platform` in the project's `pom` file.
 
 ### Installing JNA on Ubuntu
 
-
     sudo apt-get install libjna-java
-
 
 ### Installing JNA on CentOS
 
     sudo yum install jna
-
 
 ## How does CPU allocation work?
 The library will read your `/proc/cpuinfo` if you have one or provide one and it will determine your CPU layout.  If you don't have one it will assume every CPU is on one CPU socket.
@@ -57,7 +52,6 @@ To control which CPUs a process can use, add -Daffinity.reserved={cpu-mask-in-he
 
 Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
-
 ## References
 
 https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
@@ -65,7 +59,6 @@ https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
 https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/How-it-works
 
 http://vanillajava.blogspot.co.uk/2013/07/micro-jitter-busy-waiting-and-binding.html
-
 
 ## isolcpus
 
@@ -77,8 +70,7 @@ To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, 
 
 isolcpus=1,3
 
-
-## Acquiring a CPU lock for a thread 
+## Acquiring a CPU lock for a thread
 You can acquire a lock for a CPU in the following matter
 
 In Java 6
@@ -191,6 +183,4 @@ AffinityLock.setAffinity (1L << n);
 ```
 
 where n is the cpu you want to run the thread on.
-
-
 

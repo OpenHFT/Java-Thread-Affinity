@@ -44,9 +44,9 @@ public class AffinityLock implements Closeable {
 
     public static final BitSet BASE_AFFINITY;
     public static final BitSet RESERVED_AFFINITY;
+    static final int ANY_CPU = -1;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
     private static final LockInventory LOCK_INVENTORY;
-    static final int ANY_CPU = -1;
 
     static {
         int processors = Runtime.getRuntime().availableProcessors();
@@ -166,7 +166,6 @@ public class AffinityLock implements Closeable {
         return acquireLock(bind, ANY_CPU, AffinityStrategies.ANY);
     }
 
-
     /**
      * Assign a cpu which can be bound to the current thread or another thread. <p> This can be used
      * for defining your thread layout centrally and passing the handle via dependency injection.
@@ -177,7 +176,6 @@ public class AffinityLock implements Closeable {
     public static AffinityLock acquireLock(int cpuId) {
         return acquireLock(true, cpuId, AffinityStrategies.ANY);
     }
-
 
     /**
      * Assign a core(and all its cpus) which can be bound to the current thread or another thread.

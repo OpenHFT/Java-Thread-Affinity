@@ -38,6 +38,15 @@ public class LockCheckTest {
     private static final String TARGET = System.getProperty("project.build.directory", findTarget());
     private int cpu = 1111;
 
+    private static String findTarget() {
+        for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {
+            File target = new File(dir, "target");
+            if (target.exists())
+                return target.getAbsolutePath();
+        }
+        return TMP + "/target";
+    }
+
     @Before
     public void before() {
         Assume.assumeTrue(IS_LINUX);
@@ -84,14 +93,5 @@ public class LockCheckTest {
         }
 
         LockCheck.isCpuFree(cpu);
-    }
-
-    private static String findTarget() {
-        for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {
-            File target = new File(dir, "target");
-            if (target.exists())
-                return target.getAbsolutePath();
-        }
-        return TMP + "/target";
     }
 }

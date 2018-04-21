@@ -22,7 +22,7 @@ package net.openhft.affinity;
  */
 public final class AffinityLockMain {
     private AffinityLockMain() {
-        throw new InstantiationError( "Must not instantiate this class" );
+        throw new InstantiationError("Must not instantiate this class");
     }
 
     public static void main(String... args) throws InterruptedException {
