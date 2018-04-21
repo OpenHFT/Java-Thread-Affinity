@@ -39,8 +39,8 @@ public final class Utilities {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(out);
         final long[] longs = set.toLongArray();
-        for (int i = 0; i < longs.length; i++) {
-            writer.write(Long.toHexString(longs[i]));
+        for (long aLong : longs) {
+            writer.write(Long.toHexString(aLong));
         }
         writer.flush();
 
@@ -51,8 +51,8 @@ public final class Utilities {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(out);
         final long[] longs = set.toLongArray();
-        for (int i = 0; i < longs.length; i++) {
-            writer.write(Long.toBinaryString(longs[i]));
+        for (long aLong : longs) {
+            writer.write(Long.toBinaryString(aLong));
         }
         writer.flush();
 

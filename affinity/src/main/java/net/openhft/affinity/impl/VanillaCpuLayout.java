@@ -40,9 +40,9 @@ public class VanillaCpuLayout implements CpuLayout {
 
     VanillaCpuLayout(@NotNull List<CpuInfo> cpuDetails) {
         this.cpuDetails = cpuDetails;
-        SortedSet<Integer> sockets = new TreeSet<Integer>(),
-                cores = new TreeSet<Integer>(),
-                threads = new TreeSet<Integer>();
+        SortedSet<Integer> sockets = new TreeSet<>(),
+                cores = new TreeSet<>(),
+                threads = new TreeSet<>();
         for (CpuInfo cpuDetail : cpuDetails) {
             sockets.add(cpuDetail.socketId);
             cores.add((cpuDetail.socketId << 16) + cpuDetail.coreId);
@@ -78,7 +78,7 @@ public class VanillaCpuLayout implements CpuLayout {
 
     @NotNull
     public static VanillaCpuLayout fromProperties(@NotNull Properties prop) {
-        List<CpuInfo> cpuDetails = new ArrayList<CpuInfo>();
+        List<CpuInfo> cpuDetails = new ArrayList<>();
         for (int i = 0; i < MAX_CPUS_SUPPORTED; i++) {
             String line = prop.getProperty("" + i);
             if (line == null) break;
@@ -115,9 +115,9 @@ public class VanillaCpuLayout implements CpuLayout {
     public static VanillaCpuLayout fromCpuInfo(InputStream is) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
         String line;
-        List<CpuInfo> cpuDetails = new ArrayList<CpuInfo>();
+        List<CpuInfo> cpuDetails = new ArrayList<>();
         CpuInfo details = new CpuInfo();
-        Map<String, Integer> threadCount = new LinkedHashMap<String, Integer>();
+        Map<String, Integer> threadCount = new LinkedHashMap<>();
 
         while ((line = br.readLine()) != null) {
             if (line.trim().isEmpty()) {

@@ -70,7 +70,7 @@ public enum PosixJNAAffinity implements IAffinity {
         LOADED = loaded;
     }
 
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<Integer>();
+    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
     public static boolean is64Bit() {
         return IS64BIT;

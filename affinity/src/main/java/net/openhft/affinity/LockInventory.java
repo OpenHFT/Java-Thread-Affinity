@@ -34,7 +34,7 @@ class LockInventory {
      * The locks belonging to physical cores. Since a physical core can host multiple logical cores
      * the relationship is one to many.
      */
-    private final NavigableMap<Integer, AffinityLock[]> physicalCoreLocks = new TreeMap<Integer, AffinityLock[]>();
+    private final NavigableMap<Integer, AffinityLock[]> physicalCoreLocks = new TreeMap<>();
     private CpuLayout cpuLayout;
     /**
      * The lock belonging to each logical core. 1-to-1 relationship

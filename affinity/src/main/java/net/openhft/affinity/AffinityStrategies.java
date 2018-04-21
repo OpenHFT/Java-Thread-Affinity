@@ -75,6 +75,6 @@ public enum AffinityStrategies implements AffinityStrategy {
             CpuLayout cpuLayout = AffinityLock.cpuLayout();
             return cpuLayout.socketId(cpuId) != cpuLayout.socketId(cpuId2);
         }
-    };
+    }
 
 }

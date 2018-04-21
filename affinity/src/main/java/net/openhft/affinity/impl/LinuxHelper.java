@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.List;
 
 public class LinuxHelper {
@@ -281,7 +282,7 @@ public class LinuxHelper {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
         static final int SIZE_OF_CPU_SET_T = (__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE;
-        static List<String> FIELD_ORDER = Arrays.asList("__bits");
+        static List<String> FIELD_ORDER = Collections.singletonList("__bits");
         public NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
 
         public cpu_set_t() {
@@ -293,7 +294,7 @@ public class LinuxHelper {
         @SuppressWarnings({"UnusedDeclaration"})
         public static void __CPU_ZERO(cpu_set_t cpuset) {
             for (NativeLong bits : cpuset.__bits) {
-                bits.setValue(0l);
+                bits.setValue(0L);
             }
         }
 
@@ -302,7 +303,7 @@ public class LinuxHelper {
         }
 
         public static long __CPUMASK(int cpu) {
-            return 1l << (cpu % __NCPUBITS);
+            return 1L << (cpu % __NCPUBITS);
         }
 
         @SuppressWarnings({"UnusedDeclaration"})
