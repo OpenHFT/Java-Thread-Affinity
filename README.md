@@ -1,8 +1,6 @@
 Thread Affinity
 =============
 
-![alt text](https://chronicle.software/wp-content/uploads/2018/02/Thread-Affinity_line.png)
-
 ## Version
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity)
 
