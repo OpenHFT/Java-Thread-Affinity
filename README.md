@@ -1,7 +1,12 @@
 Thread Affinity
 =============
+
+![alt text](https://chronicle.software/wp-content/uploads/2018/02/Thread-Affinity_line.png)
+
+## Version
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity)
 
+## Overview
 Lets you bind a thread to a given core, this can improve performance (this library works best on linux).
 
 OpenHFT Java Thread Affinity library
