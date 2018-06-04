@@ -128,28 +128,33 @@ In this example, the library will prefer a free CPU on the same Socket as the fi
 
 === Getting the thread id.
 You can get the current thread id using
-
+[source, java]
+----
     int threadId = AffinitySupport.getThreadId();
-
+----
 === Determining which CPU you are running on.
 You can get the current CPU being used by
-
+[source, java]
+----
     int cpuId = AffinitySupport.getCpu();
-
+----
 === Controlling the affinity more directly.
 The affinity of the process on start up is
-
+[source, java]
+----
    long baseAffinity = AffinityLock.BASE_AFFINITY;
-   
+----   
 The available CPU for reservation is
-
+[source, java]
+----
    long reservedAffinity = AffinityLock.RESERVED_AFFINITY;
-    
+----    
 If you want to get/set the affinity directly you can do
- 
+[source, java]
+---- 
    long currentAffinity = AffinitySupport.getAffinity();
    AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
-   
+----   
 === Debugging affinity state
 
 For a detailed of view of the current affinity state (as seen by the library),
