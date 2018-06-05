@@ -1,5 +1,7 @@
 = Thread Affinity
 
+image::https://chronicle.software/wp-content/uploads/2018/02/Thread-Affinity_line.png[width=20%]
+
 === Version
 
 [#image-maven]
