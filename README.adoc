@@ -1,6 +1,6 @@
 = Thread Affinity
 
-image::https://chronicle.software/wp-content/uploads/2018/02/Thread-Affinity_line.png[width=20%]
+image::/images/Thread-Affinity_line.png[width=20%]
 
 === Version
 
