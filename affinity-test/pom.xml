@@ -22,13 +22,13 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.1.15</version>
+        <version>1.1.16</version>
         <relativePath/>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>affinity-test</artifactId>
-    <version>3.1.1-SNAPSHOT</version>
+    <version>3.1.8-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
