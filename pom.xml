@@ -39,4 +39,12 @@
         <module>affinity-test</module>
     </modules>
 
+    <scm>
+        <url>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</url>
+        <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
+        <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
+        </developerConnection>
+        <tag>master</tag>
+    </scm>
+
 </project>
