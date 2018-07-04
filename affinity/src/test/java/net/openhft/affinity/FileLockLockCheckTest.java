@@ -17,28 +17,27 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import static net.openhft.affinity.LockCheck.IS_LINUX;
 
 /**
- * @author Rob Austin.
+ * @author Tom Shercliff
  */
-public class LockCheckTest {
+public class FileLockLockCheckTest {
 
     private static final String TMP = System.getProperty("java.io.tmpdir");
     private static final String TARGET = System.getProperty("project.build.directory", findTarget());
     private int cpu = 11;
-    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
 
     private static String findTarget() {
         for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {
@@ -81,18 +80,6 @@ public class LockCheckTest {
 
         final File file = lockChecker.doToFile(cpu);
         new RandomAccessFile(file, "rw").setLength(0);
-
-        LockCheck.isCpuFree(cpu);
-    }
-
-    @Test
-    public void shouldNotBlowUpIfPidFileIsCorrupt() throws Exception {
-        LockCheck.updateCpu(cpu);
-
-        final File file = lockChecker.doToFile(cpu);
-        try (final FileWriter writer = new FileWriter(file, false)) {
-            writer.append("not a number\nnot a date");
-        }
 
         LockCheck.isCpuFree(cpu);
     }

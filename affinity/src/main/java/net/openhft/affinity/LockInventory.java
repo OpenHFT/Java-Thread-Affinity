@@ -108,10 +108,9 @@ class LockInventory {
                 updateLockForCurrentThread(bind, required, false);
                 return required;
             }
+            LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
+                    cpuId, Thread.currentThread());
         }
-
-        LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
-                cpuId, Thread.currentThread());
 
         for (AffinityStrategy strategy : strategies) {
             // consider all processors except cpu 0 which is usually used by the OS.
@@ -215,11 +214,6 @@ class LockInventory {
         al.bound = false;
         al.boundHere = null;
 
-        final String lockFilePath = LockCheck.toFile(al.cpuId()).getAbsolutePath();
-        try {
-            Files.delete(Paths.get(lockFilePath));
-        } catch (IOException e) {
-            LOGGER.warn("Failed to delete lock file at " + lockFilePath);
-        }
+        LockCheck.releaseLock(al.cpuId());
     }
 }

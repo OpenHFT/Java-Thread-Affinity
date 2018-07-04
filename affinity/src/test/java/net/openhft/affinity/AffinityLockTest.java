@@ -18,6 +18,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,8 @@ import static org.junit.Assume.assumeTrue;
  */
 public class AffinityLockTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
+
+    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
 
     @Test
     public void dumpLocksI7() throws IOException {
@@ -228,13 +231,16 @@ public class AffinityLockTest {
 
     @Test
     public void lockFilesShouldBeRemovedOnRelease() {
+        if(System.getProperty("os.name").toLowerCase().startsWith("win")) {
+            return;//doesn't work on Windows
+        }
         final AffinityLock lock = AffinityLock.acquireLock();
 
-        assertThat(Files.exists(Paths.get(LockCheck.toFile(lock.cpuId()).getAbsolutePath())), is(true));
+        assertThat(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())), is(true));
 
         lock.release();
 
-        assertThat(Files.exists(Paths.get(LockCheck.toFile(lock.cpuId()).getAbsolutePath())), is(false));
+        assertThat(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())), is(false));
     }
 
     private void displayStatus() {

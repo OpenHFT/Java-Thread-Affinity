@@ -17,13 +17,12 @@
 
 package net.openhft.affinity;
 
-import org.jetbrains.annotations.NotNull;
+import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
+import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * @author Rob Austin.
@@ -35,7 +34,9 @@ enum LockCheck {
     private static final String OS = System.getProperty("os.name").toLowerCase();
     static final boolean IS_LINUX = OS.startsWith("linux");
     private static final int EMPTY_PID = Integer.MIN_VALUE;
-    private static SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
+
+
+    private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
     static long getPID() {
         String processName =
@@ -43,53 +44,39 @@ enum LockCheck {
         return Long.parseLong(processName.split("@")[0]);
     }
 
-    public static boolean isCpuFree(int cpu) {
+    static boolean canOSSupportOperation() {
+        return IS_LINUX;
+    }
 
-        if (!IS_LINUX)
+    public static boolean isCpuFree(int cpu) {
+        if (!canOSSupportOperation())
             return true;
 
-        final File file = toFile(cpu);
-        final boolean exists = file.exists();
-
-        if (!exists) {
+        if (isLockFree(cpu)) {
             return true;
         } else {
             int currentProcess = 0;
             try {
-                currentProcess = getProcessForCpu(file);
+                currentProcess = getProcessForCpu(cpu);
             } catch (RuntimeException | IOException e) {
                 LOGGER.warn("Failed to determine process on cpu " + cpu, e);
                 e.printStackTrace();
                 return true;
             }
-            if (currentProcess == EMPTY_PID) {
-                file.delete();
-                return true;
-            }
             if (!isProcessRunning(currentProcess)) {
-                file.delete();
+                lockChecker.releaseLock(cpu);
                 return true;
             }
             return false;
         }
     }
 
-    @NotNull
-    static File toFile(int core) {
-        return new File(tmpDir(), "cpu-" + core + ".lock");
-    }
-
-    static void replacePid(int core, long processID) throws IOException {
-        replacePid(toFile(core), processID);
-    }
-
-    private static void replacePid(File file, long processID) throws IOException {
-        file.delete();
-        storePid(processID, file);
+    static void replacePid(int cpu, long processID) throws IOException {
+        storePid(processID, cpu);
     }
 
     static boolean isProcessRunning(long pid) {
-        if (IS_LINUX)
+        if (canOSSupportOperation())
             return new File("/proc/" + pid).exists();
         else
             throw new UnsupportedOperationException("this is only supported on LINUX");
@@ -99,55 +86,41 @@ enum LockCheck {
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
      */
-    private synchronized static void storePid(long processID, File coreFile) throws IOException {
-        try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(coreFile, false), "utf-8"))) {
-            String processIDStr = Long.toString(processID);
-            writer.write(processIDStr + "\n" + df.format(new Date()));
+    private synchronized static void storePid(long processID, int cpu) throws IOException {
+        if(!lockChecker.obtainLock(cpu, Long.toString(processID))) {
+            throw new IOException(String.format("Cannot obtain file lock for cpu %d", cpu));
         }
+    }
+
+    private synchronized static boolean isLockFree(int id) {
+        return lockChecker.isLockFree(id);
     }
 
     static int getProcessForCpu(int core) throws IOException {
-        return getProcessForCpu(toFile(core));
-    }
+        String meta = lockChecker.getMetaInfo(core);
 
-    private static int getProcessForCpu(@NotNull File coreFile) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                new FileInputStream(coreFile), "utf-8"))) {
-
-            final String firstLine = reader.readLine();
-            if (firstLine == null) {
-                LOGGER.warn("Empty lock file {}", coreFile.getAbsolutePath());
-                return EMPTY_PID;
-            }
-            String s = firstLine.trim();
+        if(meta != null && !meta.isEmpty()) {
             try {
-                return Integer.parseInt(s);
-            } catch (RuntimeException e) {
-                LOGGER.warn("Corrupt lock file {}: first line = '{}'", coreFile.getAbsolutePath(), firstLine);
-                e.printStackTrace();
-                return EMPTY_PID;
+                return Integer.parseInt(meta);
+            } catch(NumberFormatException e) {
+                //nothing
             }
         }
-    }
-
-    private static File tmpDir() {
-        final File tempDir = new File(System.getProperty("java.io.tmpdir"));
-
-        if (!tempDir.exists())
-            tempDir.mkdirs();
-
-        return tempDir;
+        return EMPTY_PID;
     }
 
     static void updateCpu(int cpu) {
-        if (!IS_LINUX)
+        if (!canOSSupportOperation())
             return;
         try {
-            replacePid(toFile(cpu), getPID());
+            replacePid(cpu, getPID());
         } catch (IOException e) {
             LOGGER.warn("Failed to update lock file for cpu " + cpu, e);
             e.printStackTrace();
         }
+    }
+
+    public static void releaseLock(int cpu) {
+        lockChecker.releaseLock(cpu);
     }
 }
