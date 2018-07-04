@@ -15,20 +15,18 @@
   ~ limitations under the License.
   -->
 
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>root-parent-pom</artifactId>
         <version>1.1.12</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>Java-Thread-Affinity</artifactId>
-    <version>3.1.8-SNAPSHOT</version>
+    <version>3.1.8</version>
     <packaging>pom</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity Parent</name>
@@ -44,7 +42,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
         </developerConnection>
-        <tag>master</tag>
+        <tag>Java-Thread-Affinity-3.1.8</tag>
     </scm>
 
 </project>
