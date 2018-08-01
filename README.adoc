@@ -78,7 +78,7 @@ To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, 
 isolcpus=1,3
 
 ==== Acquiring a CPU lock for a thread
-You can acquire a lock for a CPU in the following matter
+You can acquire a lock for a CPU in the following way:
 
 In Java 6
 [source, java]
