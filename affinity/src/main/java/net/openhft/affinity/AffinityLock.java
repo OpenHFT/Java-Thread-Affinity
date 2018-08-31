@@ -123,7 +123,7 @@ public class AffinityLock implements Closeable {
                 LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
                 reserverable = new BitSet(PROCESSORS);
                 // make the first CPU unavailable
-                reserverable.set(1, PROCESSORS - 1, true);
+                reserverable.set(1, PROCESSORS, true);
                 reserverable.set(0, false);
                 return reserverable;
             }
