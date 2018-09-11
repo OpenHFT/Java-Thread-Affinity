@@ -11,9 +11,13 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 
+import static java.nio.file.StandardOpenOption.*;
 import static net.openhft.affinity.impl.VanillaCpuLayout.MAX_CPUS_SUPPORTED;
 
 /**
@@ -54,7 +58,7 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
 
         //does another process have the lock?
         try {
-            FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.WRITE);
+            FileChannel fc = FileChannel.open(file.toPath(), WRITE);
             FileLock fileLock = fc.tryLock();
             if (fileLock == null) {
                 return false;
@@ -77,8 +81,9 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
             return false;
         }
 
-        FileChannel fc = FileChannel.open(file.toPath(), StandardOpenOption.CREATE_NEW,
-                StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.SYNC);
+        FileChannel fc = FileChannel.open(file.toPath(),
+                new HashSet<>(Arrays.asList(CREATE_NEW, WRITE, READ, SYNC)),
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")));
         FileLock fl = fc.tryLock();
 
         if(fl == null) {

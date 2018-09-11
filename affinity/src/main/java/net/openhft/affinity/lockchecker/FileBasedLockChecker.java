@@ -38,6 +38,8 @@ public class FileBasedLockChecker implements LockChecker {
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
                 new FileOutputStream(file, false), "utf-8"))) {
             writer.write(metaInfo + "\n" + df.format(new Date()));
+            file.setWritable(true, false);
+            file.setExecutable(false, false);
             return true;
         }
     }
