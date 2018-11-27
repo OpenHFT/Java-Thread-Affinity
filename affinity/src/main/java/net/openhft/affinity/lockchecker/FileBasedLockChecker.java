@@ -8,15 +8,16 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
- * @author Tom Shercliff
- */
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+@SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileBasedLockChecker implements LockChecker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedLockChecker.class);
-    protected static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
+    static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
 
     private static final LockChecker instance = new FileBasedLockChecker();
+
     public static LockChecker getInstance() {
         return instance;
     }
@@ -36,7 +37,7 @@ public class FileBasedLockChecker implements LockChecker {
         file.delete();
 
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(file, false), "utf-8"))) {
+                new FileOutputStream(file, false), UTF_8))) {
             writer.write(metaInfo + "\n" + df.format(new Date()));
             file.setWritable(true, false);
             file.setExecutable(false, false);
@@ -53,11 +54,11 @@ public class FileBasedLockChecker implements LockChecker {
     public String getMetaInfo(int id) throws IOException {
         File file = toFile(id);
 
-        if(!file.exists()) {
+        if (!file.exists()) {
             return null;
         }
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8))) {
             final String firstLine = reader.readLine();
             if (firstLine == null) {
                 LOGGER.error(String.format("Empty lock file %s%n", file.getAbsolutePath()));
@@ -72,7 +73,7 @@ public class FileBasedLockChecker implements LockChecker {
         return new File(tmpDir(), "cpu-" + id + ".lock");
     }
 
-    static File tmpDir() {
+    private static File tmpDir() {
         final File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
         if (!tempDir.exists())
