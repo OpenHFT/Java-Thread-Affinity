@@ -224,8 +224,8 @@ public class AffinityLockTest {
     public void shouldReturnLockForSpecifiedCpu() {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
 
-        try (final AffinityLock affinityLock = AffinityLock.acquireLock(2)) {
-            assertThat(affinityLock.cpuId(), is(2));
+        try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
+            assertThat(affinityLock.cpuId(), is(3));
         }
     }
 

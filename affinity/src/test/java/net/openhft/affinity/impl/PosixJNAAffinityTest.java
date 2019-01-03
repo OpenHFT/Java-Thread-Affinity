@@ -55,7 +55,7 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
                 tid = Thread.currentThread().getId();
                 time += System.nanoTime() - start;
                 assertTrue(tid > 0);
-                assertTrue(tid < 1 << 16);
+                assertTrue(tid < 1 << 24);
             }
             System.out.printf("gettid took an average of %,d ns, tid=%d%n", time / runs, tid);
         }
