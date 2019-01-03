@@ -37,8 +37,8 @@ public class LockCheckTest {
 
     private static final String TMP = System.getProperty("java.io.tmpdir");
     private static final String TARGET = System.getProperty("project.build.directory", findTarget());
-    private int cpu = 11;
     private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private int cpu = 11;
 
     private static String findTarget() {
         for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {

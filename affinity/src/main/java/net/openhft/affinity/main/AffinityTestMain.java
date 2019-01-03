@@ -15,13 +15,13 @@ public class AffinityTestMain {
     public static void main(String[] args) {
 
         int cpus = 1;
-        if(args.length == 0) {
+        if (args.length == 0) {
             cpus = AffinityLock.cpuLayout().cpus() / 12;
         } else {
             cpus = Integer.valueOf(args[0]);
         }
 
-        for(int i=0; i<cpus; i++) {
+        for (int i = 0; i < cpus; i++) {
             acquireAndDoWork();
         }
     }
@@ -35,7 +35,7 @@ public class AffinityTestMain {
                     String threadName = Thread.currentThread().getName();
                     System.out.println("Thread (" + threadName + ") locked onto cpu " + al.cpuId());
 
-                    while(true) {
+                    while (true) {
                         System.out.println(df.format(new Date()) + " - Thread (" + threadName + ") doing work on cpu " + al.cpuId() + ". IsAllocated = " + al.isAllocated() + ", isBound = " + al.isBound() + ". " + al.toString());
 
                         try {

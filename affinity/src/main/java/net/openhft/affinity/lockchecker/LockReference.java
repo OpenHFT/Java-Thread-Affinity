@@ -1,6 +1,5 @@
 package net.openhft.affinity.lockchecker;
 
-
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 

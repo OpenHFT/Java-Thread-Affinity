@@ -31,15 +31,14 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     private static final LockChecker instance = new FileLockBasedLockChecker();
     private static final HashSet<StandardOpenOption> openOptions = new HashSet<>(Arrays.asList(CREATE_NEW, WRITE, READ, SYNC));
     private static final FileAttribute<Set<PosixFilePermission>> fileAttr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-"));
-
-    public static LockChecker getInstance() {
-        return instance;
-    }
-
     private final LockReference[] locks = new LockReference[MAX_CPUS_SUPPORTED];
 
     protected FileLockBasedLockChecker() {
         //nothing
+    }
+
+    public static LockChecker getInstance() {
+        return instance;
     }
 
     @Override

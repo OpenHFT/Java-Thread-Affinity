@@ -22,7 +22,8 @@ import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Rob Austin.
@@ -34,7 +35,6 @@ enum LockCheck {
     private static final String OS = System.getProperty("os.name").toLowerCase();
     static final boolean IS_LINUX = OS.startsWith("linux");
     private static final int EMPTY_PID = Integer.MIN_VALUE;
-
 
     private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
@@ -87,7 +87,7 @@ enum LockCheck {
      * below
      */
     private synchronized static void storePid(long processID, int cpu) throws IOException {
-        if(!lockChecker.obtainLock(cpu, Long.toString(processID))) {
+        if (!lockChecker.obtainLock(cpu, Long.toString(processID))) {
             throw new IOException(String.format("Cannot obtain file lock for cpu %d", cpu));
         }
     }
@@ -99,10 +99,10 @@ enum LockCheck {
     static int getProcessForCpu(int core) throws IOException {
         String meta = lockChecker.getMetaInfo(core);
 
-        if(meta != null && !meta.isEmpty()) {
+        if (meta != null && !meta.isEmpty()) {
             try {
                 return Integer.parseInt(meta);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 //nothing
             }
         }

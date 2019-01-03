@@ -13,17 +13,25 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class FileBasedLockChecker implements LockChecker {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedLockChecker.class);
     static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileBasedLockChecker.class);
     private static final LockChecker instance = new FileBasedLockChecker();
+
+    protected FileBasedLockChecker() {
+        //nothing
+    }
 
     public static LockChecker getInstance() {
         return instance;
     }
 
-    protected FileBasedLockChecker() {
-        //nothing
+    private static File tmpDir() {
+        final File tempDir = new File(System.getProperty("java.io.tmpdir"));
+
+        if (!tempDir.exists())
+            tempDir.mkdirs();
+
+        return tempDir;
     }
 
     @Override
@@ -71,14 +79,5 @@ public class FileBasedLockChecker implements LockChecker {
     @NotNull
     protected File toFile(int id) {
         return new File(tmpDir(), "cpu-" + id + ".lock");
-    }
-
-    private static File tmpDir() {
-        final File tempDir = new File(System.getProperty("java.io.tmpdir"));
-
-        if (!tempDir.exists())
-            tempDir.mkdirs();
-
-        return tempDir;
     }
 }

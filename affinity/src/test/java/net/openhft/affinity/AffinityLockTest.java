@@ -231,7 +231,7 @@ public class AffinityLockTest {
 
     @Test
     public void lockFilesShouldBeRemovedOnRelease() {
-        if(System.getProperty("os.name").toLowerCase().startsWith("win")) {
+        if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
             return;//doesn't work on Windows
         }
         final AffinityLock lock = AffinityLock.acquireLock();

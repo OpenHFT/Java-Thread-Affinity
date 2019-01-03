@@ -7,6 +7,6 @@ import java.io.File;
 public class TestFileLockBasedLockChecker extends FileLockBasedLockChecker {
 
     public File doToFile(int cpu) {
-            return toFile(cpu);
+        return toFile(cpu);
     }
 }
