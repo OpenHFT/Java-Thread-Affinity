@@ -66,7 +66,11 @@ public class LinuxHelper {
         return cpuset;
     }
 
-    public static void sched_setaffinity(final BitSet affinity) {
+	public static void sched_setaffinity(final BitSet affinity) {
+		sched_setaffinity(0, affinity);
+	}
+	
+    public static void sched_setaffinity(final int pid, final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
         final cpu_set_t cpuset = new cpu_set_t();
         final int size = version.isSameOrNewer(VERSION_2_6) ? cpu_set_t.SIZE_OF_CPU_SET_T : NativeLong.SIZE;
@@ -80,12 +84,12 @@ public class LinuxHelper {
             }
         }
         try {
-            if (lib.sched_setaffinity(0, size, cpuset) != 0) {
-                throw new IllegalStateException("sched_setaffinity(0, " + size +
+            if (lib.sched_setaffinity(pid, size, cpuset) != 0) {
+                throw new IllegalStateException("sched_setaffinity(" + pid + ", " + size +
                         ", 0x" + Utilities.toHexString(affinity) + ") failed; errno=" + Native.getLastError());
             }
         } catch (LastErrorException e) {
-            throw new IllegalStateException("sched_setaffinity(0, " + size +
+            throw new IllegalStateException("sched_setaffinity(" + pid + ", " + size +
                     ", 0x" + Utilities.toHexString(affinity) + ") failed; errno=" + e.getErrorCode(), e);
         }
     }
