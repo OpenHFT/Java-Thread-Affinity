@@ -83,8 +83,7 @@ class LockInventory {
         for (int i = 0; i < cpuLayout.cpus(); i++) {
             final boolean base = AffinityLock.BASE_AFFINITY.get(i);
             final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
-
-            LOGGER.trace("cpu " + i + " base={} reservable= {}", i, base, reservable);
+            LOGGER.trace("cpu {} base={} reservable= {}", i, base, reservable);
             AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);
 
             int layoutId = lock.cpuId();
