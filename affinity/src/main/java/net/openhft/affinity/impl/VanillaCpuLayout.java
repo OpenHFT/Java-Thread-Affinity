@@ -30,7 +30,7 @@ import static java.lang.Integer.parseInt;
  * @author peter.lawrey
  */
 public class VanillaCpuLayout implements CpuLayout {
-    public static final int MAX_CPUS_SUPPORTED = 64;
+    public static final int MAX_CPUS_SUPPORTED = 256;
 
     @NotNull
     private final List<CpuInfo> cpuDetails;

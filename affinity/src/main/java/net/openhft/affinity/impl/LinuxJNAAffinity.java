@@ -33,11 +33,14 @@ public enum LinuxJNAAffinity implements IAffinity {
     private static final int SYS_gettid = Platform.is64Bit() ? 186 : 224;
     private static final Object[] NO_ARGS = {};
 
+    private static final String OS = System.getProperty("os.name").toLowerCase();
+    private static final boolean IS_LINUX = OS.startsWith("linux");
+
     static {
         int pid = -1;
         try {
             pid = LinuxHelper.getpid();
-        } catch (Exception ignored) {
+        } catch (NoClassDefFoundError | Exception ignored) {
         }
         PROCESS_ID = pid;
     }
@@ -47,8 +50,9 @@ public enum LinuxJNAAffinity implements IAffinity {
         try {
             INSTANCE.getAffinity();
             loaded = true;
-        } catch (UnsatisfiedLinkError e) {
-            LOGGER.warn("Unable to load jna library {}", e);
+        } catch (NoClassDefFoundError | UnsatisfiedLinkError e) {
+            if (IS_LINUX)
+                LOGGER.warn("Unable to load jna library {}", e);
         }
         LOADED = loaded;
     }
