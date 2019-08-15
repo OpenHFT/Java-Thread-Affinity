@@ -76,7 +76,6 @@ enum BootClassPath {
                     jarResources.add(jarEntry.getName());
                 }
             }
-
         } catch (IOException e) {
             logger.warn("Not a jar file: {}", path);
         }
