@@ -55,10 +55,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.sun.java</groupId>
-            <artifactId>tools</artifactId>
-        </dependency>
-        <dependency>
             <groupId>net.openhft</groupId>
             <artifactId>affinity</artifactId>
         </dependency>
@@ -184,6 +180,26 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>pre-java9</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.sun</groupId>
+                    <artifactId>tools</artifactId>
+                    <version>1.8.0</version>
+                    <scope>system</scope>
+                    <systemPath>${java.home}/../lib/tools.jar</systemPath>
+                </dependency>
+            </dependencies>
+            <activation>
+                <file>
+                    <exists>${java.home}/../lib/tools.jar</exists>
+                </file>
+            </activation>
+        </profile>
+    </profiles>
 
     <scm>
         <url>scm:git:https://github.com/OpenHFT/Java-Thread-Affinity.git</url>
