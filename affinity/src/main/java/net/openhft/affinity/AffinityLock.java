@@ -312,7 +312,7 @@ public class AffinityLock implements Closeable {
         } else if (cpuId >= 0) {
             bound = true;
             assignedThread = Thread.currentThread();
-            LOGGER.info("Assigning cpu {} to {}", cpuId, assignedThread);
+            LOGGER.info("Assigning cpu {} to {} on thread id {}", cpuId, assignedThread, Affinity.getThreadId());
         }
         if (cpuId >= 0) {
             BitSet affinity = new BitSet();

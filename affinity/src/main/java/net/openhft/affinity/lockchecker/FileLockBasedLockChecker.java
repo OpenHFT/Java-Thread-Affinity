@@ -137,7 +137,7 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
         FileChannel fc = lr.channel;
         ByteBuffer buffer = ByteBuffer.allocate(64);
         int len = fc.read(buffer, 0);
-        String content = new String(buffer.array(), 0, len);
+        String content = len < 1 ? "" : new String(buffer.array(), 0, len);
         if (content.isEmpty()) {
             LOGGER.warn("Empty lock file {}", file.getAbsolutePath());
             return null;
