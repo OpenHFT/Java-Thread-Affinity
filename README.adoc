@@ -2,13 +2,13 @@
 
 image::/images/Thread-Affinity_line.png[width=20%]
 
-=== Version
+== Version
 
 [#image-maven]
 [caption="", link=https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity]
 image::https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg[]
 
-=== Overview
+== Overview
 Lets you bind a thread to a given core, this can improve performance (this library works best on linux).
 
 OpenHFT Java Thread Affinity library
@@ -16,11 +16,12 @@ OpenHFT Java Thread Affinity library
 See https://github.com/OpenHFT/Java-Thread-Affinity/tree/master/affinity/src/test/java[affinity/src/test/java] 
 for working examples of how to use this library.
 
-==== Wold Wide Usage
+=== Wold Wide Usage
 http://jrvis.com/red-dwarf/?user=openhft&repo=Java-Thread-Affinity[Thread Affinity usage Heatmap]
 
-==== Changes
+=== Changes
 
+* V3.2.0 - Add support for text configuration
 * V3.1.1 - Upgraded JNA dependency to 4.4.0
 * V2.0.1 - Added getThreadId for the process if of the thread.
 
@@ -30,7 +31,7 @@ Java-Thread-Affinity will try to use https://github.com/java-native-access/jna[J
 to provide access to native thread-handling functions. JNA should be installed on
 your system to get the most from this library.
 
-==== JNA version
+=== JNA version
 
 Java-Thread-Affinity currently depends on JNA version 4.4.0, which in turn
 depends on a version of GLIBC >= 2.14. If your operating system is an old one,
@@ -40,11 +41,11 @@ invoke native functions.
 To work around this problem, fork the repository, and override the `<version>` tag
 for the artifacts `jna` and `jna-platform` in the project's `pom` file.
 
-==== Installing JNA on Ubuntu
+=== Installing JNA on Ubuntu
 
     sudo apt-get install libjna-java
 
-==== Installing JNA on CentOS
+=== Installing JNA on CentOS
 
     sudo yum install jna
 
@@ -77,26 +78,28 @@ To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, 
 
 isolcpus=1,3
 
-==== Acquiring a CPU lock for a thread
+== Using AffinityLock
+
+=== Acquiring a CPU lock for a thread
 You can acquire a lock for a CPU in the following way:
 
 In Java 6
 [source, java]
 ----
-    AffinityLock al = AffinityLock.acquireLock();
-    try {
-         // do some work locked to a CPU.
-    } finally {
-         al.release();
-    }
+AffinityLock al = AffinityLock.acquireLock();
+try {
+     // do some work locked to a CPU.
+} finally {
+     al.release();
+}
 ----
 
 In Java 7 or 8
 [source, java]
 ----
-    try (AffinityLock al = AffinityLock.acquireLock()) {
-        // do some work while locked to a CPU.
-    }
+try (AffinityLock al = AffinityLock.acquireLock()) {
+    // do some work while locked to a CPU.
+}
 ----
 You have further options such as
 
@@ -104,27 +107,27 @@ You have further options such as
 You can reserve a whole core.  If you have hyper-threading enabled, this will use one CPU and leave it's twin CPU unused.
 [source, java]
 ----
-    try (AffinityLock al = AffinityLock.acquireCore()) {
-        // do some work while locked to a CPU.
-    }
+try (AffinityLock al = AffinityLock.acquireCore()) {
+    // do some work while locked to a CPU.
+}
 ----
 === Controlling layout
 You can chose a layout relative to an existing lock.
 [source, java]
 ----
-    try (final AffinityLock al = AffinityLock.acquireLock()) {
-        System.out.println("Main locked");
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try (AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET,
-                                                       AffinityStrategies.ANY)) {
-                     System.out.println("Thread-0 locked");
-                }
+try (final AffinityLock al = AffinityLock.acquireLock()) {
+    System.out.println("Main locked");
+    Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+            try (AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET,
+                                                   AffinityStrategies.ANY)) {
+                 System.out.println("Thread-0 locked");
             }
-        });
-        t.start();
-    }
+        }
+    });
+    t.start();
+}
 ----    
 In this example, the library will prefer a free CPU on the same Socket as the first thread, otherwise it will pick any free CPU. 
 
@@ -132,31 +135,35 @@ In this example, the library will prefer a free CPU on the same Socket as the fi
 You can get the current thread id using
 [source, java]
 ----
-    int threadId = AffinitySupport.getThreadId();
+
+int threadId = AffinitySupport.getThreadId();
 ----
 === Determining which CPU you are running on.
 You can get the current CPU being used by
 [source, java]
 ----
-    int cpuId = AffinitySupport.getCpu();
+
+int cpuId = AffinitySupport.getCpu();
 ----
 === Controlling the affinity more directly.
 The affinity of the process on start up is
 [source, java]
 ----
-   long baseAffinity = AffinityLock.BASE_AFFINITY;
+
+long baseAffinity = AffinityLock.BASE_AFFINITY;
 ----   
 The available CPU for reservation is
 [source, java]
 ----
-   long reservedAffinity = AffinityLock.RESERVED_AFFINITY;
+long reservedAffinity = AffinityLock.RESERVED_AFFINITY;
 ----    
 If you want to get/set the affinity directly you can do
 [source, java]
 ---- 
-   long currentAffinity = AffinitySupport.getAffinity();
-   AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
+long currentAffinity = AffinitySupport.getAffinity();
+AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
 ----   
+
 === Debugging affinity state
 
 For a detailed of view of the current affinity state (as seen by the library),
@@ -188,18 +195,59 @@ For an article on how much difference affinity can make and how to use it http:/
 
 == Questions and Answers
 
-=== Question
+=== Question: How to lock a specific cpuId
 I am currently working on a project related to deadlock detection in multithreaded programs in java. We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
 Being a beginner, I have little knowledge and thus need your assistance. We need to know how to run threads on specified cpu number and then switch threads when one is waiting. 
 
 === Answer
 
-Use :
-
 [source, java]
 ----
-AffinityLock.setAffinity (1L << n);
+// lock a cpuId
+try (AffinityLock lock = AffinityLock.acquireLock(n)) {
+
+}
 ----
 
 where n is the cpu you want to run the thread on.
 
+OR
+
+[source,java]
+----
+// lock one of the last CPUs
+try (AffinityLock lock = AffinityLock.acquireLockLastMinus(n)) {
+
+}
+----
+
+=== Question: how to use a configuration file to set the cpuId
+
+I have the cpuId in a configuration file, how can I set it using a string?
+
+=== Answer: use one fo the following.
+
+[source,java]
+----
+try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+    assertEquals(PROCESSORS - 1, Affinity.getCpu());
+}
+try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
+    assertEquals(PROCESSORS - 2, Affinity.getCpu());
+}
+try (AffinityLock lock = AffinityLock.acquireLock("1")) {
+    assertEquals(1, Affinity.getCpu());
+}
+try (AffinityLock lock = AffinityLock.acquireLock("any")) {
+    assertTrue(lock.bound);
+}
+try (AffinityLock lock = AffinityLock.acquireLock("none")) {
+    assertFalse(lock.bound);
+}
+try (AffinityLock lock = AffinityLock.acquireLock((String) null)) {
+    assertFalse(lock.bound);
+}
+try (AffinityLock lock = AffinityLock.acquireLock("0")) { // prints a warning
+    assertFalse(lock.bound);
+}
+----
