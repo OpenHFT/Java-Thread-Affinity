@@ -17,6 +17,7 @@
 
 package net.openhft.affinity;
 
+import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeTrue;
@@ -174,7 +176,7 @@ public class AffinityLockTest {
 
     @Test
     public void testIssue19() {
-        System.out.println("AffinityLock.PROCESSORS=" + AffinityLock.PROCESSORS);
+        System.out.println("AffinityLock.PROCESSORS=" + PROCESSORS);
 
         AffinityLock al = AffinityLock.acquireLock();
         List<AffinityLock> locks = new ArrayList<>();
@@ -231,8 +233,8 @@ public class AffinityLockTest {
 
     @Test
     public void lockFilesShouldBeRemovedOnRelease() {
-        if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-            return;//doesn't work on Windows
+        if (!Utilities.ISLINUX) {
+            return;
         }
         final AffinityLock lock = AffinityLock.acquireLock();
 
@@ -245,5 +247,36 @@ public class AffinityLockTest {
 
     private void displayStatus() {
         System.out.println(Thread.currentThread() + " on " + Affinity.getCpu() + "\n" + AffinityLock.dumpLocks());
+    }
+
+    @Test
+    public void testAffinityLockDescriptions() {
+        if (!Utilities.ISLINUX) {
+            return;
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
+            assertEquals(PROCESSORS - 2, Affinity.getCpu());
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("1")) {
+            assertEquals(1, Affinity.getCpu());
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("any")) {
+            assertTrue(lock.bound);
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("none")) {
+            assertFalse(lock.bound);
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock((String) null)) {
+            assertFalse(lock.bound);
+        }
+        try (AffinityLock lock = AffinityLock.acquireLock("0")) {
+            assertFalse(lock.bound);
+        }
     }
 }

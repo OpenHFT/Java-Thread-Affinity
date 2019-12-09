@@ -100,7 +100,7 @@ class LockInventory {
         final boolean specificCpuRequested = !isAnyCpu(cpuId);
         if (specificCpuRequested && cpuId != 0) {
             final AffinityLock required = logicalCoreLocks[cpuId];
-            if (required.canReserve() && anyStrategyMatches(cpuId, cpuId, strategies)) {
+            if (required.canReserve(true) && anyStrategyMatches(cpuId, cpuId, strategies)) {
                 updateLockForCurrentThread(bind, required, false);
                 return required;
             }
@@ -113,7 +113,7 @@ class LockInventory {
             // if you have only one core, this library is not appropriate in any case.
             for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
                 AffinityLock al = logicalCoreLocks[i];
-                if (al.canReserve() && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))) {
+                if (al.canReserve(false) && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))) {
                     updateLockForCurrentThread(bind, al, false);
                     return al;
                 }
@@ -122,7 +122,7 @@ class LockInventory {
 
         LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
 
-        return newLock(AffinityLock.ANY_CPU, false, false);
+        return noLock();
     }
 
     public final synchronized AffinityLock acquireCore(boolean bind, int cpuId, AffinityStrategy... strategies) {
@@ -130,7 +130,7 @@ class LockInventory {
             LOOP:
             for (AffinityLock[] als : physicalCoreLocks.descendingMap().values()) {
                 for (AffinityLock al : als)
-                    if (!al.canReserve() || !strategy.matches(cpuId, al.cpuId()))
+                    if (!al.canReserve(false) || !strategy.matches(cpuId, al.cpuId()))
                         continue LOOP;
 
                 final AffinityLock al = als[0];
@@ -211,5 +211,9 @@ class LockInventory {
         al.boundHere = null;
 
         LockCheck.releaseLock(al.cpuId());
+    }
+
+    public AffinityLock noLock() {
+        return newLock(AffinityLock.ANY_CPU, false, false);
     }
 }

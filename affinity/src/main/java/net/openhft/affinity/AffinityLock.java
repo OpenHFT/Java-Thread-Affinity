@@ -176,6 +176,71 @@ public class AffinityLock implements Closeable {
     }
 
     /**
+     * Allocate from the end.
+     *
+     * @param n positive number to allocate from.
+     * @return the lock acquired
+     */
+    public static AffinityLock acquireLockLastMinus(int n) {
+        return acquireLock(true, PROCESSORS - n, AffinityStrategies.ANY);
+    }
+
+    /**
+     * Use a description to allocate a cpu.
+     * <ul>
+     *     <li>"N" being a positive integer means allocate this CPU,</li>
+     *     <li>"last" or "last-N" means allocate from the end,</li>
+     *     <li>"any" means allow any</li>
+     *     <li>"none" or null means</li>
+     *     <li>"0" is not allowed</li>
+     * </ul>
+     *
+     * @param desc of which cpu to pick
+     * @return the AffinityLock obtained
+     */
+    public static AffinityLock acquireLock(String desc) {
+        if (desc == null)
+            return LOCK_INVENTORY.noLock();
+
+        desc = desc.toLowerCase();
+        int cpuId;
+        if (desc.startsWith("last")) {
+            String last = desc.substring(4);
+            int lastN;
+            if (last.isEmpty())
+                lastN = 0;
+            else
+                try {
+                    lastN = Integer.parseInt(last);
+                } catch (NumberFormatException e) {
+                    throw new IllegalArgumentException("Cannot parse '" + desc + "'", e);
+                }
+            if (lastN > 0)
+                throw new IllegalArgumentException("Cannot parse '" + desc + "'");
+
+            cpuId = PROCESSORS + lastN - 1;
+
+        } else if (desc.equals("none")) {
+            return LOCK_INVENTORY.noLock();
+
+        } else if (desc.equals("any")) {
+            return acquireLock();
+
+        } else {
+            try {
+                cpuId = Integer.parseInt(desc);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Cannot parse '" + desc + "'", e);
+            }
+        }
+        if (cpuId <= 0) {
+            System.err.println("Cannot allocate 0 or negative cpuIds '" + desc + "'");
+            return LOCK_INVENTORY.noLock();
+        }
+        return acquireLock(cpuId);
+    }
+
+    /**
      * Assign a core(and all its cpus) which can be bound to the current thread or another thread.
      * <p> This can be used for defining your thread layout centrally and passing the handle via
      * dependency injection.
@@ -256,12 +321,12 @@ public class AffinityLock implements Closeable {
         }
     }
 
-    final boolean canReserve() {
+    final boolean canReserve(boolean specified) {
 
         if (!LockCheck.isCpuFree(cpuId))
             return false;
 
-        if (!reservable) return false;
+        if (!specified && !reservable) return false;
         if (assignedThread != null) {
             if (assignedThread.isAlive()) {
                 return false;

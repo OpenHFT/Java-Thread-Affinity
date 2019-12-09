@@ -44,9 +44,7 @@ public enum PosixJNAAffinity implements IAffinity {
     private static final Logger LOGGER = LoggerFactory.getLogger(PosixJNAAffinity.class);
     private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
     private static final int PROCESS_ID;
-    private static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
-    private static final boolean IS64BIT = is64Bit0();
-    private static final int SYS_gettid = is64Bit() ? 186 : 224;
+    private static final int SYS_gettid = Utilities.is64Bit() ? 186 : 224;
     private static final Object[] NO_ARGS = {};
 
     static {
@@ -71,24 +69,6 @@ public enum PosixJNAAffinity implements IAffinity {
     }
 
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
-
-    public static boolean is64Bit() {
-        return IS64BIT;
-    }
-
-    private static boolean is64Bit0() {
-        String systemProp;
-        systemProp = System.getProperty("com.ibm.vm.bitmode");
-        if (systemProp != null) {
-            return "64".equals(systemProp);
-        }
-        systemProp = System.getProperty("sun.arch.data.model");
-        if (systemProp != null) {
-            return "64".equals(systemProp);
-        }
-        systemProp = System.getProperty("java.vm.version");
-        return systemProp != null && systemProp.contains("_64");
-    }
 
     @Override
     public BitSet getAffinity() {
@@ -198,7 +178,7 @@ public enum PosixJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        if (ISLINUX) {
+        if (Utilities.ISLINUX) {
             Integer tid = THREAD_ID.get();
             if (tid == null)
                 THREAD_ID.set(tid = CLibrary.INSTANCE.syscall(SYS_gettid, NO_ARGS));

@@ -25,6 +25,9 @@ import java.util.BitSet;
  * Created by andre on 20/06/15.
  */
 public final class Utilities {
+    public static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
+    static final boolean IS64BIT = is64Bit0();
+
     private Utilities() {
         throw new InstantiationError("Must not instantiate this class");
     }
@@ -57,5 +60,23 @@ public final class Utilities {
         writer.flush();
 
         return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    public static boolean is64Bit() {
+        return IS64BIT;
+    }
+
+    private static boolean is64Bit0() {
+        String systemProp;
+        systemProp = System.getProperty("com.ibm.vm.bitmode");
+        if (systemProp != null) {
+            return "64".equals(systemProp);
+        }
+        systemProp = System.getProperty("sun.arch.data.model");
+        if (systemProp != null) {
+            return "64".equals(systemProp);
+        }
+        systemProp = System.getProperty("java.vm.version");
+        return systemProp != null && systemProp.contains("_64");
     }
 }
