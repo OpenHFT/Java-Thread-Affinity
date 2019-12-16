@@ -17,12 +17,15 @@
 
 package net.openhft.affinity;
 
+import net.openhft.affinity.impl.NullAffinity;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.NavigableMap;
 import java.util.TreeMap;
+
+import static net.openhft.affinity.Affinity.getAffinityImpl;
 
 class LockInventory {
 
@@ -97,6 +100,9 @@ class LockInventory {
     }
 
     public final synchronized AffinityLock acquireLock(boolean bind, int cpuId, AffinityStrategy... strategies) {
+        if (getAffinityImpl() instanceof NullAffinity)
+            return noLock();
+
         final boolean specificCpuRequested = !isAnyCpu(cpuId);
         if (specificCpuRequested && cpuId != 0) {
             final AffinityLock required = logicalCoreLocks[cpuId];
