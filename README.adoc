@@ -16,9 +16,6 @@ OpenHFT Java Thread Affinity library
 See https://github.com/OpenHFT/Java-Thread-Affinity/tree/master/affinity/src/test/java[affinity/src/test/java] 
 for working examples of how to use this library.
 
-=== Wold Wide Usage
-http://jrvis.com/red-dwarf/?user=openhft&repo=Java-Thread-Affinity[Thread Affinity usage Heatmap]
-
 === Changes
 
 * V3.2.0 - Add support for text configuration
