@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.BitSet;
 
 /**
@@ -56,7 +55,7 @@ public class AffinityLock implements Closeable {
                 cpuLayout = VanillaCpuLayout.fromCpuInfo();
                 processors = cpuLayout.cpus();
             }
-        } catch (IOException e) {
+        } catch (Throwable e) {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
         }
         PROCESSORS = processors;
