@@ -20,25 +20,32 @@ package net.openhft.affinity;
 
 import java.io.PrintStream;
 /* e.g.
-After 2430 seconds, the average per hour was
-2us	78400
-3us	122703
-4us	345238
-6us	216098
-8us	78694
-10us	3977528
-14us	114495
-20us	4931
-30us	203
-40us	35
-60us	18
-80us	11
-100us	9
-140us	132
-200us	85
-300us	473
-400us	5
-1ms	24
+Windows 10 i7-4770 laptop
+After 1845 seconds, the average per hour was
+2us	2435969
+3us	548812
+4us	508041
+6us	60320
+8us	25374
+10us	1832324
+14us	2089216
+20us	391901
+30us	16063
+40us	6440
+60us	2617
+80us	1487
+100us	1241
+140us	826
+200us	2108
+300us	601
+400us	159
+600us	129
+800us	215
+1ms	155
+2ms	229
+5ms	24
+10ms	38
+20ms	32
  */
 
 /**
