@@ -84,6 +84,17 @@
 
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>slf4j-simple</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
     <build>
         <plugins>
             <plugin>

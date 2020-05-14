@@ -46,6 +46,24 @@ After 1845 seconds, the average per hour was
 5ms	24
 10ms	38
 20ms	32
+
+On an Centos 7 machine with an isolated CPU.
+After 2145 seconds, the average per hour was
+2us	781271
+3us	1212123
+4us	13504
+6us	489
+8us	2
+10us	3032577
+14us	17475
+20us	628
+30us	645
+40us	1301
+60us	1217
+80us	1306
+100us	1526
+140us	22
+
  */
 
 /**
