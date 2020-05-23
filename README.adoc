@@ -222,7 +222,7 @@ try (AffinityLock lock = AffinityLock.acquireLockLastMinus(n)) {
 
 I have the cpuId in a configuration file, how can I set it using a string?
 
-=== Answer: use one fo the following.
+=== Answer: use one of the following.
 
 [source,java]
 ----
