@@ -353,7 +353,7 @@ public class AffinityLock implements Closeable {
      * Release the current AffinityLock which can be discarded.
      */
     public void release() {
-        if (cpuId == ANY_CPU || !reservable)
+        if (cpuId == ANY_CPU)
             return;
         // expensive if not actually used.
         lockInventory.release();

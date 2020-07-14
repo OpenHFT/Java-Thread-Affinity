@@ -133,6 +133,7 @@ public class AffinityLockTest {
             System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
             return;
         }
+
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
 
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
@@ -229,6 +230,7 @@ public class AffinityLockTest {
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
             assertThat(affinityLock.cpuId(), is(3));
         }
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
 
     @Test
