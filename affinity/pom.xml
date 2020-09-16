@@ -25,7 +25,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>affinity</artifactId>
-    <version>3.2.4</version>
+    <version>3.2.5-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity</name>
@@ -233,7 +233,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
         </developerConnection>
-        <tag>affinity-3.2.4</tag>
+        <tag>master</tag>
     </scm>
 
 </project>
