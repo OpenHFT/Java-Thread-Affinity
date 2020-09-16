@@ -179,7 +179,7 @@ class LockInventory {
         }
     }
 
-    public final synchronized void release() {
+    public final synchronized void release(boolean resetAffinity) {
         Thread t = Thread.currentThread();
         for (AffinityLock al : logicalCoreLocks) {
             Thread at = al.assignedThread;
@@ -189,7 +189,8 @@ class LockInventory {
                 releaseAffinityLock(t, al, "Releasing cpu {} from {} as it is not alive.");
             }
         }
-        Affinity.resetToBaseAffinity();
+        if (resetAffinity)
+            Affinity.resetToBaseAffinity();
     }
 
     public final synchronized String dumpLocks() {

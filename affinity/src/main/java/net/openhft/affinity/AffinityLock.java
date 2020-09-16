@@ -85,6 +85,7 @@ public class AffinityLock implements Closeable {
     @Nullable
     Thread assignedThread;
     Throwable boundHere;
+    private boolean resetAffinity = true;
 
     AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
         this.lockInventory = lockInventory;
@@ -275,6 +276,22 @@ public class AffinityLock implements Closeable {
     }
 
     /**
+     * @return Whether to reset the affinity, false indicates the thread is about to die anyway.
+     */
+    public boolean resetAffinity() {
+        return resetAffinity;
+    }
+
+    /**
+     * @param resetAffinity Whether to reset the affinity, false indicates the thread is about to die anyway.
+     * @return this
+     */
+    public AffinityLock resetAffinity(boolean resetAffinity) {
+        this.resetAffinity = resetAffinity;
+        return this;
+    }
+
+    /**
      * Assigning the current thread has a side effect of preventing the lock being used again until
      * it is released.
      *
@@ -358,7 +375,9 @@ public class AffinityLock implements Closeable {
         if (cpuId == ANY_CPU)
             return;
         // expensive if not actually used.
-        lockInventory.release();
+        boolean resetAffinity = this.resetAffinity;
+        this.resetAffinity = true;
+        lockInventory.release(resetAffinity);
     }
 
     @Override

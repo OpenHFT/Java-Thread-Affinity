@@ -150,6 +150,20 @@ public class AffinityLockTest {
     }
 
     @Test
+    public void resetAffinity() {
+        assertTrue(Affinity.getAffinity().cardinality() > 1);
+        try (AffinityLock lock = AffinityLock.acquireLock()) {
+            assertEquals(1, Affinity.getAffinity().cardinality());
+            assertTrue(lock.resetAffinity());
+            lock.resetAffinity(false);
+        }
+        assertEquals(1, Affinity.getAffinity().cardinality());
+        try (AffinityLock lock = AffinityLock.acquireLock()) {
+        }
+        assertTrue(Affinity.getAffinity().cardinality() > 1);
+    }
+
+    @Test
     public void testIssue21() throws IOException {
         if (!new File("/proc/cpuinfo").exists()) {
             System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
