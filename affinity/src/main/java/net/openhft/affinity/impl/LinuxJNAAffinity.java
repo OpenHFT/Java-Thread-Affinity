@@ -30,7 +30,7 @@ public enum LinuxJNAAffinity implements IAffinity {
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(LinuxJNAAffinity.class);
     private static final int PROCESS_ID;
-    private static final int SYS_gettid = Platform.is64Bit() ? 186 : 224;
+    private static final int SYS_gettid = Platform.isPPC() ? 207 : Platform.is64Bit() ? 186 : 224;
     private static final Object[] NO_ARGS = {};
 
     private static final String OS = System.getProperty("os.name").toLowerCase();

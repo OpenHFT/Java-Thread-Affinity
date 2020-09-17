@@ -47,6 +47,12 @@ static __inline__ unsigned long long rdtsc (void) {
   clock_gettime (CLOCK_SGI_CYCLE, &tp);
   return (unsigned long long)(tp.tv_sec * (unsigned long long)1000000000) + (unsigned long long)tp.tv_nsec;
 }
+#elif defined(__PPC64__)
+unsigned long long rdtsc(){
+  unsigned long long rval;
+  __asm__ __volatile__("mfspr %%r3, 268": "=r" (rval));
+  return rval;
+}
 #endif
 
 /*
