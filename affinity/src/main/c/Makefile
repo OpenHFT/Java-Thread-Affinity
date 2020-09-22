@@ -21,7 +21,7 @@ JAVA_BUILD_DIR := $(TARGET_DIR)
 
 JAVA_HOME ?= /usr/java/default
 JAVA_LIB := $(JAVA_HOME)/jre/lib
-JVM_SHARED_LIBS := -L$(JAVA_LIB)/amd64/server -L$(JAVA_LIB)/i386/server  -L$(JAVA_LIB)/amd64/jrockit/ -L$(JAVA_LIB)/i386/jrockit/
+JVM_SHARED_LIBS := -L$(JAVA_LIB)/amd64/server -L$(JAVA_LIB)/i386/server  -L$(JAVA_LIB)/amd64/jrockit/ -L$(JAVA_LIB)/i386/jrockit/ -L$(JAVA_LIB)/ppc64le/server -L$(JAVA_LIB)/ppc64le/jrockit/
 
 CXX=g++
 INCLUDES := -I $(JAVA_HOME)/include -I $(JAVA_HOME)/include/linux -I $(WORKING_DIR)
