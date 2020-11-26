@@ -128,8 +128,14 @@ public class AffinityLock implements Closeable {
             return reserverable;
         }
 
-        long[] longs = new long[1];
-        longs[0] = Long.parseLong(reservedAffinity, 16);
+        reservedAffinity = reservedAffinity.trim();
+        long[] longs = new long[1 + (reservedAffinity.length() - 1) / 16];
+        int end = reservedAffinity.length();
+        for(int i = 0; i < longs.length ; i++) {
+            int begin = Math.max(0, end - 16);
+            longs[i] = Long.parseLong(reservedAffinity.substring(begin, end), 16);
+            end = begin;
+        }
         return BitSet.valueOf(longs);
     }
 
