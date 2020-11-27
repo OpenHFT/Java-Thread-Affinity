@@ -7,7 +7,7 @@ image::/images/Thread-Affinity_line.png[width=20%]
 [#image-maven]
 [caption="", link=https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity]
 image::https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg[]
-
+image:https://javadoc.io/badge2/net.openhft/affinity/javadoc.svg[link="https://www.javadoc.io/doc/net.openhft/affinity/latest/index.html"]
 == Overview
 Lets you bind a thread to a given core, this can improve performance (this library works best on linux).
 
