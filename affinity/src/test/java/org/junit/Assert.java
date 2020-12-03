@@ -579,8 +579,8 @@ public class Assert {
      * <code>assertEquals(double expected, double actual, double delta)</code>
      * instead
      */
-    @Deprecated
-    static public void assertEquals(double expected, double actual) {
+    @Deprecated(/* to be removed in x.22 */)
+static public void assertEquals(double expected, double actual) {
         assertEquals(null, expected, actual);
     }
 
@@ -589,8 +589,8 @@ public class Assert {
      * <code>assertEquals(String message, double expected, double actual, double delta)</code>
      * instead
      */
-    @Deprecated
-    static public void assertEquals(String message, double expected,
+    @Deprecated(/* to be removed in x.22 */)
+static public void assertEquals(String message, double expected,
                                     double actual) {
         fail("Use assertEquals(expected, actual, delta) to compare floating-point numbers");
     }
@@ -798,8 +798,8 @@ public class Assert {
      *                  actual values
      * @deprecated use assertArrayEquals
      */
-    @Deprecated
-    public static void assertEquals(String message, Object[] expecteds,
+    @Deprecated(/* to be removed in x.22 */)
+public static void assertEquals(String message, Object[] expecteds,
                                     Object[] actuals) {
         assertArrayEquals(message, expecteds, actuals);
     }
@@ -816,8 +816,8 @@ public class Assert {
      *                  actual values
      * @deprecated use assertArrayEquals
      */
-    @Deprecated
-    public static void assertEquals(Object[] expecteds, Object[] actuals) {
+    @Deprecated(/* to be removed in x.22 */)
+public static void assertEquals(Object[] expecteds, Object[] actuals) {
         assertArrayEquals(expecteds, actuals);
     }
 

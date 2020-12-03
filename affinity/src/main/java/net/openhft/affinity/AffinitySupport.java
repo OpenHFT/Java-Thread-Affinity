@@ -20,7 +20,7 @@ package net.openhft.affinity;
 /**
  * For backward compatibility with Affinity 2.x
  */
-@Deprecated
+@Deprecated(/* to be removed in x.22 */)
 public class AffinitySupport {
 
     public static int getThreadId() {
