@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.Arrays;
 import java.util.BitSet;
 
 /**
@@ -182,6 +183,30 @@ public class AffinityLock implements Closeable {
     }
 
     /**
+     * Assign a cpu which can be bound to the current thread or another thread
+     * Caller passes in an explicit set of preferred CPUs
+     * The first available CPU is used, and the lock returned
+     * If all CPUs in the set are unavailable then no lock is obtained
+     *
+     * @param cpus the array of available CPUs to bind to
+     * @return A handle for an affinity lock, or nolock if no available CPU in the array
+     */
+    public static AffinityLock acquireLock(int[] cpus) {
+        for( int cpu : cpus )
+        {
+            AffinityLock lock = tryAcquireLock(true, cpu);
+            if(lock != null)
+            {
+                LOGGER.info("Acquired lock on CPU {}", cpu);
+                return lock;
+            }
+        }
+
+        LOGGER.warn("Failed to lock any CPU in explicit list " + Arrays.toString(cpus));
+        return LOCK_INVENTORY.noLock();
+    }
+
+    /**
      * Allocate from the end.
      *
      * @param n positive number to allocate from.
@@ -196,6 +221,7 @@ public class AffinityLock implements Closeable {
      * <ul>
      *     <li>"N" being a positive integer means allocate this CPU,</li>
      *     <li>"last" or "last-N" means allocate from the end,</li>
+     *     <li>"csv:1,2,5,6 eg means allocate first free core from the provided</li>
      *     <li>"any" means allow any</li>
      *     <li>"none" or null means</li>
      *     <li>"0" is not allowed</li>
@@ -225,6 +251,14 @@ public class AffinityLock implements Closeable {
                 throw new IllegalArgumentException("Cannot parse '" + desc + "'");
 
             cpuId = PROCESSORS + lastN - 1;
+
+        } else if (desc.startsWith("csv:")) {
+            String content = desc.substring(4);
+            int[] cpus = Arrays.asList(content.split(",")).stream()
+                    .map(String::trim)
+                    .mapToInt(Integer::parseInt).toArray();
+
+            return acquireLock(cpus);
 
         } else if (desc.equals("none")) {
             return LOCK_INVENTORY.noLock();
@@ -261,6 +295,18 @@ public class AffinityLock implements Closeable {
 
     private static AffinityLock acquireLock(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {
         return LOCK_INVENTORY.acquireLock(bind, cpuId, strategies);
+    }
+
+    /**
+     * Try to acquire a lock on the specified core
+     * Returns lock if successful, or null if cpu cannot be acquired
+     *
+     * @param bind - if true, bind the current thread; if false, reserve a cpu which can be bound later
+     * @param cpuId - the cpu to lock
+     * @return - A handle to an affinity lock on success; null if failed to lock
+     */
+    private static AffinityLock tryAcquireLock(boolean bind, int cpuId) {
+        return LOCK_INVENTORY.tryAcquireLock(bind, cpuId);
     }
 
     private static AffinityLock acquireCore(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {

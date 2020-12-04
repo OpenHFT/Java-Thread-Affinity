@@ -131,6 +131,22 @@ class LockInventory {
         return noLock();
     }
 
+    public final synchronized AffinityLock tryAcquireLock(boolean bind, int cpuId) {
+        if (getAffinityImpl() instanceof NullAffinity)
+            return null;
+
+        final AffinityLock required = logicalCoreLocks[cpuId];
+        if (required.canReserve(true)) {
+            updateLockForCurrentThread(bind, required, false);
+            return required;
+        }
+
+        LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
+                cpuId, Thread.currentThread());
+
+        return null;
+    }
+
     public final synchronized AffinityLock acquireCore(boolean bind, int cpuId, AffinityStrategy... strategies) {
         for (AffinityStrategy strategy : strategies) {
             LOOP:
