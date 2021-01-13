@@ -22,11 +22,11 @@
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
         <version>1.1.23</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <artifactId>affinity-test</artifactId>
-    <version>3.21ea0-SNAPSHOT</version>
+    <version>3.21ea0</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
@@ -203,7 +203,7 @@
 
     <scm>
         <url>scm:git:https://github.com/OpenHFT/Java-Thread-Affinity.git</url>
-      <tag>HEAD</tag>
+      <tag>Java-Thread-Affinity-3.21ea0</tag>
   </scm>
 
 </project>
