@@ -109,6 +109,8 @@
                 </configuration>
             </plugin>
 
+            <!-- Makefile has execute permissions in git so should not be necessary to chmod +x here -->
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
