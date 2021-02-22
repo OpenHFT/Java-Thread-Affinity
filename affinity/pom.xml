@@ -109,28 +109,6 @@
                 </configuration>
             </plugin>
 
-            <!-- TODO make git remember that the file should be executable -->
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
-                <executions>
-                    <execution>
-                        <id>build-native</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <property name="makefile" value="${project.basedir}/${native.source.dir}/Makefile" />
-                                <!-- make it executable -->
-                                <chmod file="${makefile}" perm="u+x" />
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>

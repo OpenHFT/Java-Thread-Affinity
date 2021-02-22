@@ -48,8 +48,6 @@ local.properties
 .settings/
 .loadpath
 
-affinity/src/main/c/Makefile
-
 ### Queue files
 *.cq4t
 *.cq4
