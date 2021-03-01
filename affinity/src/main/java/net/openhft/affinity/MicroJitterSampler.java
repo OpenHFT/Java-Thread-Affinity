@@ -79,10 +79,22 @@ public class MicroJitterSampler {
             20 * 1000 * 1000, 50 * 1000 * 1000, 100 * 1000 * 1000
     };
     private static final double UTIL = Double.parseDouble(System.getProperty("util", "50"));
+    private static final boolean BUSYWAIT = Boolean.parseBoolean(System.getProperty("busywait", "false"));
+
     //    static final int CPU = Integer.getInteger("cpu", 0);
     private final int[] count = new int[DELAY.length];
     private long totalTime = 0;
 
+    private static void pause() throws InterruptedException
+    {
+        if(BUSYWAIT) {
+            long now = System.nanoTime();
+            while(System.nanoTime() - now < 1_000_000);
+        } else {
+            Thread.sleep(1);
+        }
+
+    }
     public static void main(String... ignored) throws InterruptedException {
         // AffinityLock al = AffinityLock.acquireLock();
 
@@ -98,7 +110,7 @@ public class MicroJitterSampler {
                 for (int i = 0; i < 30 * 1000; i += 2) {
                     microJitterSampler.sample(sampleLength);
                     //noinspection BusyWait
-                    Thread.sleep(1);
+                    pause();
                 }
             }
 
