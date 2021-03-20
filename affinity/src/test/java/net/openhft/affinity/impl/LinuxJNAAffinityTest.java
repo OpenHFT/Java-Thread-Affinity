@@ -52,5 +52,4 @@ public class LinuxJNAAffinityTest {
         affinity.set(0, nbits);
         LinuxJNAAffinity.INSTANCE.setAffinity(affinity);
     }
-
 }

@@ -30,5 +30,4 @@ public class AffinitySupport {
     public static void setThreadId() {
         Affinity.setThreadId();
     }
-
 }

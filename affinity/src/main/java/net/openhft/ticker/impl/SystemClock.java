@@ -47,5 +47,4 @@ public enum SystemClock implements ITicker {
     public double toMicros(double ticks) {
         return ticks / 1e3;
     }
-
 }
