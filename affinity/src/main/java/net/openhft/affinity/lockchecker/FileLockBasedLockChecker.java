@@ -70,8 +70,11 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
         }
 
         //file is present but nobody has it locked - delete it
-        LOGGER.info(String.format("Deleting %s as nobody has the lock", file.getAbsolutePath()));
-        file.delete();
+        boolean deleted = file.delete();
+        if (deleted)
+            LOGGER.info(String.format("Deleted %s as nobody has the lock", file.getAbsolutePath()));
+        else
+            LOGGER.warn(String.format("Nobody has the lock on %s. Delete failed", file.getAbsolutePath()));
 
         return true;
     }
