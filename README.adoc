@@ -1,6 +1,6 @@
 = Thread Affinity
 
-image::/images/Thread-Affinity_line.png[width=20%]
+image::docs/images/Thread-Affinity_line.png[width=20%]
 
 == Version
 
