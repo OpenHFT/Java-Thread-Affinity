@@ -26,7 +26,7 @@
     </parent>
 
     <artifactId>affinity-test</artifactId>
-    <version>3.21ea3-SNAPSHOT</version>
+    <version>3.21ea3</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
@@ -203,7 +203,7 @@
 
     <scm>
         <url>scm:git:https://github.com/OpenHFT/Java-Thread-Affinity.git</url>
-      <tag>HEAD</tag>
+      <tag>Java-Thread-Affinity-3.21ea3</tag>
   </scm>
 
 </project>
