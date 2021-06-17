@@ -20,6 +20,7 @@ package net.openhft.affinity.impl;
 import net.openhft.affinity.CpuLayout;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -60,7 +61,7 @@ public class VanillaCpuLayout implements CpuLayout {
             for (CpuInfo detail : cpuDetails) {
                 error.append(detail).append('\n');
             }
-            throw new AssertionError(error);
+            LoggerFactory.getLogger(VanillaCpuLayout.class).warn(error.toString());
         }
     }
 
