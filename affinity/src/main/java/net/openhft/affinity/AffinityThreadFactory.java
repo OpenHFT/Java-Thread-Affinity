@@ -66,7 +66,8 @@ public class AffinityThreadFactory implements ThreadFactory {
     }
 
     private synchronized AffinityLock acquireLockBasedOnLast() {
-        AffinityLock al = lastAffinityLock == null ? AffinityLock.acquireLock() : lastAffinityLock.acquireLock(strategies);
+        AffinityLock al = lastAffinityLock == null ? AffinityLock.acquireLock(false) : lastAffinityLock.acquireLock(strategies);
+        al.bind();
         if (al.cpuId() >= 0)
             lastAffinityLock = al;
         return al;

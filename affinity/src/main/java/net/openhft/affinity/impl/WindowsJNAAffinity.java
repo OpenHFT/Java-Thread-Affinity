@@ -25,6 +25,7 @@ import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public enum WindowsJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsJNAAffinity.class);
+    private static final ThreadLocal<BitSet> currentAffinity = new ThreadLocal<>();
 
     static {
         boolean loaded = false;
@@ -58,26 +60,11 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Override
     public BitSet getAffinity() {
-        final CLibrary lib = CLibrary.INSTANCE;
-        final LongByReference cpuset1 = new LongByReference(0);
-        final LongByReference cpuset2 = new LongByReference(0);
-        try {
-
-            final int ret = lib.GetProcessAffinityMask(-1, cpuset1, cpuset2);
-            // Successful result is positive, according to the docs
-            // https://msdn.microsoft.com/en-us/library/windows/desktop/ms683213%28v=vs.85%29.aspx
-            if (ret <= 0) {
-                throw new IllegalStateException("GetProcessAffinityMask(( -1 ), &(" + cpuset1 + "), &(" + cpuset2 + ") ) return " + ret);
-            }
-
-            long[] longs = new long[1];
-            longs[0] = cpuset1.getValue();
-            return BitSet.valueOf(longs);
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-
-        return new BitSet();
+        BitSet bitSet = currentAffinity.get();
+        if (bitSet != null)
+            return bitSet;
+        BitSet longs = getAffinity0();
+        return longs != null ? longs : new BitSet();
     }
 
     @Override
@@ -103,6 +90,34 @@ public enum WindowsJNAAffinity implements IAffinity {
         } catch (LastErrorException e) {
             throw new IllegalStateException("SetThreadAffinityMask((" + pid + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
+        BitSet affinity2 = getAffinity0();
+        if (!affinity2.equals(affinity)) {
+            LoggerFactory.getLogger(WindowsJNAAffinity.class).warn("Tried to set affinity to " + affinity + " but was " + affinity2 + " you may have in sufficient access rights");
+        }
+        currentAffinity.set((BitSet) affinity.clone());
+    }
+
+    @Nullable
+    private BitSet getAffinity0() {
+        final CLibrary lib = CLibrary.INSTANCE;
+        final LongByReference cpuset1 = new LongByReference(0);
+        final LongByReference cpuset2 = new LongByReference(0);
+        try {
+
+            final int ret = lib.GetProcessAffinityMask(-1, cpuset1, cpuset2);
+            // Successful result is positive, according to the docs
+            // https://msdn.microsoft.com/en-us/library/windows/desktop/ms683213%28v=vs.85%29.aspx
+            if (ret <= 0) {
+                throw new IllegalStateException("GetProcessAffinityMask(( -1 ), &(" + cpuset1 + "), &(" + cpuset2 + ") ) return " + ret);
+            }
+
+            long[] longs = new long[1];
+            longs[0] = cpuset1.getValue();
+            return BitSet.valueOf(longs);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     public int getTid() {
