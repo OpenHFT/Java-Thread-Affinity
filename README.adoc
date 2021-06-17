@@ -129,21 +129,21 @@ try (final AffinityLock al = AffinityLock.acquireLock()) {
 ----    
 In this example, the library will prefer a free CPU on the same Socket as the first thread, otherwise it will pick any free CPU. 
 
-=== Getting the thread id.
+=== Getting the thread id
 You can get the current thread id using
 [source, java]
 ----
 
 int threadId = AffinitySupport.getThreadId();
 ----
-=== Determining which CPU you are running on.
+=== Determining which CPU you are running on
 You can get the current CPU being used by
 [source, java]
 ----
 
 int cpuId = AffinitySupport.getCpu();
 ----
-=== Controlling the affinity more directly.
+=== Controlling the affinity more directly
 The affinity of the process on start up is
 [source, java]
 ----
@@ -223,7 +223,7 @@ try (AffinityLock lock = AffinityLock.acquireLockLastMinus(n)) {
 
 I have the cpuId in a configuration file, how can I set it using a string?
 
-=== Answer: use one of the following.
+=== Answer: use one of the following
 
 [source,java]
 ----
