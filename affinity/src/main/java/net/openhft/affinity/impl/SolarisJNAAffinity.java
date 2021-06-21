@@ -72,8 +72,7 @@ public enum SolarisJNAAffinity implements IAffinity {
     }
 
     interface CLibrary extends Library {
-        CLibrary INSTANCE = (CLibrary)
-                Native.loadLibrary("c", CLibrary.class);
+        CLibrary INSTANCE = Native.load("c", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
     }

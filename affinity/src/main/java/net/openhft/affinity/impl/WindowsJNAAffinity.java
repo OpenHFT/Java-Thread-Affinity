@@ -17,12 +17,10 @@
 
 package net.openhft.affinity.impl;
 
-import com.sun.jna.LastErrorException;
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.PointerType;
+import com.sun.jna.*;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +84,7 @@ public enum WindowsJNAAffinity implements IAffinity {
 
         int pid = getTid();
         try {
-            lib.SetThreadAffinityMask(pid, aff);
+            lib.SetThreadAffinityMask(handle(pid), aff);
         } catch (LastErrorException e) {
             throw new IllegalStateException("SetThreadAffinityMask((" + pid + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
@@ -104,7 +102,7 @@ public enum WindowsJNAAffinity implements IAffinity {
         final LongByReference cpuset2 = new LongByReference(0);
         try {
 
-            final int ret = lib.GetProcessAffinityMask(-1, cpuset1, cpuset2);
+            final int ret = lib.GetProcessAffinityMask(handle(-1), cpuset1, cpuset2);
             // Successful result is positive, according to the docs
             // https://msdn.microsoft.com/en-us/library/windows/desktop/ms683213%28v=vs.85%29.aspx
             if (ret <= 0) {
@@ -118,6 +116,10 @@ public enum WindowsJNAAffinity implements IAffinity {
             LOGGER.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    private WinNT.HANDLE handle(int pid) {
+        return new WinNT.HANDLE(new Pointer(pid));
     }
 
     public int getTid() {
@@ -152,11 +154,11 @@ public enum WindowsJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     private interface CLibrary extends Library {
-        CLibrary INSTANCE = (CLibrary) Native.loadLibrary("kernel32", CLibrary.class);
+        CLibrary INSTANCE = Native.load("kernel32", CLibrary.class);
 
-        int GetProcessAffinityMask(final int pid, final PointerType lpProcessAffinityMask, final PointerType lpSystemAffinityMask) throws LastErrorException;
+        int GetProcessAffinityMask(final WinNT.HANDLE pid, final PointerType lpProcessAffinityMask, final PointerType lpSystemAffinityMask) throws LastErrorException;
 
-        void SetThreadAffinityMask(final int pid, final WinDef.DWORD lpProcessAffinityMask) throws LastErrorException;
+        void SetThreadAffinityMask(final WinNT.HANDLE pid, final WinDef.DWORD lpProcessAffinityMask) throws LastErrorException;
 
         int GetCurrentThread() throws LastErrorException;
     }
