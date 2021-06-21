@@ -95,6 +95,38 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>make-c</id>
+            <activation>
+                <property>
+                    <name>!dontMake</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- Makefile has execute permissions in git so should not be necessary to chmod +x here -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <executions>
+                            <execution>
+                                <!-- this execution happens just after compiling the java classes, and builds the native code. -->
+                                <id>build-native</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${project.basedir}/${native.source.dir}/Makefile</executable>
+                                    <workingDirectory>${project.basedir}/${native.source.dir}</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <build>
         <plugins>
@@ -107,28 +139,6 @@
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
-            </plugin>
-
-            <!-- Makefile has execute permissions in git so should not be necessary to chmod +x here -->
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.2.1</version>
-                <executions>
-                    <execution>
-                        <!-- this execution happens just after compiling the java classes, and builds the native code. -->
-                        <id>build-native</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>${project.basedir}/${native.source.dir}/Makefile</executable>
-                            <workingDirectory>${project.basedir}/${native.source.dir}</workingDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
