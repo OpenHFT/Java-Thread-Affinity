@@ -158,7 +158,7 @@ public class LinuxHelper {
     }
 
     interface CLibrary extends Library {
-        CLibrary INSTANCE = (CLibrary) Native.loadLibrary(LIBRARY_NAME, CLibrary.class);
+        CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
 
         int sched_setaffinity(final int pid,
                               final int cpusetsize,

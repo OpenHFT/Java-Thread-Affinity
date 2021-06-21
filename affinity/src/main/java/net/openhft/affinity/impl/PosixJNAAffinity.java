@@ -191,8 +191,7 @@ public enum PosixJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     interface CLibrary extends Library {
-        CLibrary INSTANCE = (CLibrary)
-                Native.loadLibrary(LIBRARY_NAME, CLibrary.class);
+        CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
 
         int sched_setaffinity(final int pid,
                               final int cpusetsize,

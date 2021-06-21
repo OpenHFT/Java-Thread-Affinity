@@ -17,7 +17,7 @@
 
 package net.openhft.affinity.impl;
 
-import net.openhft.affinity.AffinitySupport;
+import net.openhft.affinity.Affinity;
 import net.openhft.affinity.IAffinity;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -45,7 +45,7 @@ public class NativeAffinityImpTest extends AbstractAffinityImplTest {
     public void testGettid() {
         System.out.println("pid=" + getImpl().getProcessId());
         System.out.println("tid=" + getImpl().getThreadId());
-        AffinitySupport.setThreadId();
+        Affinity.setThreadId();
 
         for (int j = 0; j < 3; j++) {
             final int runs = 100000;

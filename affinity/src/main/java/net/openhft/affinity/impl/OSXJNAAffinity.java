@@ -72,8 +72,7 @@ public enum OSXJNAAffinity implements IAffinity {
     }
 
     interface CLibrary extends Library {
-        CLibrary INSTANCE = (CLibrary)
-                Native.loadLibrary("libpthread.dylib", CLibrary.class);
+        CLibrary INSTANCE = Native.load("libpthread.dylib", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
     }
