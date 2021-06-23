@@ -21,7 +21,7 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.1.23</version>
+        <version>1.1.26</version>
         <relativePath />
     </parent>
 
@@ -43,7 +43,7 @@
                 <groupId>net.openhft</groupId>
                 <artifactId>third-party-bom</artifactId>
                 <type>pom</type>
-                <version>3.19.4</version>
+                <version>3.19.9</version>
                 <scope>import</scope>
             </dependency>
         </dependencies>
@@ -108,7 +108,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>1.2.1</version>
                         <executions>
                             <execution>
                                 <!-- this execution happens just after compiling the java classes, and builds the native code. -->
