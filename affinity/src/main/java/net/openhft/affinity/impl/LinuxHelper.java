@@ -41,7 +41,7 @@ public class LinuxHelper {
                 ver = new VersionHelper(uname.getRealeaseVersion());
             }
         } catch (Throwable e) {
-            //logger.warn("Failed to determine Linux version: " + e);
+            //Jvm.warn().on(getClass(), "Failed to determine Linux version: " + e);
         }
 
         version = ver;

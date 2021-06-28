@@ -33,8 +33,7 @@ import java.util.BitSet;
  *
  * @author peter.lawrey
  */
-public enum Affinity {
-    ;
+public enum Affinity {;
     static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
     @NotNull
     private static final IAffinity AFFINITY_IMPL;

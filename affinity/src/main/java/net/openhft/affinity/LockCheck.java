@@ -28,8 +28,7 @@ import java.io.IOException;
 /**
  * @author Rob Austin.
  */
-enum LockCheck {
-    ;
+enum LockCheck {;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LockCheck.class);
     private static final String OS = System.getProperty("os.name").toLowerCase();
