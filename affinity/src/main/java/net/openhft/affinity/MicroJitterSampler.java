@@ -21,13 +21,16 @@ package net.openhft.affinity;
 import java.io.PrintStream;
 /* e.g.
 Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3) sudo cpupower -c {cpu} -g performance
-After 360 seconds, the average per hour was
-2us     1566
-3us     526
-4us     80
-10us    10
-20us    10
-30us    10
+After 3600 seconds, the average per hour was
+2us     2571
+3us     2304
+4us     376
+6us     1
+10us    1
+20us    1
+30us    1
+40us    2
+60us    1
 
 Windows 10 i7-4770 laptop
 After 1845 seconds, the average per hour was
