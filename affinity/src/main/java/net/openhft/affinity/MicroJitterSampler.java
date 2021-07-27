@@ -20,6 +20,15 @@ package net.openhft.affinity;
 
 import java.io.PrintStream;
 /* e.g.
+Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3)
+After 360 seconds, the average per hour was
+2us     35600
+3us     22230
+4us     390
+10us    10
+20us    10
+30us    10
+
 Windows 10 i7-4770 laptop
 After 1845 seconds, the average per hour was
 2us	2435969
