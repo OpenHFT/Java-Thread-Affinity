@@ -19,64 +19,6 @@
 package net.openhft.affinity;
 
 import java.io.PrintStream;
-/* e.g.
-Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3) sudo cpupower -c {cpu} -g performance
-After 3600 seconds, the average per hour was
-2us     2571
-3us     2304
-4us     376
-6us     1
-10us    1
-20us    1
-30us    1
-40us    2
-60us    1
-
-Windows 10 i7-4770 laptop
-After 1845 seconds, the average per hour was
-2us	2435969
-3us	548812
-4us	508041
-6us	60320
-8us	25374
-10us	1832324
-14us	2089216
-20us	391901
-30us	16063
-40us	6440
-60us	2617
-80us	1487
-100us	1241
-140us	826
-200us	2108
-300us	601
-400us	159
-600us	129
-800us	215
-1ms	155
-2ms	229
-5ms	24
-10ms	38
-20ms	32
-
-On an Centos 7 machine with an isolated CPU.
-After 2145 seconds, the average per hour was
-2us	781271
-3us	1212123
-4us	13504
-6us	489
-8us	2
-10us	3032577
-14us	17475
-20us	628
-30us	645
-40us	1301
-60us	1217
-80us	1306
-100us	1526
-140us	22
-
- */
 
 /**
  * User: peter.lawrey Date: 30/06/13 Time: 13:13
@@ -166,3 +108,86 @@ public class MicroJitterSampler {
         ps.println();
     }
 }
+
+/* e.g.
+Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3) sudo cpupower -c {cpu} -g performance, run from command line
+After 3600 seconds, the average per hour was
+2us     2571
+3us     2304
+4us     376
+6us     1
+10us    1
+20us    1
+30us    1
+40us    2
+60us    1
+
+Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 5) sudo cpupower -c {cpu} -g performance, run from command line
+After 3600 seconds, the average per hour was
+2us	2157
+3us	3444
+4us	3654
+6us	135
+8us	4
+14us	1
+20us	1
+40us	2
+60us	1
+
+Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 5) sudo cpupower -c {cpu} -g performance, run from IntelliJ CE
+After 7200 seconds, the average per hour was
+2us	2189
+3us	3341
+4us	2335
+6us	191
+8us	4
+14us	1
+20us	1
+
+
+
+Windows 10 i7-4770 laptop
+After 1845 seconds, the average per hour was
+2us	2435969
+3us	548812
+4us	508041
+6us	60320
+8us	25374
+10us	1832324
+14us	2089216
+20us	391901
+30us	16063
+40us	6440
+60us	2617
+80us	1487
+100us	1241
+140us	826
+200us	2108
+300us	601
+400us	159
+600us	129
+800us	215
+1ms	155
+2ms	229
+5ms	24
+10ms	38
+20ms	32
+
+On an Centos 7 machine with an isolated CPU.
+After 2145 seconds, the average per hour was
+2us	781271
+3us	1212123
+4us	13504
+6us	489
+8us	2
+10us	3032577
+14us	17475
+20us	628
+30us	645
+40us	1301
+60us	1217
+80us	1306
+100us	1526
+140us	22
+
+ */
