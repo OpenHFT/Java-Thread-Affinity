@@ -34,8 +34,8 @@ public class MicroJitterSampler {
     };
     private static final double UTIL = Double.parseDouble(System.getProperty("util", "50"));
     private static final boolean BUSYWAIT = Boolean.parseBoolean(System.getProperty("busywait", "false"));
+    private static final int CPU = Integer.parseInt(System.getProperty("cpu", "-1"));
 
-    //    static final int CPU = Integer.getInteger("cpu", 0);
     private final int[] count = new int[DELAY.length];
     private long totalTime = 0;
 
@@ -50,25 +50,46 @@ public class MicroJitterSampler {
 
     }
     public static void main(String... ignored) throws InterruptedException {
-        // AffinityLock al = AffinityLock.acquireLock();
+        MicroJitterSampler sampler = new MicroJitterSampler();
 
-        // warmup.
-        new MicroJitterSampler().sample(1000 * 1000 * 1000);
+        Thread t = new Thread( sampler::run );
+        t.start();
+        t.join();
+    }
 
-        MicroJitterSampler microJitterSampler = new MicroJitterSampler();
-        while (!Thread.currentThread().isInterrupted()) {
-            if (UTIL >= 100) {
-                microJitterSampler.sample(30L * 1000 * 1000 * 1000);
-            } else {
-                long sampleLength = (long) ((1 / (1 - UTIL / 100) - 1) * 1000 * 1000);
-                for (int i = 0; i < 30 * 1000; i += 2) {
-                    microJitterSampler.sample(sampleLength);
-                    //noinspection BusyWait
-                    pause();
-                }
+    private void once() throws InterruptedException {
+        if (UTIL >= 100) {
+            sample(30L * 1000 * 1000 * 1000);
+        } else {
+            long sampleLength = (long) ((1 / (1 - UTIL / 100) - 1) * 1000 * 1000);
+            for (int i = 0; i < 30 * 1000; i += 2) {
+                sample(sampleLength);
+                //noinspection BusyWait
+                pause();
             }
+        }
+    }
 
-            microJitterSampler.print(System.out);
+    public void run() {
+        if(CPU != -1)
+            Affinity.setAffinity(CPU);
+
+        try {
+            boolean first = true;
+            System.out.println("Warming up...");
+            while (!Thread.currentThread().isInterrupted()) {
+                once();
+
+                if(first) {
+                    reset();
+                    first = false;
+                    System.out.println("Warmup complete. Running jitter tests...");
+                    continue;
+                }
+
+                print(System.out);
+            }
+        } catch(InterruptedException e) {
         }
     }
 
@@ -77,6 +98,12 @@ public class MicroJitterSampler {
                 timeNS < 1000000 ? timeNS / 1000 + "us" :
                         timeNS < 1000000000 ? timeNS / 1000000 + "ms" :
                                 timeNS / 1000000000 + "sec";
+    }
+
+    void reset() {
+        for(int i=0; i<DELAY.length; ++i)
+            count[i] = 0;
+        totalTime = 0;
     }
 
     void sample(long intervalNS) {
