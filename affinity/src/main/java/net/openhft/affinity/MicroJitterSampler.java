@@ -171,8 +171,6 @@ After 7200 seconds, the average per hour was
 14us	1
 20us	1
 
-
-
 Windows 10 i7-4770 laptop
 After 1845 seconds, the average per hour was
 2us	2435969
