@@ -2,6 +2,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.common.ProcessRunner;
 import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
+import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import static net.openhft.affinity.LockCheck.IS_LINUX;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
@@ -16,6 +18,7 @@ public class MultiProcessAffinityTest {
 
     @Test
     public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws IOException, InterruptedException {
+        Assume.assumeTrue(IS_LINUX);
         // run the separate affinity locker
         final Process last = ProcessRunner.runClass(AffinityLockerProcess.class, "last");
         try {
