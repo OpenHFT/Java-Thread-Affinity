@@ -134,15 +134,21 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
         }
 
         LockReference lr = locks[id];
-        if (lr == null) {
-            return null;
+        if (lr != null) {
+            return readMetaInfoFromLockFileChannel(file, lr.channel);
+        } else {
+            try (FileChannel fc = FileChannel.open(file.toPath(), READ)) {
+                return readMetaInfoFromLockFileChannel(file, fc);
+            }
         }
-        FileChannel fc = lr.channel;
+    }
+
+    private String readMetaInfoFromLockFileChannel(File lockFile, FileChannel lockFileChannel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(64);
-        int len = fc.read(buffer, 0);
+        int len = lockFileChannel.read(buffer, 0);
         String content = len < 1 ? "" : new String(buffer.array(), 0, len);
         if (content.isEmpty()) {
-            LOGGER.warn("Empty lock file {}", file.getAbsolutePath());
+            LOGGER.warn("Empty lock file {}", lockFile.getAbsolutePath());
             return null;
         }
         return content.substring(0, content.indexOf("\n"));
