@@ -9,11 +9,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static net.openhft.affinity.LockCheck.IS_LINUX;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class MultiProcessAffinityTest {
 
@@ -67,6 +70,48 @@ public class MultiProcessAffinityTest {
         }
     }
 
+    @Ignore("https://github.com/OpenHFT/Java-Thread-Affinity/issues/81")
+    @Test
+    public void shouldAllocateCoresCorrectlyUnderContention() throws IOException, InterruptedException {
+        final int numberOfLockers = Math.max(8, Runtime.getRuntime().availableProcessors());
+        List<Process> lockers = new ArrayList<>();
+        for (int i = 0; i < numberOfLockers; i++) {
+            lockers.add(ProcessRunner.runClass(RepeatedAffinityLocker.class, "last", "100"));
+        }
+        for (int i = 0; i < numberOfLockers; i++) {
+            if (!lockers.get(i).waitFor(10, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Locker process didn't end in time");
+            }
+            assertEquals(0, lockers.get(i).exitValue());
+        }
+    }
+
+    /**
+     * Repeatedly acquires and releases a lock on the specified core
+     */
+    static class RepeatedAffinityLocker {
+
+        private static final long PID = LockCheck.getPID();
+
+        public static void main(String[] args) throws IOException, InterruptedException {
+            String cpuIdToLock = args[0];
+            int iterations = Integer.parseInt(args[1]);
+
+            for (int i = 0; i < iterations; i++) {
+                try (final AffinityLock affinityLock = AffinityLock.acquireLock(cpuIdToLock)) {
+                    long lockPID = Long.parseLong(FileLockBasedLockChecker.getInstance().getMetaInfo(affinityLock.cpuId()));
+                    if (lockPID != PID) {
+                        throw new IllegalStateException(format("PID in lock file is not mine (lockPID=%d, myPID=%d)", lockPID, PID));
+                    }
+                    Thread.sleep(ThreadLocalRandom.current().nextInt(50));
+                }
+            }
+        }
+    }
+
+    /**
+     * Acquires a lock on the specified CPU, holds it until interrupted
+     */
     static class AffinityLockerProcess {
 
         private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLockerProcess.class);
