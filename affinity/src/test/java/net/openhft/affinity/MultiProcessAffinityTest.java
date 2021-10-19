@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static net.openhft.affinity.LockCheck.IS_LINUX;
@@ -15,6 +16,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
 
 public class MultiProcessAffinityTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultiProcessAffinityTest.class);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -46,6 +49,8 @@ public class MultiProcessAffinityTest {
             while (FileLockBasedLockChecker.getInstance().isLockFree(lastCpuId)) {
                 Thread.sleep(100);
                 if (System.currentTimeMillis() > endTime) {
+                    LOGGER.info("Timed out waiting for the lock to be acquired: isAlive={}, exitCode={}",
+                            affinityLockerProcess.isAlive(), affinityLockerProcess.isAlive() ? "N/A" : affinityLockerProcess.exitValue());
                     ProcessRunner.printProcessOutput("AffinityLockerProcess", affinityLockerProcess);
                     fail("Timed out waiting for the sub-process to acquire the lock");
                 }
@@ -70,10 +75,12 @@ public class MultiProcessAffinityTest {
             String cpuIdToLock = args[0];
 
             try (final AffinityLock affinityLock = AffinityLock.acquireLock(cpuIdToLock)) {
-                LOGGER.info("Got affinity lock " + affinityLock);
+                LOGGER.info("Got affinity lock " + affinityLock + " at " + LocalDateTime.now() + ", CPU=" + affinityLock.cpuId());
                 Thread.sleep(Integer.MAX_VALUE);
+                LOGGER.error("Woke from sleep? this should never happen");
             } catch (InterruptedException e) {
                 // expected, just end
+                LOGGER.info("Interrupted at " + LocalDateTime.now() + " lock is released");
             }
         }
     }
