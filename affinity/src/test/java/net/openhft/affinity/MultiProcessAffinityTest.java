@@ -2,8 +2,8 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.common.ProcessRunner;
 import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,11 +16,28 @@ import static org.junit.Assert.fail;
 
 public class MultiProcessAffinityTest {
 
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+    private String originalTmpDir;
+
+    @Before
+    public void setUp() {
+        originalTmpDir = System.getProperty("java.io.tmpdir");
+        System.setProperty("java.io.tmpdir", folder.getRoot().getAbsolutePath());
+    }
+
+    @After
+    public void tearDown() {
+        System.setProperty("java.io.tmpdir", originalTmpDir);
+    }
+
     @Test
     public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws IOException, InterruptedException {
         Assume.assumeTrue(IS_LINUX);
         // run the separate affinity locker
-        final Process affinityLockerProcess = ProcessRunner.runClass(AffinityLockerProcess.class, "last");
+        final Process affinityLockerProcess = ProcessRunner.runClass(AffinityLockerProcess.class,
+                new String[]{"-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath()},
+                new String[]{"last"});
         try {
             int lastCpuId = AffinityLock.PROCESSORS - 1;
 

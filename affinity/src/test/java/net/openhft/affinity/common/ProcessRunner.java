@@ -29,6 +29,19 @@ public class ProcessRunner {
      * @throws IOException if there is an error starting the process
      */
     public static Process runClass(Class<?> clazz, String... args) throws IOException {
+        return runClass(clazz, new String[]{}, args);
+    }
+
+    /**
+     * Spawn a process running the main method of a specified class
+     *
+     * @param clazz       The class to execute
+     * @param jvmArgs     Any arguments to pass to the process
+     * @param programArgs Any arguments to pass to the process
+     * @return the Process spawned
+     * @throws IOException if there is an error starting the process
+     */
+    public static Process runClass(Class<?> clazz, String[] jvmArgs, String[] programArgs) throws IOException {
         // Because Java17 must be run using various module flags, these must be propagated
         // to the child processes
         // https://stackoverflow.com/questions/1490869/how-to-get-vm-arguments-from-inside-of-java-application
@@ -46,10 +59,11 @@ public class ProcessRunner {
         List<String> allArgs = new ArrayList<>();
         allArgs.add(javaBin);
         allArgs.addAll(jvmArgsWithoutJavaAgents);
+        allArgs.addAll(Arrays.asList(jvmArgs));
         allArgs.add("-cp");
         allArgs.add(classPath);
         allArgs.add(className);
-        allArgs.addAll(Arrays.asList(args));
+        allArgs.addAll(Arrays.asList(programArgs));
         ProcessBuilder processBuilder = new ProcessBuilder(allArgs.toArray(new String[]{}));
 //        processBuilder.inheritIO(); // this doesn't place nice with surefire
         return processBuilder.start();

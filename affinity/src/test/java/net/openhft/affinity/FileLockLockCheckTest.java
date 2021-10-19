@@ -18,10 +18,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,6 +49,11 @@ public class FileLockLockCheckTest {
     public void before() {
         Assume.assumeTrue(IS_LINUX);
         System.setProperty("java.io.tmpdir", TARGET + "/" + System.nanoTime());
+    }
+
+    @After
+    public void after() {
+        System.setProperty("java.io.tmpdir", TMP);
     }
 
     @Test
