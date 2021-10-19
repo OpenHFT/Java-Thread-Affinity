@@ -20,7 +20,7 @@ public class MultiProcessAffinityTest {
     public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws IOException, InterruptedException {
         Assume.assumeTrue(IS_LINUX);
         // run the separate affinity locker
-        final Process last = ProcessRunner.runClass(AffinityLockerProcess.class, "last");
+        final Process affinityLockerProcess = ProcessRunner.runClass(AffinityLockerProcess.class, "last");
         try {
             int lastCpuId = AffinityLock.PROCESSORS - 1;
 
@@ -29,6 +29,7 @@ public class MultiProcessAffinityTest {
             while (FileLockBasedLockChecker.getInstance().isLockFree(lastCpuId)) {
                 Thread.sleep(100);
                 if (System.currentTimeMillis() > endTime) {
+                    ProcessRunner.printProcessOutput("AffinityLockerProcess", affinityLockerProcess);
                     fail("Timed out waiting for the sub-process to acquire the lock");
                 }
             }
@@ -37,8 +38,8 @@ public class MultiProcessAffinityTest {
                 assertNotEquals(lastCpuId, lock.cpuId());
             }
         } finally {
-            last.destroy();
-            if (!last.waitFor(5, TimeUnit.SECONDS)) {
+            affinityLockerProcess.destroy();
+            if (!affinityLockerProcess.waitFor(5, TimeUnit.SECONDS)) {
                 fail("Sub-process didn't terminate!");
             }
         }
