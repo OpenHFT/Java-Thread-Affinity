@@ -247,20 +247,6 @@ public class AffinityLockTest {
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
 
-    @Test
-    public void lockFilesShouldBeRemovedOnRelease() {
-        if (!Utilities.ISLINUX) {
-            return;
-        }
-        final AffinityLock lock = AffinityLock.acquireLock();
-
-        assertThat(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())), is(true));
-
-        lock.release();
-
-        assertThat(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())), is(false));
-    }
-
     private void displayStatus() {
         System.out.println(Thread.currentThread() + " on " + Affinity.getCpu() + "\n" + AffinityLock.dumpLocks());
     }

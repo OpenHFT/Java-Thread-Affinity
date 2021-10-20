@@ -11,8 +11,9 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static net.openhft.affinity.LockCheck.IS_LINUX;
@@ -70,42 +71,104 @@ public class MultiProcessAffinityTest {
         }
     }
 
-    @Ignore("https://github.com/OpenHFT/Java-Thread-Affinity/issues/81")
     @Test
     public void shouldAllocateCoresCorrectlyUnderContention() throws IOException, InterruptedException {
-        final int numberOfLockers = Math.max(8, Runtime.getRuntime().availableProcessors());
+        Assume.assumeTrue(IS_LINUX);
+        final int numberOfLockers = Math.max(2, Math.min(8, Runtime.getRuntime().availableProcessors())) / 2;
         List<Process> lockers = new ArrayList<>();
+        LOGGER.info("Running test with {} locker processes", numberOfLockers);
         for (int i = 0; i < numberOfLockers; i++) {
-            lockers.add(ProcessRunner.runClass(RepeatedAffinityLocker.class, "last", "100"));
+            lockers.add(ProcessRunner.runClass(RepeatedAffinityLocker.class,
+                    new String[]{"-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath()},
+                    new String[]{"last", "30", "2"}));
         }
         for (int i = 0; i < numberOfLockers; i++) {
-            if (!lockers.get(i).waitFor(10, TimeUnit.SECONDS)) {
-                throw new IllegalStateException("Locker process didn't end in time");
+            final Process process = lockers.get(i);
+            if (!process.waitFor(20, TimeUnit.SECONDS)) {
+                ProcessRunner.printProcessOutput("Stalled locking process", process);
+                fail("Locker process didn't end in time");
             }
-            assertEquals(0, lockers.get(i).exitValue());
+            if (process.exitValue() != 0) {
+                ProcessRunner.printProcessOutput("Failed locking process", process);
+                fail("At least one of the locking processes failed, see output above");
+            }
+            assertEquals(0, process.exitValue());
+        }
+    }
+
+    @Test
+    public void shouldBeAbleToAcquireLockLeftByOtherProcess() throws IOException, InterruptedException {
+        Assume.assumeTrue(IS_LINUX);
+        final Process process = ProcessRunner.runClass(AffinityLockerThatDoesNotReleaseProcess.class,
+                new String[]{"-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath()},
+                new String[]{"last"});
+        if (!process.waitFor(5, TimeUnit.SECONDS)) {
+            ProcessRunner.printProcessOutput("locker process", process);
+            fail("Locker process timed out");
+        }
+        if (process.exitValue() != 0) {
+            ProcessRunner.printProcessOutput("locker process", process);
+            fail("Locker process failed");
+        }
+        // We should be able to acquire the lock despite the other process not explicitly releasing it
+        try (final AffinityLock acquired = AffinityLock.acquireLock("last")) {
+            assertEquals(AffinityLock.PROCESSORS - 1, acquired.cpuId());
         }
     }
 
     /**
      * Repeatedly acquires and releases a lock on the specified core
      */
-    static class RepeatedAffinityLocker {
+    static class RepeatedAffinityLocker implements Callable<Void> {
 
+        private static final Logger LOGGER = LoggerFactory.getLogger(RepeatedAffinityLocker.class);
         private static final long PID = LockCheck.getPID();
+        private final int iterations;
+        private final String cpuIdToLock;
 
-        public static void main(String[] args) throws IOException, InterruptedException {
+        public static void main(String[] args) throws InterruptedException, ExecutionException {
             String cpuIdToLock = args[0];
             int iterations = Integer.parseInt(args[1]);
+            int threads = Integer.parseInt(args[2]);
 
+            LOGGER.info("Acquiring lock with {} threads, {} iterations", threads, iterations);
+            ExecutorService executorService = Executors.newFixedThreadPool(threads);
+            final List<Future<Void>> futures = executorService.invokeAll(IntStream.range(0, threads)
+                    .mapToObj(tid -> new RepeatedAffinityLocker(cpuIdToLock, iterations))
+                    .collect(Collectors.toList()));
+            for (Future<Void> future : futures) {
+                future.get();
+            }
+            executorService.shutdown();
+            if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Executor service didn't shut down");
+            }
+        }
+
+        public RepeatedAffinityLocker(String cpuIdToLock, int iterations) {
+            this.iterations = iterations;
+            this.cpuIdToLock = cpuIdToLock;
+        }
+
+        @Override
+        public Void call() throws Exception {
             for (int i = 0; i < iterations; i++) {
+                LOGGER.info("******* Starting iteration {} at {}", i, LocalDateTime.now());
                 try (final AffinityLock affinityLock = AffinityLock.acquireLock(cpuIdToLock)) {
-                    long lockPID = Long.parseLong(FileLockBasedLockChecker.getInstance().getMetaInfo(affinityLock.cpuId()));
-                    if (lockPID != PID) {
-                        throw new IllegalStateException(format("PID in lock file is not mine (lockPID=%d, myPID=%d)", lockPID, PID));
+                    if (affinityLock.isAllocated()) {
+                        final String metaInfo = FileLockBasedLockChecker.getInstance().getMetaInfo(affinityLock.cpuId());
+                        LOGGER.info("Meta info is: " + metaInfo);
+                        long lockPID = Long.parseLong(metaInfo);
+                        if (lockPID != PID) {
+                            throw new IllegalStateException(format("PID in lock file is not mine (lockPID=%d, myPID=%d)", lockPID, PID));
+                        }
+                        Thread.sleep(ThreadLocalRandom.current().nextInt(50));
+                    } else {
+                        LOGGER.info("Couldn't get a lock");
                     }
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(50));
                 }
             }
+            return null;
         }
     }
 
@@ -127,6 +190,20 @@ public class MultiProcessAffinityTest {
                 // expected, just end
                 LOGGER.info("Interrupted at " + LocalDateTime.now() + " lock is released");
             }
+        }
+    }
+
+    /**
+     * Acquires a lock then ends
+     */
+    static class AffinityLockerThatDoesNotReleaseProcess {
+        private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLockerProcess.class);
+
+        public static void main(String[] args) {
+            String cpuIdToLock = args[0];
+
+            final AffinityLock affinityLock = AffinityLock.acquireLock(cpuIdToLock);
+            LOGGER.info("Got affinity lock " + affinityLock + " at " + LocalDateTime.now() + ", CPU=" + affinityLock.cpuId());
         }
     }
 }

@@ -109,15 +109,10 @@ enum LockCheck {
         return EMPTY_PID;
     }
 
-    static void updateCpu(int cpu) {
+    static void updateCpu(int cpu) throws IOException {
         if (!canOSSupportOperation())
             return;
-        try {
-            replacePid(cpu, getPID());
-        } catch (IOException e) {
-            LOGGER.warn("Failed to update lock file for cpu " + cpu, e);
-            e.printStackTrace();
-        }
+        replacePid(cpu, getPID());
     }
 
     public static void releaseLock(int cpu) {

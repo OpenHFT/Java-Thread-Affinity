@@ -53,6 +53,7 @@ public class FileLockLockCheckTest {
 
     @After
     public void after() {
+        LockCheck.releaseLock(cpu);
         System.setProperty("java.io.tmpdir", TMP);
     }
 

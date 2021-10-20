@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -69,9 +70,22 @@ class LockInventory {
         return cpuId == AffinityLock.ANY_CPU;
     }
 
-    private static void updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean b) {
-        al.assignCurrentThread(bind, b);
-        LockCheck.updateCpu(al.cpuId());
+    /**
+     * Update the lock for the current thread
+     *
+     * @param bind      Whether to also bind the thread to the core
+     * @param al        The lock to update
+     * @param wholeCore Whether to bind the whole core
+     * @return true if the lock was acquired, false otherwise
+     */
+    private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) {
+        try {
+            LockCheck.updateCpu(al.cpuId());
+            al.assignCurrentThread(bind, wholeCore);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     public final synchronized CpuLayout getCpuLayout() {
@@ -106,8 +120,9 @@ class LockInventory {
         final boolean specificCpuRequested = !isAnyCpu(cpuId);
         if (specificCpuRequested && cpuId != 0) {
             final AffinityLock required = logicalCoreLocks[cpuId];
-            if (required.canReserve(true) && anyStrategyMatches(cpuId, cpuId, strategies)) {
-                updateLockForCurrentThread(bind, required, false);
+            if (required.canReserve(true)
+                    && anyStrategyMatches(cpuId, cpuId, strategies)
+                    && updateLockForCurrentThread(bind, required, false)) {
                 return required;
             }
             LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
@@ -119,8 +134,9 @@ class LockInventory {
             // if you have only one core, this library is not appropriate in any case.
             for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
                 AffinityLock al = logicalCoreLocks[i];
-                if (al.canReserve(false) && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))) {
-                    updateLockForCurrentThread(bind, al, false);
+                if (al.canReserve(false)
+                        && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))
+                        && updateLockForCurrentThread(bind, al, false)) {
                     return al;
                 }
             }
@@ -136,8 +152,8 @@ class LockInventory {
             return null;
 
         final AffinityLock required = logicalCoreLocks[cpuId];
-        if (required.canReserve(true)) {
-            updateLockForCurrentThread(bind, required, false);
+        if (required.canReserve(true)
+                && updateLockForCurrentThread(bind, required, false)) {
             return required;
         }
 
@@ -156,8 +172,9 @@ class LockInventory {
                         continue LOOP;
 
                 final AffinityLock al = als[0];
-                updateLockForCurrentThread(bind, al, true);
-                return al;
+                if (updateLockForCurrentThread(bind, al, true)) {
+                    return al;
+                }
             }
         }
 

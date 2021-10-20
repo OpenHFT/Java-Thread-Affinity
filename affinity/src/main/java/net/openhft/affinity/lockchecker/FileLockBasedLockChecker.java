@@ -11,6 +11,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
@@ -29,7 +30,7 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     private static final String OS = System.getProperty("os.name").toLowerCase();
 
     private static final LockChecker instance = new FileLockBasedLockChecker();
-    private static final HashSet<StandardOpenOption> openOptions = new HashSet<>(Arrays.asList(CREATE_NEW, WRITE, READ, SYNC));
+    private static final HashSet<StandardOpenOption> openOptions = new HashSet<>(Arrays.asList(CREATE, WRITE, READ, SYNC));
     private static final FileAttribute<Set<PosixFilePermission>> fileAttr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-"));
     private final LockReference[] locks = new LockReference[MAX_CPUS_SUPPORTED];
 
@@ -47,11 +48,6 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     }
 
     private boolean isLockFree(File file, int id) {
-        //if no file exists - nobody has the lock for sure
-        if (!file.exists()) {
-            return true;
-        }
-
         //do we have the lock already?
         LockReference existingLock = locks[id];
         if (existingLock != null) {
@@ -60,23 +56,27 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
 
         //does another process have the lock?
         try {
-            FileChannel fc = FileChannel.open(file.toPath(), WRITE);
-            FileLock fileLock = fc.tryLock();
-            if (fileLock == null) {
-                return false;
+            // only take a shared lock to test if the file is locked,
+            // this means processes testing the lock concurrently
+            // won't interfere with each other
+            try (FileChannel fc = FileChannel.open(file.toPath(), READ);
+                 FileLock fileLock = fc.tryLock(0, Long.MAX_VALUE, true)) {
+                if (fileLock == null) {
+                    return false;
+                }
             }
-        } catch (IOException | OverlappingFileLockException e) {
+            // file is present but no process is holding the lock
+            return true;
+        } catch (OverlappingFileLockException e) {
+            // another process has the lock
+            return false;
+        } catch (NoSuchFileException e) {
+            // the file doesn't exist, nobody has the lock
+            return true;
+        } catch (IOException e) {
             LOGGER.error(String.format("Exception occurred whilst trying to check lock on file %s : %s%n", file.getAbsolutePath(), e));
+            return true; // maybe we should re-throw?
         }
-
-        //file is present but nobody has it locked - delete it
-        boolean deleted = file.delete();
-        if (deleted)
-            LOGGER.info(String.format("Deleted %s as nobody has the lock", file.getAbsolutePath()));
-        else
-            LOGGER.warn(String.format("Nobody has the lock on %s. Delete failed", file.getAbsolutePath()));
-
-        return true;
     }
 
     @Override
@@ -117,7 +117,6 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
             locks[id] = null;
             lock.lock.release();
             lock.channel.close();
-            toFile(id).delete();
             return true;
         } catch (IOException e) {
             LOGGER.error(String.format("Couldn't release lock for id %d due to exception: %s%n", id, e.getMessage()));
@@ -157,13 +156,14 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     @NotNull
     @Override
     protected File toFile(int id) {
+        assert id >= 0;
         File file = super.toFile(id);
         try {
             if (file.exists() && OS.startsWith("linux")) {
                 Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxrwxrwx"));
             }
         } catch (IOException e) {
-            LOGGER.warn("Unable to set file permissions \"rwxrwxrwx\" for {} due to {}", file.toString(), e);
+            LOGGER.warn("Unable to set file permissions \"rwxrwxrwx\" for {} due to {}", file, e);
         }
         return file;
     }

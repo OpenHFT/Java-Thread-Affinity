@@ -55,6 +55,7 @@ public class LockCheckTest {
     @After
     public void after() {
         System.setProperty("java.io.tmpdir", TMP);
+        LockCheck.releaseLock(cpu);
     }
 
     @Test

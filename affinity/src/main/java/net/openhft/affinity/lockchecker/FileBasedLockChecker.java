@@ -78,6 +78,7 @@ public class FileBasedLockChecker implements LockChecker {
 
     @NotNull
     protected File toFile(int id) {
+        assert id >= 0;
         return new File(tmpDir(), "cpu-" + id + ".lock");
     }
 }
