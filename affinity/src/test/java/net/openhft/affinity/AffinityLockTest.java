@@ -19,7 +19,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ import static org.junit.Assume.assumeTrue;
 public class AffinityLockTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
-    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
 
     @Test
     public void dumpLocksI7() throws IOException {

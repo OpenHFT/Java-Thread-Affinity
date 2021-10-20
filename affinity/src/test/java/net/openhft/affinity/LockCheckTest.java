@@ -17,7 +17,7 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.junit.*;
 
 import java.io.File;
@@ -34,7 +34,7 @@ public class LockCheckTest {
 
     private static final String TMP = System.getProperty("java.io.tmpdir");
     private static final String TARGET = System.getProperty("project.build.directory", findTarget());
-    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
     private int cpu = 11;
 
     private static String findTarget() {

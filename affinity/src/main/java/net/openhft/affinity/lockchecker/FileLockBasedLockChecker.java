@@ -16,6 +16,7 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -24,10 +25,11 @@ import java.util.Set;
 import static java.nio.file.StandardOpenOption.*;
 import static net.openhft.affinity.impl.VanillaCpuLayout.MAX_CPUS_SUPPORTED;
 
-public class FileLockBasedLockChecker extends FileBasedLockChecker {
+public class FileLockBasedLockChecker implements LockChecker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockBasedLockChecker.class);
     private static final String OS = System.getProperty("os.name").toLowerCase();
+    private static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
 
     private static final LockChecker instance = new FileLockBasedLockChecker();
     private static final HashSet<StandardOpenOption> openOptions = new HashSet<>(Arrays.asList(CREATE, WRITE, READ, SYNC));
@@ -154,10 +156,9 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     }
 
     @NotNull
-    @Override
     protected File toFile(int id) {
         assert id >= 0;
-        File file = super.toFile(id);
+        File file = new File(tmpDir(), "cpu-" + id + ".lock");
         try {
             if (file.exists() && OS.startsWith("linux")) {
                 Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxrwxrwx"));
@@ -166,5 +167,14 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
             LOGGER.warn("Unable to set file permissions \"rwxrwxrwx\" for {} due to {}", file, e);
         }
         return file;
+    }
+
+    private File tmpDir() {
+        final File tempDir = new File(System.getProperty("java.io.tmpdir"));
+
+        if (!tempDir.exists())
+            tempDir.mkdirs();
+
+        return tempDir;
     }
 }
