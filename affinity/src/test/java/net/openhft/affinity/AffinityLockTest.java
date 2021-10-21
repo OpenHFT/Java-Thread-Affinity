@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +37,7 @@ import static org.junit.Assume.assumeTrue;
 /**
  * @author peter.lawrey
  */
-public class AffinityLockTest {
+public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();

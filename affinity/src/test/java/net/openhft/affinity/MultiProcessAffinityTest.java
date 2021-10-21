@@ -2,8 +2,9 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.common.ProcessRunner;
 import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,28 +20,17 @@ import static java.lang.String.format;
 import static net.openhft.affinity.LockCheck.IS_LINUX;
 import static org.junit.Assert.*;
 
-public class MultiProcessAffinityTest {
+public class MultiProcessAffinityTest extends BaseAffinityTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiProcessAffinityTest.class);
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
-    private String originalTmpDir;
-
     @Before
     public void setUp() {
-        originalTmpDir = System.getProperty("java.io.tmpdir");
-        System.setProperty("java.io.tmpdir", folder.getRoot().getAbsolutePath());
-    }
-
-    @After
-    public void tearDown() {
-        System.setProperty("java.io.tmpdir", originalTmpDir);
+        Assume.assumeTrue(IS_LINUX);
     }
 
     @Test
     public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws IOException, InterruptedException {
-        Assume.assumeTrue(IS_LINUX);
         // run the separate affinity locker
         final Process affinityLockerProcess = ProcessRunner.runClass(AffinityLockerProcess.class,
                 new String[]{"-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath()},
@@ -73,7 +63,6 @@ public class MultiProcessAffinityTest {
 
     @Test
     public void shouldAllocateCoresCorrectlyUnderContention() throws IOException, InterruptedException {
-        Assume.assumeTrue(IS_LINUX);
         final int numberOfLockers = Math.max(2, Math.min(8, Runtime.getRuntime().availableProcessors())) / 2;
         List<Process> lockers = new ArrayList<>();
         LOGGER.info("Running test with {} locker processes", numberOfLockers);
@@ -98,7 +87,6 @@ public class MultiProcessAffinityTest {
 
     @Test
     public void shouldBeAbleToAcquireLockLeftByOtherProcess() throws IOException, InterruptedException {
-        Assume.assumeTrue(IS_LINUX);
         final Process process = ProcessRunner.runClass(AffinityLockerThatDoesNotReleaseProcess.class,
                 new String[]{"-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath()},
                 new String[]{"last"});
