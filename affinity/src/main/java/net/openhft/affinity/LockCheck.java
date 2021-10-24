@@ -17,7 +17,7 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
+import net.openhft.affinity.lockchecker.FileBasedLockChecker;
 import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * @author Rob Austin.
  */
-enum LockCheck {
+public enum LockCheck {
     ; // none
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LockCheck.class);
@@ -36,7 +36,7 @@ enum LockCheck {
     static final boolean IS_LINUX = OS.startsWith("linux");
     private static final int EMPTY_PID = Integer.MIN_VALUE;
 
-    private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
+    private static final LockChecker lockChecker = FileBasedLockChecker.getInstance();
 
     static long getPID() {
         String processName =
@@ -52,30 +52,14 @@ enum LockCheck {
         if (!canOSSupportOperation())
             return true;
 
-        if (isLockFree(cpu)) {
-            return true;
-        } else {
-            int currentProcess = 0;
-            try {
-                currentProcess = getProcessForCpu(cpu);
-            } catch (RuntimeException | IOException e) {
-                LOGGER.warn("Failed to determine process on cpu " + cpu, e);
-                e.printStackTrace();
-                return true;
-            }
-            if (!isProcessRunning(currentProcess)) {
-                lockChecker.releaseLock(cpu);
-                return true;
-            }
-            return false;
-        }
+        return isLockFree(cpu);
     }
 
     static void replacePid(int cpu, long processID) throws IOException {
         storePid(processID, cpu);
     }
 
-    static boolean isProcessRunning(long pid) {
+    public static boolean isProcessRunning(long pid) {
         if (canOSSupportOperation())
             return new File("/proc/" + pid).exists();
         else
@@ -96,7 +80,7 @@ enum LockCheck {
         return lockChecker.isLockFree(id);
     }
 
-    static int getProcessForCpu(int core) throws IOException {
+    public static int getProcessForCpu(int core) throws IOException {
         String meta = lockChecker.getMetaInfo(core);
 
         if (meta != null && !meta.isEmpty()) {
