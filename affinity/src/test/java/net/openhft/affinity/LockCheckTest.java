@@ -17,8 +17,11 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
-import org.junit.*;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -30,31 +33,14 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
 /**
  * @author Rob Austin.
  */
-public class LockCheckTest {
+public class LockCheckTest extends BaseAffinityTest {
 
-    private static final String TMP = System.getProperty("java.io.tmpdir");
-    private static final String TARGET = System.getProperty("project.build.directory", findTarget());
-    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
     private int cpu = 11;
-
-    private static String findTarget() {
-        for (File dir = new File(System.getProperty("user.dir")); dir != null; dir = dir.getParentFile()) {
-            File target = new File(dir, "target");
-            if (target.exists())
-                return target.getAbsolutePath();
-        }
-        return TMP + "/target";
-    }
 
     @Before
     public void before() {
         Assume.assumeTrue(IS_LINUX);
-        System.setProperty("java.io.tmpdir", TARGET + "/" + System.nanoTime());
-    }
-
-    @After
-    public void after() {
-        System.setProperty("java.io.tmpdir", TMP);
     }
 
     @Test

@@ -9,12 +9,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
-import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.OpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -23,14 +23,14 @@ import java.util.Set;
 import static java.nio.file.StandardOpenOption.*;
 import static net.openhft.affinity.impl.VanillaCpuLayout.MAX_CPUS_SUPPORTED;
 
-public class FileLockBasedLockChecker extends FileBasedLockChecker {
+public class FileLockBasedLockChecker implements LockChecker {
 
+    private static final int MAX_LOCK_RETRIES = 5;
+    private static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
+    private static final FileAttribute<Set<PosixFilePermission>> LOCK_FILE_ATTRIBUTES = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-"));
+    private static final Set<OpenOption> LOCK_FILE_OPEN_OPTIONS = new HashSet<>(Arrays.asList(READ, WRITE, CREATE, SYNC));
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockBasedLockChecker.class);
-    private static final String OS = System.getProperty("os.name").toLowerCase();
-
-    private static final LockChecker instance = new FileLockBasedLockChecker();
-    private static final HashSet<StandardOpenOption> openOptions = new HashSet<>(Arrays.asList(CREATE_NEW, WRITE, READ, SYNC));
-    private static final FileAttribute<Set<PosixFilePermission>> fileAttr = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-"));
+    private static final FileLockBasedLockChecker instance = new FileLockBasedLockChecker();
     private final LockReference[] locks = new LockReference[MAX_CPUS_SUPPORTED];
 
     protected FileLockBasedLockChecker() {
@@ -42,96 +42,122 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     }
 
     @Override
-    public boolean isLockFree(int id) {
-        return isLockFree(toFile(id), id);
-    }
-
-    private boolean isLockFree(File file, int id) {
-        //if no file exists - nobody has the lock for sure
-        if (!file.exists()) {
-            return true;
-        }
-
-        //do we have the lock already?
-        LockReference existingLock = locks[id];
-        if (existingLock != null) {
+    public synchronized boolean isLockFree(int id) {
+        // check if this process already has the lock
+        if (locks[id] != null) {
             return false;
         }
 
-        //does another process have the lock?
-        try {
-            FileChannel fc = FileChannel.open(file.toPath(), WRITE);
-            FileLock fileLock = fc.tryLock();
-            if (fileLock == null) {
-                return false;
+        // check if another process has the lock
+        File lockFile = toFile(id);
+        try (final FileChannel channel = FileChannel.open(lockFile.toPath(), READ)) {
+            // if we can acquire a shared lock, nobody has an exclusive lock
+            try (final FileLock fileLock = channel.tryLock(0, Long.MAX_VALUE, true)) {
+                if (fileLock != null && fileLock.isValid()) {
+                    lockFile.delete(); // clean up the orphaned lock file
+                    return true;
+                } else {
+                    // another process has an exclusive lock
+                    return false;
+                }
             }
-        } catch (IOException | OverlappingFileLockException e) {
-            LOGGER.error(String.format("Exception occurred whilst trying to check lock on file %s : %s%n", file.getAbsolutePath(), e));
-        }
-
-        //file is present but nobody has it locked - delete it
-        boolean deleted = file.delete();
-        if (deleted)
-            LOGGER.info(String.format("Deleted %s as nobody has the lock", file.getAbsolutePath()));
-        else
-            LOGGER.warn(String.format("Nobody has the lock on %s. Delete failed", file.getAbsolutePath()));
-
-        return true;
-    }
-
-    @Override
-    public boolean obtainLock(int id, String metaInfo) throws IOException {
-        final File file = toFile(id);
-        if (!isLockFree(file, id)) {
-            return false;
-        }
-
-        FileChannel fc = FileChannel.open(file.toPath(), openOptions, fileAttr);
-        FileLock fl = fc.tryLock();
-
-        if (fl == null) {
-            LOGGER.error(String.format("Could not obtain lock on file %s%n", file.getAbsolutePath()));
-            return false;
-        } else {
-            LOGGER.debug(String.format("Obtained lock on file %s (%s)%n", file.getAbsolutePath(), metaInfo));
-            locks[id] = new LockReference(fc, fl);
-
-            byte[] content = String.format("%s%n%s", metaInfo, df.format(new Date())).getBytes();
-            ByteBuffer buffer = ByteBuffer.wrap(content);
-            while (buffer.hasRemaining()) {
-                fc.write(buffer);
-            }
-            return true;
-        }
-    }
-
-    @Override
-    public boolean releaseLock(int id) {
-        LockReference lock = locks[id];
-        if (lock == null) {
-            LOGGER.error(String.format("Cannot release lock for id %d as don't have it!", id));
-            return false;
-        }
-
-        try {
-            locks[id] = null;
-            lock.lock.release();
-            lock.channel.close();
-            toFile(id).delete();
+        } catch (NoSuchFileException e) {
+            // no lock file exists, nobody has the lock
             return true;
         } catch (IOException e) {
-            LOGGER.error(String.format("Couldn't release lock for id %d due to exception: %s%n", id, e.getMessage()));
+            LOGGER.warn("An unexpected error occurred checking if the lock was free, assuming it's not", e);
             return false;
+        }
+    }
+
+    @Override
+    public synchronized boolean obtainLock(int id, String metaInfo) throws IOException {
+        int attempt = 0;
+        while (attempt < MAX_LOCK_RETRIES) {
+            try {
+                LockReference lockReference = tryAcquireLockOnFile(id, metaInfo);
+                if (lockReference != null) {
+                    locks[id] = lockReference;
+                    return true;
+                }
+                return false;
+            } catch (ConcurrentLockFileDeletionException e) {
+                attempt++;
+            }
+        }
+        LOGGER.warn("Exceeded maximum retries for locking CPU " + id + ", failing acquire");
+        return false;
+    }
+
+    /**
+     * Attempts to acquire an exclusive lock on the core lock file.
+     * <p>
+     * It will fail if another process already has an exclusive lock on the file.
+     *
+     * @param id       The CPU ID to acquire
+     * @param metaInfo The meta-info to write to the file upon successful acquisition
+     * @return The {@link LockReference} if the lock was successfully acquired, null otherwise
+     * @throws IOException                         If an IOException occurs creating or writing to the file
+     * @throws ConcurrentLockFileDeletionException If another process deleted the file between us opening it and locking it
+     */
+    private LockReference tryAcquireLockOnFile(int id, String metaInfo) throws IOException, ConcurrentLockFileDeletionException {
+        final File lockFile = toFile(id);
+        final FileChannel fileChannel = FileChannel.open(lockFile.toPath(), LOCK_FILE_OPEN_OPTIONS, LOCK_FILE_ATTRIBUTES);
+        final FileLock fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, false);
+        if (fileLock == null) {
+            // someone else has a lock (exclusive or shared), fail to acquire
+            closeQuietly(fileChannel);
+            return null;
+        } else {
+            if (!lockFile.exists()) {
+                // someone deleted the file between us opening it and acquiring the lock, signal to retry
+                closeQuietly(fileLock, fileChannel);
+                throw new ConcurrentLockFileDeletionException();
+            } else {
+                // we have the lock, the file exists. That's success.
+                writeMetaInfoToFile(fileChannel, metaInfo);
+                return new LockReference(fileChannel, fileLock);
+            }
+        }
+    }
+
+    private void writeMetaInfoToFile(FileChannel fc, String metaInfo) throws IOException {
+        byte[] content = String.format("%s%n%s", metaInfo, df.format(new Date())).getBytes();
+        ByteBuffer buffer = ByteBuffer.wrap(content);
+        while (buffer.hasRemaining()) {
+            fc.write(buffer);
+        }
+    }
+
+    @Override
+    public synchronized boolean releaseLock(int id) {
+        if (locks[id] != null) {
+            final File lockFile = toFile(id);
+            if (!lockFile.delete()) {
+                LOGGER.warn("Couldn't delete lock file on release: " + lockFile);
+            }
+            closeQuietly(locks[id].lock, locks[id].channel);
+            locks[id] = null;
+            return true;
+        }
+        return false;
+    }
+
+    private void closeQuietly(AutoCloseable... closeables) {
+        for (AutoCloseable closeable : closeables) {
+            try {
+                if (closeable != null) {
+                    closeable.close();
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Error closing " + closeable.getClass().getName(), e);
+            }
         }
     }
 
     @Override
     public String getMetaInfo(int id) throws IOException {
         final File file = toFile(id);
-        if (isLockFree(file, id)) {
-            LOGGER.warn("Cannot obtain lock on lock file {}", file.getAbsolutePath());
-            return null;
-        }
 
         LockReference lr = locks[id];
         if (lr != null) {
@@ -139,6 +165,8 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
         } else {
             try (FileChannel fc = FileChannel.open(file.toPath(), READ)) {
                 return readMetaInfoFromLockFileChannel(file, fc);
+            } catch (NoSuchFileException e) {
+                return null;
             }
         }
     }
@@ -155,16 +183,23 @@ public class FileLockBasedLockChecker extends FileBasedLockChecker {
     }
 
     @NotNull
-    @Override
     protected File toFile(int id) {
-        File file = super.toFile(id);
-        try {
-            if (file.exists() && OS.startsWith("linux")) {
-                Files.setPosixFilePermissions(file.toPath(), PosixFilePermissions.fromString("rwxrwxrwx"));
-            }
-        } catch (IOException e) {
-            LOGGER.warn("Unable to set file permissions \"rwxrwxrwx\" for {} due to {}", file.toString(), e);
-        }
-        return file;
+        assert id >= 0;
+        return new File(tmpDir(), "cpu-" + id + ".lock");
+    }
+
+    private File tmpDir() {
+        final File tempDir = new File(System.getProperty("java.io.tmpdir"));
+
+        if (!tempDir.exists())
+            tempDir.mkdirs();
+
+        return tempDir;
+    }
+
+    /**
+     * Thrown when another process deleted the lock file between us opening the file and acquiring the lock
+     */
+    class ConcurrentLockFileDeletionException extends Exception {
     }
 }
