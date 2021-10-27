@@ -17,7 +17,7 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
@@ -34,7 +34,7 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
  */
 public class FileLockLockCheckTest extends BaseAffinityTest {
 
-    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
     private int cpu = 11;
 
     @Before

@@ -80,12 +80,14 @@ class LockInventory {
      */
     private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) {
         try {
-            LockCheck.updateCpu(al.cpuId());
-            al.assignCurrentThread(bind, wholeCore);
-            return true;
+            if (LockCheck.updateCpu(al.cpuId())) {
+                al.assignCurrentThread(bind, wholeCore);
+                return true;
+            }
         } catch (IOException e) {
-            return false;
+            LOGGER.warn("Error occurred acquiring lock", e);
         }
+        return false;
     }
 
     public final synchronized CpuLayout getCpuLayout() {

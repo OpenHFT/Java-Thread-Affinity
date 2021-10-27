@@ -1,7 +1,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.common.ProcessRunner;
-import net.openhft.affinity.lockchecker.FileBasedLockChecker;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
 
             // wait for the CPU to be locked
             long endTime = System.currentTimeMillis() + 5_000;
-            while (FileBasedLockChecker.getInstance().isLockFree(lastCpuId)) {
+            while (LockCheck.isCpuFree(lastCpuId)) {
                 Thread.sleep(100);
                 if (System.currentTimeMillis() > endTime) {
                     LOGGER.info("Timed out waiting for the lock to be acquired: isAlive={}, exitCode={}",
@@ -180,8 +180,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         }
 
         private void assertLockFileContainsMyPid(AffinityLock affinityLock) throws IOException {
-            final String metaInfo = FileBasedLockChecker.getInstance().getMetaInfo(affinityLock.cpuId());
-            long lockPID = Long.parseLong(metaInfo);
+            int lockPID = LockCheck.getProcessForCpu(affinityLock.cpuId());
             if (lockPID != PID) {
                 throw new IllegalStateException(format("PID in lock file is not mine (lockPID=%d, myPID=%d)", lockPID, PID));
             }
@@ -249,27 +248,9 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
             }
         }
 
-        /**
-         * This is copied from {@link FileBasedLockChecker} it should probably be called directly
-         * but it's not visible
-         *
-         * @param id The CPU ID whose lock file to create
-         * @return The lock file
-         */
         @NotNull
         protected static File toFile(int id) {
-            assert id >= 0;
-            File file = new File(tmpDir(), "cpu-" + id + ".lock");
-            return file;
-        }
-
-        private static File tmpDir() {
-            final File tempDir = new File(System.getProperty("java.io.tmpdir"));
-
-            if (!tempDir.exists())
-                tempDir.mkdirs();
-
-            return tempDir;
+            return new TestFileLockBasedLockChecker().doToFile(id);
         }
     }
 }

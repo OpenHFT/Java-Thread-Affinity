@@ -1,6 +1,5 @@
 package net.openhft.affinity;
 
-import net.openhft.affinity.lockchecker.FileBasedLockChecker;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,9 +21,7 @@ public class BaseAffinityTest {
     public void restoreTmpDirectoryAndReleaseAllLocks() {
         // don't leave any locks locked
         for (int i = 0; i < AffinityLock.PROCESSORS; i++) {
-            if (!FileBasedLockChecker.getInstance().isLockFree(i)) {
-                FileBasedLockChecker.getInstance().releaseLock(i);
-            }
+            LockCheck.releaseLock(i);
         }
         System.setProperty("java.io.tmpdir", originalTmpDir);
     }

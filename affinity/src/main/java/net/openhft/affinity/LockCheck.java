@@ -17,7 +17,7 @@
 
 package net.openhft.affinity;
 
-import net.openhft.affinity.lockchecker.FileBasedLockChecker;
+import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
 import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +36,9 @@ public enum LockCheck {
     static final boolean IS_LINUX = OS.startsWith("linux");
     private static final int EMPTY_PID = Integer.MIN_VALUE;
 
-    private static final LockChecker lockChecker = FileBasedLockChecker.getInstance();
+    private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
-    static long getPID() {
+    public static long getPID() {
         String processName =
                 java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
         return Long.parseLong(processName.split("@")[0]);
@@ -55,8 +55,8 @@ public enum LockCheck {
         return isLockFree(cpu);
     }
 
-    static void replacePid(int cpu, long processID) throws IOException {
-        storePid(processID, cpu);
+    static boolean replacePid(int cpu, long processID) throws IOException {
+        return storePid(processID, cpu);
     }
 
     public static boolean isProcessRunning(long pid) {
@@ -70,10 +70,8 @@ public enum LockCheck {
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
      */
-    private synchronized static void storePid(long processID, int cpu) throws IOException {
-        if (!lockChecker.obtainLock(cpu, Long.toString(processID))) {
-            throw new IOException(String.format("Cannot obtain file lock for cpu %d", cpu));
-        }
+    private synchronized static boolean storePid(long processID, int cpu) throws IOException {
+        return lockChecker.obtainLock(cpu, Long.toString(processID));
     }
 
     private synchronized static boolean isLockFree(int id) {
@@ -93,10 +91,10 @@ public enum LockCheck {
         return EMPTY_PID;
     }
 
-    static void updateCpu(int cpu) throws IOException {
+    static boolean updateCpu(int cpu) throws IOException {
         if (!canOSSupportOperation())
-            return;
-        replacePid(cpu, getPID());
+            return true;
+        return replacePid(cpu, getPID());
     }
 
     public static void releaseLock(int cpu) {
