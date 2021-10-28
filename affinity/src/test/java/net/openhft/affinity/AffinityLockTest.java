@@ -19,7 +19,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import net.openhft.affinity.testimpl.TestFileBasedLockChecker;
+import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +39,10 @@ import static org.junit.Assume.assumeTrue;
 /**
  * @author peter.lawrey
  */
-public class AffinityLockTest {
+public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
-    private final TestFileBasedLockChecker lockChecker = new TestFileBasedLockChecker();
+    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
 
     @Test
     public void dumpLocksI7() throws IOException {
@@ -254,11 +254,11 @@ public class AffinityLockTest {
         }
         final AffinityLock lock = AffinityLock.acquireLock();
 
-        assertThat(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())), is(true));
+        assertTrue(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
 
         lock.release();
 
-        assertThat(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())), is(false));
+        assertFalse(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
     }
 
     private void displayStatus() {

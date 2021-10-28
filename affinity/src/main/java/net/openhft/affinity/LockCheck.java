@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * @author Rob Austin.
  */
-enum LockCheck {
+public enum LockCheck {
     ; // none
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LockCheck.class);
@@ -38,7 +38,7 @@ enum LockCheck {
 
     private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
-    static long getPID() {
+    public static long getPID() {
         String processName =
                 java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
         return Long.parseLong(processName.split("@")[0]);
@@ -52,30 +52,14 @@ enum LockCheck {
         if (!canOSSupportOperation())
             return true;
 
-        if (isLockFree(cpu)) {
-            return true;
-        } else {
-            int currentProcess = 0;
-            try {
-                currentProcess = getProcessForCpu(cpu);
-            } catch (RuntimeException | IOException e) {
-                LOGGER.warn("Failed to determine process on cpu " + cpu, e);
-                e.printStackTrace();
-                return true;
-            }
-            if (!isProcessRunning(currentProcess)) {
-                lockChecker.releaseLock(cpu);
-                return true;
-            }
-            return false;
-        }
+        return isLockFree(cpu);
     }
 
-    static void replacePid(int cpu, long processID) throws IOException {
-        storePid(processID, cpu);
+    static boolean replacePid(int cpu, long processID) throws IOException {
+        return storePid(processID, cpu);
     }
 
-    static boolean isProcessRunning(long pid) {
+    public static boolean isProcessRunning(long pid) {
         if (canOSSupportOperation())
             return new File("/proc/" + pid).exists();
         else
@@ -86,17 +70,15 @@ enum LockCheck {
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
      */
-    private synchronized static void storePid(long processID, int cpu) throws IOException {
-        if (!lockChecker.obtainLock(cpu, Long.toString(processID))) {
-            throw new IOException(String.format("Cannot obtain file lock for cpu %d", cpu));
-        }
+    private synchronized static boolean storePid(long processID, int cpu) throws IOException {
+        return lockChecker.obtainLock(cpu, Long.toString(processID));
     }
 
     private synchronized static boolean isLockFree(int id) {
         return lockChecker.isLockFree(id);
     }
 
-    static int getProcessForCpu(int core) throws IOException {
+    public static int getProcessForCpu(int core) throws IOException {
         String meta = lockChecker.getMetaInfo(core);
 
         if (meta != null && !meta.isEmpty()) {
@@ -109,15 +91,10 @@ enum LockCheck {
         return EMPTY_PID;
     }
 
-    static void updateCpu(int cpu) {
+    static boolean updateCpu(int cpu) throws IOException {
         if (!canOSSupportOperation())
-            return;
-        try {
-            replacePid(cpu, getPID());
-        } catch (IOException e) {
-            LOGGER.warn("Failed to update lock file for cpu " + cpu, e);
-            e.printStackTrace();
-        }
+            return true;
+        return replacePid(cpu, getPID());
     }
 
     public static void releaseLock(int cpu) {
