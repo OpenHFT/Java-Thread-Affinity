@@ -39,20 +39,20 @@ public class MicroJitterSampler {
     private final int[] count = new int[DELAY.length];
     private long totalTime = 0;
 
-    private static void pause() throws InterruptedException
-    {
-        if(BUSYWAIT) {
+    private static void pause() throws InterruptedException {
+        if (BUSYWAIT) {
             long now = System.nanoTime();
-            while(System.nanoTime() - now < 1_000_000);
+            while (System.nanoTime() - now < 1_000_000) ;
         } else {
             Thread.sleep(1);
         }
 
     }
+
     public static void main(String... ignored) throws InterruptedException {
         MicroJitterSampler sampler = new MicroJitterSampler();
 
-        Thread t = new Thread( sampler::run );
+        Thread t = new Thread(sampler::run);
         t.start();
         t.join();
     }
@@ -71,7 +71,7 @@ public class MicroJitterSampler {
     }
 
     public void run() {
-        if(CPU != -1)
+        if (CPU != -1)
             Affinity.setAffinity(CPU);
 
         try {
@@ -80,7 +80,7 @@ public class MicroJitterSampler {
             while (!Thread.currentThread().isInterrupted()) {
                 once();
 
-                if(first) {
+                if (first) {
                     reset();
                     first = false;
                     System.out.println("Warmup complete. Running jitter tests...");
@@ -89,7 +89,8 @@ public class MicroJitterSampler {
 
                 print(System.out);
             }
-        } catch(InterruptedException e) {
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -101,7 +102,7 @@ public class MicroJitterSampler {
     }
 
     void reset() {
-        for(int i=0; i<DELAY.length; ++i)
+        for (int i = 0; i < DELAY.length; ++i)
             count[i] = 0;
         totalTime = 0;
     }

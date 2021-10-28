@@ -10,7 +10,6 @@ import java.util.Date;
  * @author Tom Shercliff
  */
 public class AffinityTestMain {
-    private static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
 
     public static void main(String[] args) {
 
@@ -28,21 +27,19 @@ public class AffinityTestMain {
 
     private static void acquireAndDoWork() {
 
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try (AffinityLock al = Affinity.acquireLock()) {
-                    String threadName = Thread.currentThread().getName();
-                    System.out.println("Thread (" + threadName + ") locked onto cpu " + al.cpuId());
+        Thread t = new Thread(() -> {
+            final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
+            try (AffinityLock al = Affinity.acquireLock()) {
+                String threadName = Thread.currentThread().getName();
+                System.out.println("Thread (" + threadName + ") locked onto cpu " + al.cpuId());
 
-                    while (true) {
-                        System.out.println(df.format(new Date()) + " - Thread (" + threadName + ") doing work on cpu " + al.cpuId() + ". IsAllocated = " + al.isAllocated() + ", isBound = " + al.isBound() + ". " + al.toString());
+                while (true) {
+                    System.out.println(df.format(new Date()) + " - Thread (" + threadName + ") doing work on cpu " + al.cpuId() + ". IsAllocated = " + al.isAllocated() + ", isBound = " + al.isBound() + ". " + al.toString());
 
-                        try {
-                            Thread.sleep(10000L);
-                        } catch (InterruptedException e) {
-                            //nothing
-                        }
+                    try {
+                        Thread.sleep(10000L);
+                    } catch (InterruptedException e) {
+                        //nothing
                     }
                 }
             }
