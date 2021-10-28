@@ -26,7 +26,7 @@
     </parent>
 
     <artifactId>affinity</artifactId>
-    <version>3.21ea81-SNAPSHOT</version>
+    <version>3.21ea81</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity</name>
@@ -224,7 +224,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
         </developerConnection>
-         <tag>ea</tag>
+         <tag>Java-Thread-Affinity-3.21ea81</tag>
     </scm>
 
 </project>
