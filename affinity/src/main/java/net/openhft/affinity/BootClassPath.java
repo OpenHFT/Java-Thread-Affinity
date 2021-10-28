@@ -67,8 +67,7 @@ enum BootClassPath {
 
     private static Set<String> findResourcesInJar(final Path path, final Logger logger) {
         final Set<String> jarResources = new HashSet<>();
-        try {
-            final JarFile jarFile = new JarFile(path.toFile());
+        try (final JarFile jarFile = new JarFile(path.toFile())) {
             final Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
                 final JarEntry jarEntry = entries.nextElement();

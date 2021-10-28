@@ -26,7 +26,7 @@ import static net.openhft.affinity.impl.VanillaCpuLayout.MAX_CPUS_SUPPORTED;
 public class FileLockBasedLockChecker implements LockChecker {
 
     private static final int MAX_LOCK_RETRIES = 5;
-    private static final SimpleDateFormat df = new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z");
+    private static final ThreadLocal<SimpleDateFormat> dfTL = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z"));
     private static final FileAttribute<Set<PosixFilePermission>> LOCK_FILE_ATTRIBUTES = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-"));
     private static final Set<OpenOption> LOCK_FILE_OPEN_OPTIONS = new HashSet<>(Arrays.asList(READ, WRITE, CREATE, SYNC));
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockBasedLockChecker.class);
@@ -54,7 +54,9 @@ public class FileLockBasedLockChecker implements LockChecker {
             // if we can acquire a shared lock, nobody has an exclusive lock
             try (final FileLock fileLock = channel.tryLock(0, Long.MAX_VALUE, true)) {
                 if (fileLock != null && fileLock.isValid()) {
-                    lockFile.delete(); // clean up the orphaned lock file
+                    if (!lockFile.delete()) { // try and clean up the orphaned lock file
+                        LOGGER.debug("Couldn't delete orphaned lock file " + lockFile);
+                    }
                     return true;
                 } else {
                     // another process has an exclusive lock
@@ -102,7 +104,7 @@ public class FileLockBasedLockChecker implements LockChecker {
      */
     private LockReference tryAcquireLockOnFile(int id, String metaInfo) throws IOException, ConcurrentLockFileDeletionException {
         final File lockFile = toFile(id);
-        final FileChannel fileChannel = FileChannel.open(lockFile.toPath(), LOCK_FILE_OPEN_OPTIONS, LOCK_FILE_ATTRIBUTES);
+        final FileChannel fileChannel = FileChannel.open(lockFile.toPath(), LOCK_FILE_OPEN_OPTIONS, LOCK_FILE_ATTRIBUTES); // NOSONAR
         final FileLock fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, false);
         if (fileLock == null) {
             // someone else has a lock (exclusive or shared), fail to acquire
@@ -122,7 +124,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     private void writeMetaInfoToFile(FileChannel fc, String metaInfo) throws IOException {
-        byte[] content = String.format("%s%n%s", metaInfo, df.format(new Date())).getBytes();
+        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(content);
         while (buffer.hasRemaining()) {
             fc.write(buffer);
