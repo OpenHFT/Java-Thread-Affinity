@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.attribute.FileAttribute;
@@ -62,6 +63,14 @@ public class FileLockBasedLockChecker implements LockChecker {
                     // another process has an exclusive lock
                     return false;
                 }
+            } catch (OverlappingFileLockException e) {
+                // someone else (in the same JVM) has an exclusive lock
+                /*
+                 * This shouldn't happen under normal circumstances, we have the singleton
+                 * {@link #locks} array to prevent overlapping locks from the same JVM, but
+                 * it can occur when there are multiple classloaders in the JVM
+                 */
+                return false;
             }
         } catch (NoSuchFileException e) {
             // no lock file exists, nobody has the lock
@@ -105,21 +114,32 @@ public class FileLockBasedLockChecker implements LockChecker {
     private LockReference tryAcquireLockOnFile(int id, String metaInfo) throws IOException, ConcurrentLockFileDeletionException {
         final File lockFile = toFile(id);
         final FileChannel fileChannel = FileChannel.open(lockFile.toPath(), LOCK_FILE_OPEN_OPTIONS, LOCK_FILE_ATTRIBUTES); // NOSONAR
-        final FileLock fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, false);
-        if (fileLock == null) {
-            // someone else has a lock (exclusive or shared), fail to acquire
+        try {
+            final FileLock fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, false);
+            if (fileLock == null) {
+                // someone else has a lock (exclusive or shared), fail to acquire
+                closeQuietly(fileChannel);
+                return null;
+            } else {
+                if (!lockFile.exists()) {
+                    // someone deleted the file between us opening it and acquiring the lock, signal to retry
+                    closeQuietly(fileLock, fileChannel);
+                    throw new ConcurrentLockFileDeletionException();
+                } else {
+                    // we have the lock, the file exists. That's success.
+                    writeMetaInfoToFile(fileChannel, metaInfo);
+                    return new LockReference(fileChannel, fileLock);
+                }
+            }
+        } catch (OverlappingFileLockException e) {
+            // someone else (in the same JVM) has a lock, fail to acquire
+            /*
+             * This shouldn't happen under normal circumstances, we have the singleton
+             * {@link #locks} array to prevent overlapping locks from the same JVM, but
+             * it can occur when there are multiple classloaders in the JVM
+             */
             closeQuietly(fileChannel);
             return null;
-        } else {
-            if (!lockFile.exists()) {
-                // someone deleted the file between us opening it and acquiring the lock, signal to retry
-                closeQuietly(fileLock, fileChannel);
-                throw new ConcurrentLockFileDeletionException();
-            } else {
-                // we have the lock, the file exists. That's success.
-                writeMetaInfoToFile(fileChannel, metaInfo);
-                return new LockReference(fileChannel, fileLock);
-            }
         }
     }
 
