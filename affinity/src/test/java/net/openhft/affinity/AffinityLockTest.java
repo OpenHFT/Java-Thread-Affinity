@@ -151,6 +151,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void resetAffinity() {
+        assumeTrue(System.getProperty("os.name").contains("nux"));
         assertTrue(Affinity.getAffinity().cardinality() > 1);
         try (AffinityLock lock = AffinityLock.acquireLock()) {
             assertEquals(1, Affinity.getAffinity().cardinality());
