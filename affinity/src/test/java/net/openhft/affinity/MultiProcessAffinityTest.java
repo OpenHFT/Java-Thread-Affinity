@@ -1,7 +1,7 @@
 package net.openhft.affinity;
 
-import net.openhft.affinity.common.ProcessRunner;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import net.openhft.chronicle.testframework.process.ProcessRunner;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assume;
 import org.junit.Before;
