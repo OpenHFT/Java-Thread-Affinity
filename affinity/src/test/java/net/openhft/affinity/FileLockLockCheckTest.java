@@ -35,7 +35,7 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
 public class FileLockLockCheckTest extends BaseAffinityTest {
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
-    private int cpu = 11;
+    private int cpu = 5;
 
     @Before
     public void before() {
