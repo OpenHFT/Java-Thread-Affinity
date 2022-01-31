@@ -34,7 +34,7 @@ public class MicroJitterSampler {
     };
     private static final double UTIL = Double.parseDouble(System.getProperty("util", "50"));
     private static final boolean BUSYWAIT = Boolean.parseBoolean(System.getProperty("busywait", "false"));
-    private static final int CPU = Integer.parseInt(System.getProperty("cpu", "-1"));
+    private static final String CPU = System.getProperty("cpu", "none");
 
     private final int[] count = new int[DELAY.length];
     private long totalTime = 0;
@@ -71,10 +71,7 @@ public class MicroJitterSampler {
     }
 
     public void run() {
-        if (CPU != -1)
-            Affinity.setAffinity(CPU);
-
-        try {
+        try (final AffinityLock lock = AffinityLock.acquireLock(CPU)) {
             boolean first = true;
             System.out.println("Warming up...");
             while (!Thread.currentThread().isInterrupted()) {
