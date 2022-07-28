@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.channels.ClosedByInterruptException;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -78,12 +79,15 @@ class LockInventory {
      * @param wholeCore Whether to bind the whole core
      * @return true if the lock was acquired, false otherwise
      */
-    private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) {
+    private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) throws ClosedByInterruptException {
         try {
             if (LockCheck.updateCpu(al.cpuId())) {
                 al.assignCurrentThread(bind, wholeCore);
                 return true;
             }
+        } catch (ClosedByInterruptException e) {
+            throw e;
+
         } catch (IOException e) {
             LOGGER.warn("Error occurred acquiring lock", e);
         }
@@ -120,29 +124,35 @@ class LockInventory {
             return noLock();
 
         final boolean specificCpuRequested = !isAnyCpu(cpuId);
-        if (specificCpuRequested && cpuId != 0) {
-            final AffinityLock required = logicalCoreLocks[cpuId];
-            if (required.canReserve(true)
-                    && anyStrategyMatches(cpuId, cpuId, strategies)
-                    && updateLockForCurrentThread(bind, required, false)) {
-                return required;
+        try {
+            if (specificCpuRequested && cpuId != 0) {
+                final AffinityLock required = logicalCoreLocks[cpuId];
+                if (required.canReserve(true)
+                        && anyStrategyMatches(cpuId, cpuId, strategies)
+                        && updateLockForCurrentThread(bind, required, false)) {
+                    return required;
+                }
+                LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
+                        cpuId, Thread.currentThread());
             }
-            LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
-                    cpuId, Thread.currentThread());
-        }
 
-        for (AffinityStrategy strategy : strategies) {
-            // consider all processors except cpu 0 which is usually used by the OS.
-            // if you have only one core, this library is not appropriate in any case.
-            for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
-                AffinityLock al = logicalCoreLocks[i];
-                if (al.canReserve(false)
-                        && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))
-                        && updateLockForCurrentThread(bind, al, false)) {
-                    return al;
+            for (AffinityStrategy strategy : strategies) {
+                // consider all processors except cpu 0 which is usually used by the OS.
+                // if you have only one core, this library is not appropriate in any case.
+                for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
+                    AffinityLock al = logicalCoreLocks[i];
+                    if (al.canReserve(false)
+                            && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))
+                            && updateLockForCurrentThread(bind, al, false)) {
+                        return al;
+                    }
                 }
             }
+        } catch (ClosedByInterruptException e) {
+            Thread.currentThread().interrupt();
+            return noLock();
         }
+
 
         LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
 
@@ -154,10 +164,16 @@ class LockInventory {
             return null;
 
         final AffinityLock required = logicalCoreLocks[cpuId];
-        if (required.canReserve(true)
-                && updateLockForCurrentThread(bind, required, false)) {
-            return required;
+        try {
+            if (required.canReserve(true)
+                    && updateLockForCurrentThread(bind, required, false)) {
+                return required;
+            }
+        } catch (ClosedByInterruptException e) {
+            Thread.currentThread().interrupt();
+            return noLock();
         }
+
 
         LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
                 cpuId, Thread.currentThread());
@@ -174,8 +190,13 @@ class LockInventory {
                         continue LOOP;
 
                 final AffinityLock al = als[0];
+                try {
                 if (updateLockForCurrentThread(bind, al, true)) {
                     return al;
+                }
+                } catch (ClosedByInterruptException e) {
+                    Thread.currentThread().interrupt();
+                    return noLock();
                 }
             }
         }
