@@ -126,6 +126,12 @@ class LockInventory {
         final boolean specificCpuRequested = !isAnyCpu(cpuId);
         try {
             if (specificCpuRequested && cpuId != 0) {
+                if (cpuId > logicalCoreLocks.length) {
+                    LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, as not enough CPUs",
+                            cpuId, Thread.currentThread());
+                    return noLock();
+                }
+
                 final AffinityLock required = logicalCoreLocks[cpuId];
                 if (required.canReserve(true)
                         && anyStrategyMatches(cpuId, cpuId, strategies)
@@ -162,7 +168,8 @@ class LockInventory {
     public final synchronized AffinityLock tryAcquireLock(boolean bind, int cpuId) {
         if (getAffinityImpl() instanceof NullAffinity)
             return null;
-
+        if (cpuId > logicalCoreLocks.length)
+            return null;
         final AffinityLock required = logicalCoreLocks[cpuId];
         try {
             if (required.canReserve(true)

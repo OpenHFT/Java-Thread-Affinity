@@ -296,4 +296,16 @@ public class AffinityLockTest extends BaseAffinityTest {
             assertFalse(lock.bound);
         }
     }
+
+    @Test
+    public void testTooHighCpuId() {
+        try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
+        }
+    }
+
+    @Test
+    public void testTooHighCpuId2() {
+        try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
+        }
+    }
 }
