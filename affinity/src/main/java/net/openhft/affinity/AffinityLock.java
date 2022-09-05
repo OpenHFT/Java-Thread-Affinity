@@ -121,7 +121,6 @@ public class AffinityLock implements Closeable {
             reserverable.set(1, PROCESSORS, true);
             reserverable.andNot(BASE_AFFINITY);
             if (reserverable.isEmpty() && PROCESSORS > 1) {
-                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
                 // make all but first CPUs available
                 reserverable.set(1, PROCESSORS);
                 return reserverable;
@@ -147,6 +146,14 @@ public class AffinityLock implements Closeable {
      */
     public static AffinityLock acquireLock() {
         return acquireLock(true);
+    }
+
+    static class Warnings {
+        static void warmNoReservedCPUs() {
+            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
+                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
+            }
+        }
     }
 
     /**
@@ -294,6 +301,7 @@ public class AffinityLock implements Closeable {
     }
 
     private static AffinityLock acquireLock(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {
+        Warnings.warmNoReservedCPUs();
         return LOCK_INVENTORY.acquireLock(bind, cpuId, strategies);
     }
 
@@ -310,6 +318,7 @@ public class AffinityLock implements Closeable {
     }
 
     private static AffinityLock acquireCore(boolean bind, int cpuId, @NotNull AffinityStrategy... strategies) {
+        Warnings.warmNoReservedCPUs();
         return LOCK_INVENTORY.acquireCore(bind, cpuId, strategies);
     }
 
