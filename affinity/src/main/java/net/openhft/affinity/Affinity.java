@@ -128,7 +128,7 @@ public enum Affinity {
             return true;
 
         } else {
-            LOGGER.warn("MAX OSX JNA-based affinity not usable due to JNA not being available!");
+            LOGGER.warn("MAC OSX JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
