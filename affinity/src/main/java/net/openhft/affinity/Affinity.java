@@ -17,6 +17,7 @@
 
 package net.openhft.affinity;
 
+import com.sun.jna.Native;
 import net.openhft.affinity.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -187,13 +188,21 @@ public enum Affinity {
     }
 
     public static boolean isJNAAvailable() {
-        if (JNAAvailable == null)
-            try {
-                Class.forName("com.sun.jna.Platform");
-                JNAAvailable = true;
-            } catch (ClassNotFoundException ignored) {
+        if (JNAAvailable == null) {
+            int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
+            if(majorVersion < 5) {
+                LOGGER.warn("Affinity library requires JNA version >= 5");
                 JNAAvailable = false;
             }
+            else {
+                try {
+                    Class.forName("com.sun.jna.Platform");
+                    JNAAvailable = true;
+                } catch (ClassNotFoundException ignored) {
+                    JNAAvailable = false;
+                }
+            }
+        }
         return JNAAvailable;
     }
 
