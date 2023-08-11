@@ -19,6 +19,8 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.NoCpuLayout;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.affinity.impl.isolate.IsolateConfiguration;
+import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -49,12 +51,13 @@ public class AffinityLock implements Closeable {
     private static final LockInventory LOCK_INVENTORY;
 
     static {
+        IsolateConfiguration isolateConfig = IsolateConfigurationFactory.load();
         int processors = Runtime.getRuntime().availableProcessors();
         VanillaCpuLayout cpuLayout = null;
         try {
             if (new File("/proc/cpuinfo").exists()) {
                 cpuLayout = VanillaCpuLayout.fromCpuInfo();
-                processors = cpuLayout.cpus();
+                processors = isolateConfig.configured() ? isolateConfig.isolatedCpus().size() : cpuLayout.cpus();
             }
         } catch (Throwable e) {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
@@ -62,7 +65,7 @@ public class AffinityLock implements Closeable {
         PROCESSORS = processors;
         BASE_AFFINITY = Affinity.getAffinity();
         RESERVED_AFFINITY = getReservedAffinity0();
-        LOCK_INVENTORY = new LockInventory(cpuLayout == null ? new NoCpuLayout(PROCESSORS) : cpuLayout);
+        LOCK_INVENTORY = new LockInventory(cpuLayout == null ? new NoCpuLayout(PROCESSORS) : cpuLayout, isolateConfig);
     }
 
     /**
@@ -399,6 +402,11 @@ public class AffinityLock implements Closeable {
     }
 
     final boolean canReserve(boolean specified) {
+
+        if (lockInventory.isolateConfig().configured() && !lockInventory.isolateConfig().isolated(cpuId)) {
+            LOGGER.warn("Cannot reserve CPU {} because it is not isolated by Chronicle Tune", cpuId);
+            return false;
+        }
 
         if (!specified && !reservable)
             return false;

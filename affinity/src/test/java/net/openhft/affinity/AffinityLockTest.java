@@ -19,13 +19,17 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
+import net.openhft.affinity.impl.isolate.IsolateConfigurationParser;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.text.html.parser.Parser;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -46,7 +50,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksI7() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), IsolateConfigurationFactory.EMPTY);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, false, lockInventory),
@@ -83,7 +87,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksI3() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"), IsolateConfigurationFactory.EMPTY);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, true, lockInventory),
@@ -106,7 +110,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksCoreDuo() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"), IsolateConfigurationFactory.EMPTY);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, true, lockInventory),
@@ -307,5 +311,13 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void testTooHighCpuId2() {
         try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
         }
+    }
+
+    @Test
+    public void cannotReserveNonIsolatedCpu() throws IOException {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("isolate/isolate.i7.ini");
+        IsolateConfigurationParser parser = new IsolateConfigurationParser();
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), parser.parse(inputStream));
+        assertFalse(lockInventory.acquireLock(true, 3).canReserve(true));
     }
 }
