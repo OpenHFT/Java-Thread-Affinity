@@ -57,7 +57,11 @@ public class AffinityLock implements Closeable {
         try {
             if (new File("/proc/cpuinfo").exists()) {
                 cpuLayout = VanillaCpuLayout.fromCpuInfo();
-                processors = isolateConfig.configured() ? isolateConfig.isolatedCpus().size() : cpuLayout.cpus();
+                if (isolateConfig.configured() && !isolateConfig.isolatedCpus().isEmpty()) {
+                    processors = isolateConfig.isolatedCpus().size();
+                } else {
+                    processors = cpuLayout.cpus();
+                }
             }
         } catch (Throwable e) {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
@@ -403,8 +407,8 @@ public class AffinityLock implements Closeable {
 
     final boolean canReserve(boolean specified) {
 
-        if (isolated()) {
-            LOGGER.warn("Cannot reserve CPU {} because it is not isolated by Chronicle Tune", cpuId);
+        if (isolationSettingsPreventUse()) {
+            LOGGER.debug("Cannot reserve CPU {} because it is not isolated by Chronicle Tune", cpuId);
             return false;
         }
 
@@ -424,11 +428,14 @@ public class AffinityLock implements Closeable {
         return true;
     }
 
-    private boolean isolated() {
+    private boolean isolationSettingsPreventUse() {
         IsolateConfiguration isolateConfig = lockInventory.isolateConfig();
-        return isolateConfig.configured() &&
-                !isolateConfig.isolatedCpus().isEmpty() &&
-                !isolateConfig.isolated(cpuId);
+        if (isolateConfig.configured()) {
+            return !isolateConfig.isolatedCpus().isEmpty() && !isolateConfig.isolated(cpuId);
+        } else {
+            return false;
+        }
+
     }
 
     /**
