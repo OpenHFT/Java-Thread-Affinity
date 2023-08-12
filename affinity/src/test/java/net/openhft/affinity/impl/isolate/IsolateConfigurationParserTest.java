@@ -1,5 +1,6 @@
 package net.openhft.affinity.impl.isolate;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -7,8 +8,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static net.openhft.affinity.impl.isolate.IsolateConfigurationParser.ParseException;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.*;
 
 public class IsolateConfigurationParserTest {
 
@@ -20,26 +23,41 @@ public class IsolateConfigurationParserTest {
     }
 
     @Test
-    public void parseWellFormed() {
+    public void parseWellFormed() throws ParseException {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream("isolate/isolate.ini");
         IsolateConfigurationParser parser = new IsolateConfigurationParser();
         IsolateConfiguration config = parser.parse(inputStream);
-        assertEquals(8, config.isolatedCpus().size());
-        assertTrue(config.isolatedCpus().contains(1));
-        assertTrue(config.isolatedCpus().contains(2));
-        assertTrue(config.isolatedCpus().contains(3));
-        assertTrue(config.isolatedCpus().contains(4));
-        assertTrue(config.isolatedCpus().contains(5));
-        assertTrue(config.isolatedCpus().contains(6));
-        assertTrue(config.isolatedCpus().contains(7));
-        assertTrue(config.isolatedCpus().contains(10));
+        assertThat(config.isolatedCpus(), hasItems(1, 2, 3, 4, 5, 6, 7, 10));
+        assertTrue(config.configured());
+        for (int cpu : config.isolatedCpus()) {
+            assertTrue(config.isolated(cpu));
+        }
     }
 
     @Test
-    public void malformedInput() {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream("cpus=!".getBytes(StandardCharsets.UTF_8));
-        IsolateConfiguration config = parser.parse(inputStream);
+    public void parseFailureSingleCpu() {
+        ParseException exception = assertThrows(ParseException.class, () -> parser.parse(createCpuInput("!")));
+        assertThat(exception.getMessage(), containsString("Could not parse ! as an integer"));
+    }
+
+    @Test
+    public void parseFailureRange() {
+        ParseException exception = assertThrows(ParseException.class, () -> parser.parse(createCpuInput("-")));
+        assertThat(exception.getMessage(), containsString("cpu range format required is start-end, found -."));
+    }
+
+    @Test
+    public void parseNoCpus() throws ParseException {
+        IsolateConfiguration config = parser.parse(createCpuInput(""));
         assertEquals(0, config.isolatedCpus().size());
+        assertTrue(config.configured());
+    }
+
+    private InputStream createCpuInput(String cpuString) {
+        String text = "[isolate]\n" +
+                "cpus=" + cpuString;
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+        return inputStream;
     }
 
 }

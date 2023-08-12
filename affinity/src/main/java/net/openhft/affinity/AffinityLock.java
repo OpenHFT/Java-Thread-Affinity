@@ -403,7 +403,7 @@ public class AffinityLock implements Closeable {
 
     final boolean canReserve(boolean specified) {
 
-        if (lockInventory.isolateConfig().configured() && !lockInventory.isolateConfig().isolated(cpuId)) {
+        if (isolated()) {
             LOGGER.warn("Cannot reserve CPU {} because it is not isolated by Chronicle Tune", cpuId);
             return false;
         }
@@ -422,6 +422,13 @@ public class AffinityLock implements Closeable {
             LOGGER.warn("Lock assigned to {} but this thread is dead.", assignedThread);
         }
         return true;
+    }
+
+    private boolean isolated() {
+        IsolateConfiguration isolateConfig = lockInventory.isolateConfig();
+        return isolateConfig.configured() &&
+                !isolateConfig.isolatedCpus().isEmpty() &&
+                !isolateConfig.isolated(cpuId);
     }
 
     /**

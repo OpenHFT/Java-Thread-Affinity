@@ -1,22 +1,34 @@
 package net.openhft.affinity.impl.isolate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Factory used by {@link net.openhft.affinity.AffinityLock} for loading isolate configuration.
+ *
+ * @see IsolateConfiguration
+ */
 public class IsolateConfigurationFactory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IsolateConfigurationFactory.class);
 
     private static final String ISOLATE_INI_PATH = "/etc/chronicle/isolate/isolate.ini";
 
-    public static final IsolateConfiguration EMPTY = new EmptyIsolateConfiguration();
+    public static final IsolateConfiguration EMPTY_CONFIGURATION = new EmptyIsolateConfiguration();
 
     public static IsolateConfiguration load() {
         IsolateConfigurationParser parser = new IsolateConfigurationParser();
-        try {
-            return parser.parse(new FileInputStream(ISOLATE_INI_PATH));
-        } catch (FileNotFoundException e) {
-            return EMPTY;
+        try (FileInputStream inputStream = new FileInputStream(ISOLATE_INI_PATH)) {
+            return parser.parse(inputStream);
+        } catch (IsolateConfigurationParser.ParseException parseException) {
+            LOGGER.error("Failed to parse Chronicle Tune isolate configuration", parseException);
+            return EMPTY_CONFIGURATION;
+        } catch (Exception e) {
+            return EMPTY_CONFIGURATION;
         }
     }
 

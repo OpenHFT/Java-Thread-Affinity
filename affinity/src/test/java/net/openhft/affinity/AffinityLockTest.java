@@ -26,7 +26,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.text.html.parser.Parser;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +49,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksI7() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), IsolateConfigurationFactory.EMPTY);
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), IsolateConfigurationFactory.EMPTY_CONFIGURATION);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, false, lockInventory),
@@ -87,7 +86,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksI3() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"), IsolateConfigurationFactory.EMPTY);
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"), IsolateConfigurationFactory.EMPTY_CONFIGURATION);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, true, lockInventory),
@@ -110,7 +109,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksCoreDuo() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"), IsolateConfigurationFactory.EMPTY);
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"), IsolateConfigurationFactory.EMPTY_CONFIGURATION);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, true, lockInventory),
@@ -314,7 +313,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void cannotReserveNonIsolatedCpu() throws IOException {
+    public void cannotReserveNonIsolatedCpu() throws IOException, IsolateConfigurationParser.ParseException {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream("isolate/isolate.i7.ini");
         IsolateConfigurationParser parser = new IsolateConfigurationParser();
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), parser.parse(inputStream));
