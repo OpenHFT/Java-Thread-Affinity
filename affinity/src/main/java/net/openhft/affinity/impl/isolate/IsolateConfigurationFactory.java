@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Collections;
 import java.util.Set;
 
@@ -26,10 +27,12 @@ public class IsolateConfigurationFactory {
             return parser.parse(inputStream);
         } catch (IsolateConfigurationParser.ParseException parseException) {
             LOGGER.error("Failed to parse Chronicle Tune isolate configuration", parseException);
-            return EMPTY_CONFIGURATION;
+        } catch (FileNotFoundException fileNotFoundException) {
+            LOGGER.debug("Chronicle Tune is not configured on this system");
         } catch (Exception e) {
-            return EMPTY_CONFIGURATION;
+            LOGGER.error("Unexpected exception encountered whilst parsing Chronicle Tune isolate configuration", e);
         }
+        return EMPTY_CONFIGURATION;
     }
 
     public static class EmptyIsolateConfiguration implements IsolateConfiguration {
