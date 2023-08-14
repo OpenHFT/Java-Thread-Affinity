@@ -17,13 +17,16 @@ public class IsolateConfigurationFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IsolateConfigurationFactory.class);
 
-    private static final String ISOLATE_INI_PATH = "/etc/chronicle/isolate/isolate.ini";
+    public static final String ISOLATE_INI_PATH = "/etc/chronicle/isolate/isolate.ini";
+
+    public static final String ISOLATE_INI_PATH_OVERRIDE_PROPERTY = "chronicle.tune.isolate.ini.path.override";
 
     public static final IsolateConfiguration EMPTY_CONFIGURATION = new EmptyIsolateConfiguration();
 
     public static IsolateConfiguration load() {
         IsolateConfigurationParser parser = new IsolateConfigurationParser();
-        try (FileInputStream inputStream = new FileInputStream(ISOLATE_INI_PATH)) {
+        String isolateIniPath = System.getProperty(ISOLATE_INI_PATH_OVERRIDE_PROPERTY, ISOLATE_INI_PATH);
+        try (FileInputStream inputStream = new FileInputStream(isolateIniPath)) {
             return parser.parse(inputStream);
         } catch (IsolateConfigurationParser.ParseException parseException) {
             LOGGER.error("Failed to parse Chronicle Tune isolate configuration", parseException);

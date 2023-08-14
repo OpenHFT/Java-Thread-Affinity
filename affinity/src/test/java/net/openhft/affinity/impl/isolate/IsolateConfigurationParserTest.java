@@ -35,6 +35,24 @@ public class IsolateConfigurationParserTest {
     }
 
     @Test
+    public void parseSingle() throws ParseException {
+        IsolateConfiguration config = parser.parse(createCpuInput("1"));
+        assertThat(config.isolatedCpus(), hasItems(1));
+    }
+
+    @Test
+    public void parseRange() throws ParseException {
+        IsolateConfiguration config = parser.parse(createCpuInput("1-2"));
+        assertThat(config.isolatedCpus(), hasItems(1, 2));
+    }
+
+    @Test
+    public void parseTwoRanges() throws ParseException {
+        IsolateConfiguration config = parser.parse(createCpuInput("1-2,6-8"));
+        assertThat(config.isolatedCpus(), hasItems(1, 2, 6, 8));
+    }
+
+    @Test
     public void parseFailureSingleCpu() {
         ParseException exception = assertThrows(ParseException.class, () -> parser.parse(createCpuInput("!")));
         assertThat(exception.getMessage(), containsString("Could not parse ! as an integer"));
