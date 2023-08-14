@@ -185,6 +185,10 @@ $ for i in "$(ls cpu-*)";
 
 ----
 
+=== Chronicle Tune integration
+
+https://chronicle.software/tune/[Chronicle Tune] is software that automatically configures your OS for optimal performance. Chronicle Tune can be configured to isolate cores for running low-latency workloads. If Chronicle Tune is actively configured on the target system then Java-Thread-Affinity will automatically load the Tune configuration and record which cores have been isolated. In order to ensure the best performance and the least surprises out of the box Affinity will only consider locking workloads to cores isolated via Chronicle Tune. If Chronicle Tune is installed but no cores are isolated then Affinity will consider all cores as potential lock candidates.
+
 == Support Material
 
 https://groups.google.com/forum/?hl=en-GB#!forum/java-thread-affinity[Java Thread Affinity support group]
