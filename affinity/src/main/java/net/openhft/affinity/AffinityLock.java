@@ -408,7 +408,13 @@ public class AffinityLock implements Closeable {
     final boolean canReserve(boolean specified) {
 
         if (isolationSettingsPreventUse()) {
-            LOGGER.debug("Cannot reserve CPU {} because it is not isolated by Chronicle Tune", cpuId);
+            String message = "Cannot reserve CPU {} because it is not isolated by Chronicle Tune";
+            if (specified) {
+                // Log at warn if this cpuId was explicitly specified
+                LOGGER.warn(message, cpuId);
+            } else {
+                LOGGER.debug(message, cpuId);
+            }
             return false;
         }
 
