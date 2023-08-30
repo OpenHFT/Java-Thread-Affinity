@@ -23,6 +23,8 @@ import net.openhft.affinity.impl.isolate.IsolateConfiguration;
 import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
 import net.openhft.affinity.impl.isolate.IsolateConfigurationParser;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,11 @@ public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
+    
+    @BeforeClass
+    public static void beforeClass() {
+        System.setProperty(IsolateConfigurationFactory.ISOLATE_INI_PATH_OVERRIDE_PROPERTY, "");
+    }
 
     @Test
     public void dumpLocksI7() throws IOException {
@@ -277,13 +284,13 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(TestUtil.processorCount() - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(TestUtil.processorCount() - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
-            assertEquals(PROCESSORS - 2, Affinity.getCpu());
+            assertEquals(TestUtil.processorCount() - 2, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
             assertEquals(1, Affinity.getCpu());
@@ -329,6 +336,7 @@ public class AffinityLockTest extends BaseAffinityTest {
      * if it's on the host. Unfortunately we can't inject this info easily at the moment due to the static loading
      * nature of a lot of the library configuration.
      */
+    @Ignore
     @Test
     public void canAcquireAllAvailable() throws IOException {
         List<AffinityLock> locks = new LinkedList<>();

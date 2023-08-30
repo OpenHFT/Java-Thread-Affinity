@@ -48,10 +48,12 @@ public class AffinityLock implements Closeable {
     public static final BitSet RESERVED_AFFINITY;
     static final int ANY_CPU = -1;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
-    private static final LockInventory LOCK_INVENTORY;
+    protected static final LockInventory LOCK_INVENTORY;
+
+    private static IsolateConfiguration isolateConfig;
 
     static {
-        IsolateConfiguration isolateConfig = IsolateConfigurationFactory.load();
+        isolateConfig = IsolateConfigurationFactory.load();
         int processors = Runtime.getRuntime().availableProcessors();
         VanillaCpuLayout cpuLayout = null;
         try {
@@ -260,7 +262,9 @@ public class AffinityLock implements Closeable {
             if (lastN > 0)
                 throw new IllegalArgumentException("Cannot parse '" + desc + "'");
 
-            cpuId = PROCESSORS + lastN - 1;
+            int cpuCount = isolateConfig.configured() && !isolateConfig.isolatedCpus().isEmpty() ?
+                    isolateConfig.isolatedCpus().size() : PROCESSORS;
+            cpuId = cpuCount + lastN - 1;
 
         } else if (desc.startsWith("csv:")) {
             String content = desc.substring(4);
