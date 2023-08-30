@@ -57,11 +57,7 @@ public class AffinityLock implements Closeable {
         try {
             if (new File("/proc/cpuinfo").exists()) {
                 cpuLayout = VanillaCpuLayout.fromCpuInfo();
-                if (isolateConfig.configured() && !isolateConfig.isolatedCpus().isEmpty()) {
-                    processors = isolateConfig.isolatedCpus().size();
-                } else {
-                    processors = cpuLayout.cpus();
-                }
+                processors = cpuLayout.cpus();
             }
         } catch (Throwable e) {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);

@@ -19,6 +19,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.affinity.impl.isolate.IsolateConfiguration;
 import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
 import net.openhft.affinity.impl.isolate.IsolateConfigurationParser;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
@@ -318,5 +320,34 @@ public class AffinityLockTest extends BaseAffinityTest {
         IsolateConfigurationParser parser = new IsolateConfigurationParser();
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), parser.parse(inputStream));
         assertFalse(lockInventory.acquireLock(true, 3).canReserve(true));
+    }
+
+    /**
+     * This test validates that its possible to acquire all available CPUs. This was written in response to a bug
+     * found during testing where the PROCESSORS and BASE_AFFINITY bit masks where broken by incorrectly loading the
+     * incorrect CPU count. Note this test needs to go around the houses a bit getting the isolate configuration too
+     * if it's on the host. Unfortunately we can't inject this info easily at the moment due to the static loading
+     * nature of a lot of the library configuration.
+     */
+    @Test
+    public void canAcquireAllAvailable() throws IOException {
+        List<AffinityLock> locks = new LinkedList<>();
+        try {
+            // Fetch the number of expected CPUs
+            VanillaCpuLayout cpuLayout = VanillaCpuLayout.fromCpuInfo();
+            IsolateConfiguration isolateConfiguration = IsolateConfigurationFactory.load();
+            int expectedCpus = isolateConfiguration.configured() && !isolateConfiguration.isolatedCpus().isEmpty() ?
+                    isolateConfiguration.isolatedCpus().size() : cpuLayout.cpus() - 1;
+
+            for (int i = expectedCpus; i > 0; i--) {
+                AffinityLock lock = AffinityLock.acquireLock();
+                locks.add(lock);
+                assertEquals(i, lock.cpuId());
+            }
+        } finally {
+            for (AffinityLock lock : locks) {
+                lock.close();
+            }
+        }
     }
 }
