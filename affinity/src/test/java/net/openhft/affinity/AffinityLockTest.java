@@ -19,16 +19,23 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.affinity.impl.isolate.IsolateConfiguration;
+import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
+import net.openhft.affinity.impl.isolate.IsolateConfigurationParser;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
@@ -43,10 +50,15 @@ public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
+    
+    @BeforeClass
+    public static void beforeClass() {
+        System.setProperty(IsolateConfigurationFactory.ISOLATE_INI_PATH_OVERRIDE_PROPERTY, "");
+    }
 
     @Test
     public void dumpLocksI7() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), IsolateConfigurationFactory.EMPTY_CONFIGURATION);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, false, lockInventory),
@@ -83,7 +95,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksI3() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"), IsolateConfigurationFactory.EMPTY_CONFIGURATION);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, true, lockInventory),
@@ -106,7 +118,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksCoreDuo() throws IOException {
-        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"), IsolateConfigurationFactory.EMPTY_CONFIGURATION);
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
                 new AffinityLock(1, false, true, lockInventory),
@@ -272,13 +284,13 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(TestUtil.processorCount() - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(TestUtil.processorCount() - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
-            assertEquals(PROCESSORS - 2, Affinity.getCpu());
+            assertEquals(TestUtil.processorCount() - 2, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
             assertEquals(1, Affinity.getCpu());
@@ -306,6 +318,44 @@ public class AffinityLockTest extends BaseAffinityTest {
     @Test
     public void testTooHighCpuId2() {
         try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
+        }
+    }
+
+    @Test
+    public void cannotReserveNonIsolatedCpu() throws IOException, IsolateConfigurationParser.ParseException {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("isolate/isolate.i7.ini");
+        IsolateConfigurationParser parser = new IsolateConfigurationParser();
+        LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"), parser.parse(inputStream));
+        assertFalse(lockInventory.acquireLock(true, 3).canReserve(true));
+    }
+
+    /**
+     * This test validates that its possible to acquire all available CPUs. This was written in response to a bug
+     * found during testing where the PROCESSORS and BASE_AFFINITY bit masks where broken by incorrectly loading the
+     * incorrect CPU count. Note this test needs to go around the houses a bit getting the isolate configuration too
+     * if it's on the host. Unfortunately we can't inject this info easily at the moment due to the static loading
+     * nature of a lot of the library configuration.
+     */
+    @Ignore
+    @Test
+    public void canAcquireAllAvailable() throws IOException {
+        List<AffinityLock> locks = new LinkedList<>();
+        try {
+            // Fetch the number of expected CPUs
+            VanillaCpuLayout cpuLayout = VanillaCpuLayout.fromCpuInfo();
+            IsolateConfiguration isolateConfiguration = IsolateConfigurationFactory.load();
+            int expectedCpus = isolateConfiguration.configured() && !isolateConfiguration.isolatedCpus().isEmpty() ?
+                    isolateConfiguration.isolatedCpus().size() : cpuLayout.cpus() - 1;
+
+            for (int i = expectedCpus; i > 0; i--) {
+                AffinityLock lock = AffinityLock.acquireLock();
+                locks.add(lock);
+                assertEquals(i, lock.cpuId());
+            }
+        } finally {
+            for (AffinityLock lock : locks) {
+                lock.close();
+            }
         }
     }
 }

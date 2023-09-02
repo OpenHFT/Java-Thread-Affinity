@@ -18,6 +18,7 @@
 
 package net.openhft.affinity;
 
+import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import net.openhft.chronicle.testframework.process.JavaProcessBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -58,10 +59,10 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws IOException, InterruptedException {
         // run the separate affinity locker
         final Process affinityLockerProcess = JavaProcessBuilder.create(AffinityLockerProcess.class)
-                .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
+                .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath(), "-D" + IsolateConfigurationFactory.ISOLATE_INI_PATH_OVERRIDE_PROPERTY +"=/dev/null")
                 .withProgramArguments("last").start();
         try {
-            int lastCpuId = AffinityLock.PROCESSORS - 1;
+            int lastCpuId = TestUtil.processorCount() - 1;
 
             // wait for the CPU to be locked
             long endTime = System.currentTimeMillis() + 5_000;
@@ -127,7 +128,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         waitForProcessToEnd(5, "Locking process", process);
         // We should be able to acquire the lock despite the other process not explicitly releasing it
         try (final AffinityLock acquired = AffinityLock.acquireLock("last")) {
-            assertEquals(AffinityLock.PROCESSORS - 1, acquired.cpuId());
+            assertEquals(TestUtil.processorCount() - 1, acquired.cpuId());
         }
     }
 
@@ -248,7 +249,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
 
         public static void main(String[] args) throws InterruptedException, IOException {
             while (Thread.currentThread().isInterrupted()) {
-                for (int cpu = 0; cpu < AffinityLock.PROCESSORS; cpu++) {
+                for (int cpu = 0; cpu < TestUtil.processorCount(); cpu++) {
                     try {
                         File lockFile = toFile(cpu);
                         try (final FileChannel fc = FileChannel.open(lockFile.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {

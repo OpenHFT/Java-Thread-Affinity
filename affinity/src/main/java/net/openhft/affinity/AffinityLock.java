@@ -19,6 +19,8 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.NoCpuLayout;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.affinity.impl.isolate.IsolateConfiguration;
+import net.openhft.affinity.impl.isolate.IsolateConfigurationFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -46,9 +48,12 @@ public class AffinityLock implements Closeable {
     public static final BitSet RESERVED_AFFINITY;
     static final int ANY_CPU = -1;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
-    private static final LockInventory LOCK_INVENTORY;
+    protected static final LockInventory LOCK_INVENTORY;
+
+    private static IsolateConfiguration isolateConfig;
 
     static {
+        isolateConfig = IsolateConfigurationFactory.load();
         int processors = Runtime.getRuntime().availableProcessors();
         VanillaCpuLayout cpuLayout = null;
         try {
@@ -62,7 +67,7 @@ public class AffinityLock implements Closeable {
         PROCESSORS = processors;
         BASE_AFFINITY = Affinity.getAffinity();
         RESERVED_AFFINITY = getReservedAffinity0();
-        LOCK_INVENTORY = new LockInventory(cpuLayout == null ? new NoCpuLayout(PROCESSORS) : cpuLayout);
+        LOCK_INVENTORY = new LockInventory(cpuLayout == null ? new NoCpuLayout(PROCESSORS) : cpuLayout, isolateConfig);
     }
 
     /**
@@ -257,7 +262,9 @@ public class AffinityLock implements Closeable {
             if (lastN > 0)
                 throw new IllegalArgumentException("Cannot parse '" + desc + "'");
 
-            cpuId = PROCESSORS + lastN - 1;
+            int cpuCount = isolateConfig.configured() && !isolateConfig.isolatedCpus().isEmpty() ?
+                    isolateConfig.isolatedCpus().size() : PROCESSORS;
+            cpuId = cpuCount + lastN - 1;
 
         } else if (desc.startsWith("csv:")) {
             String content = desc.substring(4);
@@ -400,6 +407,17 @@ public class AffinityLock implements Closeable {
 
     final boolean canReserve(boolean specified) {
 
+        if (isolationSettingsPreventUse()) {
+            String message = "Cannot reserve CPU {} because it is not isolated by Chronicle Tune";
+            if (specified) {
+                // Log at warn if this cpuId was explicitly specified
+                LOGGER.warn(message, cpuId);
+            } else {
+                LOGGER.debug(message, cpuId);
+            }
+            return false;
+        }
+
         if (!specified && !reservable)
             return false;
 
@@ -414,6 +432,16 @@ public class AffinityLock implements Closeable {
             LOGGER.warn("Lock assigned to {} but this thread is dead.", assignedThread);
         }
         return true;
+    }
+
+    private boolean isolationSettingsPreventUse() {
+        IsolateConfiguration isolateConfig = lockInventory.isolateConfig();
+        if (isolateConfig.configured()) {
+            return !isolateConfig.isolatedCpus().isEmpty() && !isolateConfig.isolated(cpuId);
+        } else {
+            return false;
+        }
+
     }
 
     /**

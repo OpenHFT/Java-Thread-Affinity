@@ -38,7 +38,7 @@ public class BaseAffinityTest {
     @After
     public void restoreTmpDirectoryAndReleaseAllLocks() {
         // don't leave any locks locked
-        for (int i = 0; i < AffinityLock.PROCESSORS; i++) {
+        for (int i = 0; i < TestUtil.processorCount(); i++) {
             LockCheck.releaseLock(i);
         }
         System.setProperty("java.io.tmpdir", originalTmpDir);

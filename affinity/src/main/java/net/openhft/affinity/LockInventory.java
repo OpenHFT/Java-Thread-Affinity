@@ -18,6 +18,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.NullAffinity;
+import net.openhft.affinity.impl.isolate.IsolateConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +38,17 @@ class LockInventory {
      * the relationship is one to many.
      */
     private final NavigableMap<Integer, AffinityLock[]> physicalCoreLocks = new TreeMap<>();
+
+    private final IsolateConfiguration isolateConfig;
+
     private CpuLayout cpuLayout;
     /**
      * The lock belonging to each logical core. 1-to-1 relationship
      */
     private AffinityLock[] logicalCoreLocks;
 
-    public LockInventory(CpuLayout cpuLayout) {
+    public LockInventory(CpuLayout cpuLayout, IsolateConfiguration isolateConfig) {
+        this.isolateConfig = isolateConfig;
         set(cpuLayout);
     }
 
@@ -99,6 +104,10 @@ class LockInventory {
     }
 
     public final synchronized void set(CpuLayout cpuLayout) {
+        if (isolateConfig.configured()) {
+            LOGGER.info("Loaded Chronicle Tune configuration. The following CPUs are isolated: {}", isolateConfig.isolatedCpus());
+        }
+
         if (cpuLayout.equals(this.cpuLayout)) {
             return;
         }
@@ -198,9 +207,9 @@ class LockInventory {
 
                 final AffinityLock al = als[0];
                 try {
-                if (updateLockForCurrentThread(bind, al, true)) {
-                    return al;
-                }
+                    if (updateLockForCurrentThread(bind, al, true)) {
+                        return al;
+                    }
                 } catch (ClosedByInterruptException e) {
                     Thread.currentThread().interrupt();
                     return noLock();
@@ -285,5 +294,9 @@ class LockInventory {
 
     public AffinityLock noLock() {
         return newLock(AffinityLock.ANY_CPU, false, false);
+    }
+
+    public IsolateConfiguration isolateConfig() {
+        return isolateConfig;
     }
 }
