@@ -20,6 +20,7 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         locks[6].assignedThread = new Thread(new InterrupedThread(), "main");
         locks[7].assignedThread = new Thread(new InterrupedThread(), "tcp");
         locks[7].assignedThread.start();
-        final String actual = LockInventory.dumpLocks(locks);
+        final String actual = dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
                 "1: CPU not available\n" +
                 "2: Thread[logger,5,main] alive=true\n" +
@@ -94,7 +95,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         locks[1].assignedThread.start();
         locks[3].assignedThread = new Thread(new InterrupedThread(), "main");
 
-        final String actual = LockInventory.dumpLocks(locks);
+        final String actual = dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
                 "1: Thread[engine,5,main] alive=true\n" +
                 "2: General use CPU\n" +
@@ -114,7 +115,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
 
-        final String actual = LockInventory.dumpLocks(locks);
+        final String actual = dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
                 "1: Thread[engine,5,main] alive=true\n", actual);
         System.out.println(actual);
@@ -307,5 +308,14 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void testTooHighCpuId2() {
         try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
         }
+    }
+
+    /**
+     * In Java 21 the toString contents of Thread changed to include an ID. This breaks the tests here in Java 21.
+     * Strip out the thread ID here so that existing tests continue to pass.
+     */
+    private static String dumpLocks(AffinityLock[] locks) {
+        String value = LockInventory.dumpLocks(locks);
+        return value.replaceAll("#[0-9]+(,)?", "");
     }
 }
