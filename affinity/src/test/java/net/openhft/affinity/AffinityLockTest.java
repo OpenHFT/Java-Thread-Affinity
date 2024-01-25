@@ -26,18 +26,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Runtime.getRuntime;
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -45,13 +41,11 @@ import static org.junit.Assume.assumeTrue;
  */
 public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
-    private static final int JDK_VERSION = getMajorVersion();
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
 
     @Test
     public void dumpLocksI7() throws IOException {
-        assumeFalse(JDK_VERSION > 20);
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
@@ -89,7 +83,6 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksI3() throws IOException {
-        assumeFalse(JDK_VERSION > 20);
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
@@ -113,7 +106,6 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksCoreDuo() throws IOException {
-        assumeFalse(JDK_VERSION > 20);
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
         AffinityLock[] locks = {
                 new AffinityLock(0, true, false, lockInventory),
@@ -314,24 +306,6 @@ public class AffinityLockTest extends BaseAffinityTest {
     @Test
     public void testTooHighCpuId2() {
         try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
-        }
-    }
-
-    private static int getMajorVersion() {
-        try {
-            final Method method = Runtime.class.getDeclaredMethod("version");
-            final Object version = method.invoke(getRuntime());
-            final Class<?> clz = Class.forName("java.lang.Runtime$Version");
-            return (Integer) clz.getDeclaredMethod("major").invoke(version);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException |
-                 IllegalArgumentException e) {
-            // ignore and fall back to pre-jdk9
-        }
-        try {
-            return Integer.parseInt(Runtime.class.getPackage().getSpecificationVersion().split("\\.")[1]);
-        } catch (Exception e) {
-            System.err.println("Unable to get the major version, defaulting to 8 " + e);
-            return 8;
         }
     }
 }
