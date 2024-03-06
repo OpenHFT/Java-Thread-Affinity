@@ -66,35 +66,27 @@ public class VanillaCpuLayoutTest {
                     "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n", vcl.toString());
         }
         {
-            // note that this cpuinfo is modified from original
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("non_contiguos.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=1, threadId=0, processorId=2}\n" +
-                    "2: CpuInfo{socketId=0, coreId=2, threadId=0, processorId=4}\n", vcl.toString());
-        }
-        {
             final InputStream is = getClass().getClassLoader().getResourceAsStream("dual.xeon.cpuinfo");
             VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
             assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                    "2: CpuInfo{socketId=3, coreId=3, threadId=0}\n" +
+                    "1: CpuInfo{socketId=0, coreId=0, threadId=1, processorId=1}\n" +
+                    "2: CpuInfo{socketId=3, coreId=3, threadId=0, processorId=2}\n" +
                     "3: CpuInfo{socketId=3, coreId=3, threadId=1}\n", vcl.toString());
         }
         {
             final InputStream is = getClass().getClassLoader().getResourceAsStream("i3.cpuinfo");
             VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
             assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                    "2: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                    "3: CpuInfo{socketId=0, coreId=2, threadId=1}\n", vcl.toString());
+                    "1: CpuInfo{socketId=0, coreId=2, threadId=0, processorId=1}\n" +
+                    "2: CpuInfo{socketId=0, coreId=0, threadId=1, processorId=2}\n" +
+                    "3: CpuInfo{socketId=0, coreId=2, threadId=1, processorId=3}\n", vcl.toString());
         }
         {
             final InputStream is = getClass().getClassLoader().getResourceAsStream("q6600.noht.cpuinfo");
             VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
             assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                    "2: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
+                    "1: CpuInfo{socketId=0, coreId=2, threadId=0, processorId=1}\n" +
+                    "2: CpuInfo{socketId=0, coreId=1, threadId=0, processorId=2}\n" +
                     "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n", vcl.toString());
         }
         {
@@ -108,6 +100,14 @@ public class VanillaCpuLayoutTest {
                     "5: CpuInfo{socketId=1, coreId=5, threadId=0}\n" +
                     "6: CpuInfo{socketId=1, coreId=6, threadId=0}\n" +
                     "7: CpuInfo{socketId=1, coreId=7, threadId=0}\n", vcl.toString());
+        }
+        {
+            // note that this cpuinfo is modified from original
+            final InputStream is = getClass().getClassLoader().getResourceAsStream("non_contiguos.cpuinfo");
+            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
+            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
+                    "1: CpuInfo{socketId=0, coreId=1, threadId=0, processorId=2}\n" +
+                    "2: CpuInfo{socketId=0, coreId=2, threadId=0, processorId=4}\n", vcl.toString());
         }
     }
 
