@@ -43,26 +43,38 @@ public class VanillaCpuLayout implements CpuLayout {
         this.cpuDetails = cpuDetails;
         SortedSet<Integer> sockets = new TreeSet<>(),
                 cores = new TreeSet<>(),
-                threads = new TreeSet<>();
+                threads = new TreeSet<>(),
+                processors = new TreeSet<>();
         for (CpuInfo cpuDetail : cpuDetails) {
             sockets.add(cpuDetail.socketId);
             cores.add((cpuDetail.socketId << 16) + cpuDetail.coreId);
             threads.add(cpuDetail.threadId);
+            processors.add(cpuDetail.processorId);
         }
         this.sockets = sockets.size();
         this.coresPerSocket = cores.size() / sockets.size();
         this.threadsPerCore = threads.size();
         if (cpuDetails.size() != sockets() * coresPerSocket() * threadsPerCore()) {
             StringBuilder error = new StringBuilder();
-            error.append("cpuDetails.size= ").append(cpuDetails.size())
+            error.append("cpuDetails.size=").append(cpuDetails.size())
                     .append(" != sockets: ").append(sockets())
                     .append(" * coresPerSocket: ").append(coresPerSocket())
                     .append(" * threadsPerCore: ").append(threadsPerCore()).append('\n');
-            for (CpuInfo detail : cpuDetails) {
-                error.append(detail).append('\n');
-            }
-            LoggerFactory.getLogger(VanillaCpuLayout.class).warn(error.toString());
+            reportError(cpuDetails, error);
+        } else if (processors.size() != cpuDetails.size()) {
+            StringBuilder error = new StringBuilder();
+            error.append("cpuDetails.size=").append(cpuDetails.size())
+                    .append(" != processors: ").append(processors)
+                    .append('\n');
+            reportError(cpuDetails, error);
         }
+    }
+
+    private static void reportError(@NotNull List<CpuInfo> cpuDetails, StringBuilder error) {
+        for (CpuInfo detail : cpuDetails) {
+            error.append(detail).append('\n');
+        }
+        LoggerFactory.getLogger(VanillaCpuLayout.class).warn(error.toString());
     }
 
     @NotNull
@@ -84,8 +96,14 @@ public class VanillaCpuLayout implements CpuLayout {
             String line = prop.getProperty("" + i);
             if (line == null) break;
             String[] word = line.trim().split(" *, *");
-            CpuInfo details = new CpuInfo(parseInt(word[0]),
-                    parseInt(word[1]), parseInt(word[2]));
+            final CpuInfo details;
+            if (word.length > 3) {
+                details = new CpuInfo(parseInt(word[0]),
+                        parseInt(word[1]), parseInt(word[2]), parseInt(word[3]));
+            } else {
+                details = new CpuInfo(parseInt(word[0]),
+                        parseInt(word[1]), parseInt(word[2]));
+            }
             cpuDetails.add(details);
         }
         return new VanillaCpuLayout(cpuDetails);

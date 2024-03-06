@@ -37,10 +37,10 @@ public class VanillaCpuLayoutTest {
                 "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
                 "2: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
                 "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n" +
-                "4: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                "5: CpuInfo{socketId=0, coreId=1, threadId=1}\n" +
-                "6: CpuInfo{socketId=0, coreId=2, threadId=1}\n" +
-                "7: CpuInfo{socketId=0, coreId=3, threadId=1}\n", vcl.toString());
+                "4: CpuInfo{socketId=0, coreId=0, threadId=1, processorId=4}\n" +
+                "5: CpuInfo{socketId=0, coreId=1, threadId=1, processorId=5}\n" +
+                "6: CpuInfo{socketId=0, coreId=2, threadId=1, processorId=6}\n" +
+                "7: CpuInfo{socketId=0, coreId=3, threadId=1, processorId=7}\n", vcl.toString());
     }
 
     @Test
@@ -123,6 +123,7 @@ public class VanillaCpuLayoutTest {
 
     @Test
     public void testFromProperties() throws IOException {
+        // this logs a warning as processor not specified
         final InputStream i7 = getClass().getClassLoader().getResourceAsStream("i7.properties");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(i7);
         assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
