@@ -139,6 +139,8 @@ public class VanillaCpuLayout implements CpuLayout {
                 details.socketId = parseInt(words[1]);
             else if (words[0].equals("core id"))
                 details.coreId = parseInt(words[1]);
+            else if (words[0].equals("processor"))
+                details.processorId = parseInt(words[1]);
         }
         return new VanillaCpuLayout(cpuDetails);
     }
@@ -211,15 +213,20 @@ public class VanillaCpuLayout implements CpuLayout {
     }
 
     static class CpuInfo {
-        int socketId, coreId, threadId;
+        int socketId, coreId, threadId, processorId;
 
         CpuInfo() {
         }
 
         CpuInfo(int socketId, int coreId, int threadId) {
+            this(socketId, coreId, threadId, coreId);
+        }
+
+        CpuInfo(int socketId, int coreId, int threadId, int processorId) {
             this.socketId = socketId;
             this.coreId = coreId;
             this.threadId = threadId;
+            this.processorId = processorId;
         }
 
         @NotNull
@@ -229,6 +236,7 @@ public class VanillaCpuLayout implements CpuLayout {
                     "socketId=" + socketId +
                     ", coreId=" + coreId +
                     ", threadId=" + threadId +
+                    (processorId != coreId ? (", processorId=" + processorId) : "") +
                     '}';
         }
 
@@ -241,8 +249,8 @@ public class VanillaCpuLayout implements CpuLayout {
 
             if (coreId != cpuInfo.coreId) return false;
             if (socketId != cpuInfo.socketId) return false;
-            return threadId == cpuInfo.threadId;
-
+            if (threadId != cpuInfo.threadId) return false;
+            return processorId == cpuInfo.processorId;
         }
 
         @Override
@@ -250,6 +258,7 @@ public class VanillaCpuLayout implements CpuLayout {
             int result = socketId;
             result = 31 * result + coreId;
             result = 31 * result + threadId;
+            result = 31 * result + processorId;
             return result;
         }
     }
