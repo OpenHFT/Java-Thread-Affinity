@@ -26,7 +26,7 @@
     </parent>
 
     <artifactId>Java-Thread-Affinity</artifactId>
-    <version>3.24ea0-SNAPSHOT</version>
+    <version>3.64ea0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity Parent</name>
