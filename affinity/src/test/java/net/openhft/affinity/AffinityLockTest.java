@@ -20,6 +20,7 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import org.hamcrest.MatcherAssert;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -244,7 +245,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
 
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
-            assertThat(affinityLock.cpuId(), is(3));
+            MatcherAssert.assertThat(affinityLock.cpuId(), is(3));
         }
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
