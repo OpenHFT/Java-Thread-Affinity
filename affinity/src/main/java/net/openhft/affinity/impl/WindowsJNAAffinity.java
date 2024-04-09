@@ -89,7 +89,7 @@ public enum WindowsJNAAffinity implements IAffinity {
             throw new IllegalStateException("SetThreadAffinityMask((" + pid + ") , &(" + affinity + ") ) errorNo=" + e.getErrorCode(), e);
         }
         BitSet affinity2 = getAffinity0();
-        if (!affinity2.equals(affinity)) {
+        if (!affinity2.intersects(affinity)) {
             LoggerFactory.getLogger(WindowsJNAAffinity.class).warn("Tried to set affinity to " + affinity + " but was " + affinity2 + " you may have insufficient access rights");
         }
         currentAffinity.set((BitSet) affinity.clone());
