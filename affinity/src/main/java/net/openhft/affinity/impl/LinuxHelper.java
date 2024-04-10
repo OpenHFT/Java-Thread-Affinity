@@ -239,7 +239,7 @@ public class LinuxHelper {
             return new String(sysname, 0, length(sysname));
         }
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings("unused")
         public String getNodename() {
             return new String(nodename, 0, length(nodename));
         }
@@ -270,7 +270,7 @@ public class LinuxHelper {
             return new String(machine, 0, length(machine));
         }
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings("UnusedDeclaration")
         public String getDomainname() {
             return new String(domainname, 0, length(domainname));
         }
@@ -295,7 +295,7 @@ public class LinuxHelper {
             }
         }
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings("UnusedDeclaration")
         public static void __CPU_ZERO(cpu_set_t cpuset) {
             for (NativeLong bits : cpuset.__bits) {
                 bits.setValue(0L);
@@ -310,19 +310,19 @@ public class LinuxHelper {
             return 1L << (cpu % __NCPUBITS);
         }
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings("UnusedDeclaration")
         public static void __CPU_SET(int cpu, cpu_set_t cpuset) {
             cpuset.__bits[__CPUELT(cpu)].setValue(
                     cpuset.__bits[__CPUELT(cpu)].longValue() | __CPUMASK(cpu));
         }
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings("UnusedDeclaration")
         public static void __CPU_CLR(int cpu, cpu_set_t cpuset) {
             cpuset.__bits[__CPUELT(cpu)].setValue(
                     cpuset.__bits[__CPUELT(cpu)].longValue() & ~__CPUMASK(cpu));
         }
 
-        @SuppressWarnings({"UnusedDeclaration"})
+        @SuppressWarnings("UnusedDeclaration")
         public static boolean __CPU_ISSET(int cpu, cpu_set_t cpuset) {
             return (cpuset.__bits[__CPUELT(cpu)].longValue() & __CPUMASK(cpu)) != 0;
         }
