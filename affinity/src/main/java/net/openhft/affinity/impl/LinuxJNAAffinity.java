@@ -72,7 +72,6 @@ public enum LinuxJNAAffinity implements IAffinity {
         return ret;
     }
 
-    // TODO: FIXME!!! CHANGE IAffinity TO SUPPORT PLATFORMS WITH 64+ CORES FIXME!!!
     @Override
     public void setAffinity(final BitSet affinity) {
         LinuxHelper.sched_setaffinity(affinity);
