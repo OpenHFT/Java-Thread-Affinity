@@ -159,7 +159,6 @@ class LockInventory {
             return noLock();
         }
 
-
         LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
 
         return noLock();
@@ -180,7 +179,6 @@ class LockInventory {
             Thread.currentThread().interrupt();
             return noLock();
         }
-
 
         LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
                 cpuId, Thread.currentThread());

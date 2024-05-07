@@ -77,4 +77,3 @@ public class VersionHelper {
                 && this.release >= ver.release));
     }
 }
-

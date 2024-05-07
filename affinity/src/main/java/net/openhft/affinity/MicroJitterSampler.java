@@ -46,7 +46,6 @@ public class MicroJitterSampler {
         } else {
             Thread.sleep(1);
         }
-
     }
 
     public static void main(String... ignored) throws InterruptedException {
@@ -133,7 +132,6 @@ public class MicroJitterSampler {
         ps.println();
     }
 }
-
 /* e.g.
 Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3) sudo cpupower -c {cpu} -g performance, run from command line
 After 3600 seconds, the average per hour was

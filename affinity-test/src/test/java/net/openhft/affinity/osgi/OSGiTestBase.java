@@ -61,4 +61,3 @@ public class OSGiTestBase {
         return null;
     }
 }
-
