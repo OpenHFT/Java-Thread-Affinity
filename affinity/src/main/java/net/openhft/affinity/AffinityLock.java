@@ -28,6 +28,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.stream.IntStream;
 
 /**
  * This utility class support locking a thread to a single core, or reserving a whole core for a
@@ -40,7 +41,7 @@ public class AffinityLock implements Closeable {
     public static final String AFFINITY_RESERVED = "affinity.reserved";
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
-    public static final int PROCESSORS;
+    public static final int[] PROCESSORS;
 
     public static final BitSet BASE_AFFINITY;
     public static final BitSet RESERVED_AFFINITY;
@@ -49,12 +50,13 @@ public class AffinityLock implements Closeable {
     private static final LockInventory LOCK_INVENTORY;
 
     static {
-        int processors = Runtime.getRuntime().availableProcessors();
+        int cpus = Runtime.getRuntime().availableProcessors();
+        int[] processors = IntStream.range(0, cpus).toArray();
         VanillaCpuLayout cpuLayout = null;
         try {
             if (new File("/proc/cpuinfo").exists()) {
                 cpuLayout = VanillaCpuLayout.fromCpuInfo();
-                processors = cpuLayout.cpus();
+                processors = cpuLayout.cpuIds();
             }
         } catch (Throwable e) {
             LOGGER.warn("Unable to load /proc/cpuinfo", e);
@@ -117,13 +119,16 @@ public class AffinityLock implements Closeable {
     private static BitSet getReservedAffinity0() {
         String reservedAffinity = System.getProperty(AFFINITY_RESERVED);
         if (BASE_AFFINITY != null && (reservedAffinity == null || reservedAffinity.trim().isEmpty())) {
-            BitSet reserverable = new BitSet(PROCESSORS);
-            reserverable.set(1, PROCESSORS, true);
+            BitSet reserverable = new BitSet(PROCESSORS.length);
+            for (int i : PROCESSORS)
+                reserverable.set(i);
+            reserverable.clear(0);
             reserverable.andNot(BASE_AFFINITY);
-            if (reserverable.isEmpty() && PROCESSORS > 1) {
+            if (reserverable.isEmpty() && PROCESSORS.length > 1) {
                 // make all but first CPUs available
-                reserverable.set(1, PROCESSORS);
-                return reserverable;
+                for (int i : PROCESSORS)
+                    reserverable.set(i);
+                reserverable.clear(0);
             }
             return reserverable;
         }
@@ -150,8 +155,8 @@ public class AffinityLock implements Closeable {
 
     static class Warnings {
         static void warmNoReservedCPUs() {
-            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
-                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
+            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS.length > 1) {
+                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS.length - 1));
             }
         }
     }
@@ -220,7 +225,7 @@ public class AffinityLock implements Closeable {
      * @return the lock acquired
      */
     public static AffinityLock acquireLockLastMinus(int n) {
-        return acquireLock(true, PROCESSORS - n, AffinityStrategies.ANY);
+        return acquireLock(true, PROCESSORS[PROCESSORS.length - n - 1], AffinityStrategies.ANY);
     }
 
     /**
@@ -257,7 +262,7 @@ public class AffinityLock implements Closeable {
             if (lastN > 0)
                 throw new IllegalArgumentException("Cannot parse '" + desc + "'");
 
-            cpuId = PROCESSORS + lastN - 1;
+            cpuId = PROCESSORS[PROCESSORS.length + lastN - 1];
 
         } else if (desc.startsWith("csv:")) {
             String content = desc.substring(4);

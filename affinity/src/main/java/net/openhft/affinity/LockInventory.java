@@ -52,7 +52,7 @@ class LockInventory {
         for (int i = 0; i < locks.length; i++) {
             AffinityLock al = locks[i];
             sb.append(i).append(": ");
-            sb.append(al.toString());
+            sb.append(al);
             sb.append('\n');
         }
         return sb.toString();
@@ -88,7 +88,7 @@ class LockInventory {
         } catch (ClosedByInterruptException e) {
             throw e;
 
-        } catch (IOException e) {
+        } catch (IOException | IllegalStateException e) {
             LOGGER.warn("Error occurred acquiring lock", e);
         }
         return false;
@@ -103,7 +103,7 @@ class LockInventory {
             return;
         }
         reset(cpuLayout);
-        for (int i = 0; i < cpuLayout.cpus(); i++) {
+        for (int i : cpuLayout.cpuIds()) {
             final boolean base = AffinityLock.BASE_AFFINITY.get(i);
             final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
             LOGGER.trace("cpu {} base={} reservable= {}", i, base, reservable);
@@ -133,7 +133,7 @@ class LockInventory {
                 }
 
                 final AffinityLock required = logicalCoreLocks[cpuId];
-                if (required.canReserve(true)
+                if (required != null && required.canReserve(true)
                         && anyStrategyMatches(cpuId, cpuId, strategies)
                         && updateLockForCurrentThread(bind, required, false)) {
                     return required;
@@ -147,7 +147,7 @@ class LockInventory {
                 // if you have only one core, this library is not appropriate in any case.
                 for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
                     AffinityLock al = logicalCoreLocks[i];
-                    if (al.canReserve(false)
+                    if (al != null && al.canReserve(false)
                             && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))
                             && updateLockForCurrentThread(bind, al, false)) {
                         return al;
@@ -172,7 +172,7 @@ class LockInventory {
             return null;
         final AffinityLock required = logicalCoreLocks[cpuId];
         try {
-            if (required.canReserve(true)
+            if (required != null && required.canReserve(true)
                     && updateLockForCurrentThread(bind, required, false)) {
                 return required;
             }

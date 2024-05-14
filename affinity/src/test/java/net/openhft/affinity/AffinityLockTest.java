@@ -20,7 +20,6 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,13 +272,10 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
-        }
-        try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(PROCESSORS.length - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
-            assertEquals(PROCESSORS - 2, Affinity.getCpu());
+            assertEquals(PROCESSORS.length - 2, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
             assertEquals(1, Affinity.getCpu());

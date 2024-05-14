@@ -26,6 +26,11 @@ public interface CpuLayout {
      */
     int cpus();
 
+    /**
+     * @return an array of processors logical ids.
+     */
+    int[] cpuIds();
+
     int sockets();
 
     int coresPerSocket();

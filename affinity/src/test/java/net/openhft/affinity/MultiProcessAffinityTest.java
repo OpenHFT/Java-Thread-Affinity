@@ -61,7 +61,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
                 .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
                 .withProgramArguments("last").start();
         try {
-            int lastCpuId = AffinityLock.PROCESSORS - 1;
+            int lastCpuId = AffinityLock.PROCESSORS[AffinityLock.PROCESSORS.length - 1];
 
             // wait for the CPU to be locked
             long endTime = System.currentTimeMillis() + 5_000;
@@ -127,7 +127,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         waitForProcessToEnd(5, "Locking process", process);
         // We should be able to acquire the lock despite the other process not explicitly releasing it
         try (final AffinityLock acquired = AffinityLock.acquireLock("last")) {
-            assertEquals(AffinityLock.PROCESSORS - 1, acquired.cpuId());
+            assertEquals(AffinityLock.PROCESSORS.length - 1, acquired.cpuId());
         }
     }
 
@@ -248,7 +248,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
 
         public static void main(String[] args) throws InterruptedException, IOException {
             while (Thread.currentThread().isInterrupted()) {
-                for (int cpu = 0; cpu < AffinityLock.PROCESSORS; cpu++) {
+                for (int cpu : AffinityLock.PROCESSORS) {
                     try {
                         File lockFile = toFile(cpu);
                         try (final FileChannel fc = FileChannel.open(lockFile.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {

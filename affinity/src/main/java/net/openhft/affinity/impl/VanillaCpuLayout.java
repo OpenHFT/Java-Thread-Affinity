@@ -168,6 +168,11 @@ public class VanillaCpuLayout implements CpuLayout {
         return cpuDetails.size();
     }
 
+    @Override
+    public int[] cpuIds() {
+        return cpuDetails.stream().mapToInt(CpuInfo::processorId).sorted().toArray();
+    }
+
     public int sockets() {
         return sockets;
     }
@@ -245,6 +250,10 @@ public class VanillaCpuLayout implements CpuLayout {
             this.coreId = coreId;
             this.threadId = threadId;
             this.processorId = processorId;
+        }
+
+        int processorId() {
+            return processorId;
         }
 
         @NotNull

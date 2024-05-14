@@ -25,9 +25,9 @@ import net.openhft.affinity.CpuLayout;
  * @author peter.lawrey
  */
 public class NoCpuLayout implements CpuLayout {
-    private final int cpus;
+    private final int[] cpus;
 
-    public NoCpuLayout(int cpus) {
+    public NoCpuLayout(int[] cpus) {
         this.cpus = cpus;
     }
 
@@ -38,7 +38,7 @@ public class NoCpuLayout implements CpuLayout {
 
     @Override
     public int coresPerSocket() {
-        return cpus;
+        return cpus.length;
     }
 
     @Override
@@ -46,7 +46,13 @@ public class NoCpuLayout implements CpuLayout {
         return 1;
     }
 
+    @Override
     public int cpus() {
+        return cpus.length;
+    }
+
+    @Override
+    public int[] cpuIds() {
         return cpus;
     }
 
