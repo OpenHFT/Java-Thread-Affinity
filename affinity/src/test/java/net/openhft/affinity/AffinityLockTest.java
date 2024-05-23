@@ -162,6 +162,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
         assertEquals(1, Affinity.getAffinity().cardinality());
         try (AffinityLock lock = AffinityLock.acquireLock()) {
+            assertNotNull(lock);
         }
         assertTrue(Affinity.getAffinity().cardinality() > 1);
     }
@@ -274,15 +275,19 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 2, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
+            assertNotNull(lock);
             assertEquals(1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("any")) {
@@ -302,12 +307,14 @@ public class AffinityLockTest extends BaseAffinityTest {
     @Test
     public void testTooHighCpuId() {
         try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
+            assertNotNull(ignored);
         }
     }
 
     @Test
     public void testTooHighCpuId2() {
         try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
+            assertNotNull(ignored);
         }
     }
 

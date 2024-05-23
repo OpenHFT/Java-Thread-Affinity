@@ -446,6 +446,7 @@ public class AffinityLock implements Closeable {
         release();
     }
 
+    @SuppressWarnings("removal")
     @Override
     protected void finalize() throws Throwable {
         if (bound) {

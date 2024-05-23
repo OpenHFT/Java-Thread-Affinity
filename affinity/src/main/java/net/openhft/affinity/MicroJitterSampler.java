@@ -71,6 +71,7 @@ public class MicroJitterSampler {
 
     public void run() {
         try (final AffinityLock lock = AffinityLock.acquireLock(CPU)) {
+            assert lock != null;
             boolean first = true;
             System.out.println("Warming up...");
             while (!Thread.currentThread().isInterrupted()) {

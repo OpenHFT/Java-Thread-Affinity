@@ -57,6 +57,7 @@ public class AffinityThreadFactory implements ThreadFactory {
             @Override
             public void run() {
                 try (AffinityLock ignored = acquireLockBasedOnLast()) {
+                    assert ignored != null;
                     r.run();
                 }
             }

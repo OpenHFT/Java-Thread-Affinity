@@ -231,7 +231,7 @@ public class LinuxHelper {
         }
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELD_ORDER;
         }
 
@@ -328,7 +328,7 @@ public class LinuxHelper {
         }
 
         @Override
-        protected List getFieldOrder() {
+        protected List<String> getFieldOrder() {
             return FIELD_ORDER;
         }
     }
