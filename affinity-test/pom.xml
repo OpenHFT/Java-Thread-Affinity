@@ -21,12 +21,12 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.25.4</version>
+        <version>1.26.0</version>
         <relativePath />
     </parent>
 
     <artifactId>affinity-test</artifactId>
-    <version>3.24ea0-SNAPSHOT</version>
+    <version>3.26ea1-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
@@ -41,8 +41,8 @@
             <dependency>
                 <groupId>net.openhft</groupId>
                 <artifactId>third-party-bom</artifactId>
+                <version>3.26.0</version>
                 <type>pom</type>
-                <version>3.24.0</version>
                 <scope>import</scope>
             </dependency>
             <dependency>

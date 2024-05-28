@@ -241,5 +241,6 @@ public class FileLockBasedLockChecker implements LockChecker {
      * Thrown when another process deleted the lock file between us opening the file and acquiring the lock
      */
     class ConcurrentLockFileDeletionException extends Exception {
+        private static final long serialVersionUID = 0L;
     }
 }

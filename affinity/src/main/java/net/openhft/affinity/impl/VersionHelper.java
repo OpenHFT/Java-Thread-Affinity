@@ -61,7 +61,7 @@ public class VersionHelper {
         return (major << 16) | (minor << 8) | release;
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings("unused")
     public boolean majorMinorEquals(final VersionHelper ver) {
         return ver != null
                 && this.major == ver.major
@@ -77,4 +77,3 @@ public class VersionHelper {
                 && this.release >= ver.release));
     }
 }
-

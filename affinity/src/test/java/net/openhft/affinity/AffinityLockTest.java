@@ -20,6 +20,7 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import org.hamcrest.MatcherAssert;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -161,6 +162,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
         assertEquals(1, Affinity.getAffinity().cardinality());
         try (AffinityLock lock = AffinityLock.acquireLock()) {
+            assertNotNull(lock);
         }
         assertTrue(Affinity.getAffinity().cardinality() > 1);
     }
@@ -244,7 +246,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
 
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
-            assertThat(affinityLock.cpuId(), is(3));
+            MatcherAssert.assertThat(affinityLock.cpuId(), is(3));
         }
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
@@ -273,15 +275,19 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 2, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
+            assertNotNull(lock);
             assertEquals(1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("any")) {
@@ -301,12 +307,14 @@ public class AffinityLockTest extends BaseAffinityTest {
     @Test
     public void testTooHighCpuId() {
         try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
+            assertNotNull(ignored);
         }
     }
 
     @Test
     public void testTooHighCpuId2() {
         try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
+            assertNotNull(ignored);
         }
     }
 

@@ -51,7 +51,9 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
             long time = 0;
             for (int i = 0; i < runs; i++) {
                 long start = System.nanoTime();
-                tid = Thread.currentThread().getId();
+                @SuppressWarnings("deprecation")
+                long tid0 = Thread.currentThread().getId();
+                tid = tid0;
                 time += System.nanoTime() - start;
                 assertTrue(tid > 0);
                 assertTrue(tid < 1 << 24);
