@@ -26,7 +26,7 @@
     </parent>
 
     <artifactId>affinity-test</artifactId>
-    <version>3.26ea1-SNAPSHOT</version>
+    <version>3.26ea2-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity-test</name>
