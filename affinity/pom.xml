@@ -26,7 +26,7 @@
     </parent>
 
     <artifactId>affinity</artifactId>
-    <version>3.26ea3</version>
+    <version>3.26ea3-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity</name>
