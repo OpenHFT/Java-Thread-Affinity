@@ -67,6 +67,16 @@ inline uint64_t rdtsc() {
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
 }
+#elif defined(__APPLE__)
+#include <mach/mach_time.h>
+inline uint64_t rdtsc() {
+    return mach_absolute_time();
+}
+#elif defined(_MSC_VER)
+#include <intrin.h>
+inline uint64_t rdtsc() {
+    return __rdtsc();
+}
 #endif
 
 /*
