@@ -36,7 +36,7 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(JNI_SOURCES)
-	$(CXX) -O3 -Wall -shared -fPIC $(JVM_SHARED_LIBS) -ljvm -lrt $(INCLUDES) $(JNI_SOURCES) -o $(TARGET)
+	$(CXX) -O3 -Wall -shared -fPIC $(JVM_SHARED_LIBS) -lrt $(INCLUDES) $(JNI_SOURCES) -o $(TARGET)
 
 clean:
 	rm $(TARGET)
