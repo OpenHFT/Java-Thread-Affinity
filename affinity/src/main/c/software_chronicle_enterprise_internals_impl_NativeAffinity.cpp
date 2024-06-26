@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <stdexcept>
 #include "software_chronicle_enterprise_internals_impl_NativeAffinity.h"
 
 /*
@@ -35,6 +35,10 @@
 JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getAffinity0
   (JNIEnv *env, jclass c) 
 {
+#ifndef __linux__
+    throw std::runtime_error("Not supported");
+#else
+
     // The default size of the structure supports 1024 CPUs, should be enough
     // for now In the future we can use dynamic sets, which can support more
     // CPUs, given OS can handle them as well
@@ -53,6 +57,7 @@ JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_N
     env->SetByteArrayRegion(ret, 0, size, bytes);
 
     return ret;
+#endif
 }
 
 /*
@@ -63,6 +68,10 @@ JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_N
 JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_setAffinity0
   (JNIEnv *env, jclass c, jbyteArray affinity)
 {
+#ifndef __linux__
+    throw std::runtime_error("Not supported");
+#else
+    
     cpu_set_t mask;
     const size_t size = sizeof(mask);
     CPU_ZERO(&mask);
@@ -71,6 +80,7 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
     memcpy(&mask, bytes, size);
 
     sched_setaffinity(0, size, &mask);
+#endif
 }
 
 /*
@@ -80,7 +90,12 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getProcessId0
   (JNIEnv *env, jclass c) {
+#ifndef __linux__
+    throw std::runtime_error("Not supported");
+#else
+      
   return (jint) getpid();
+#endif
 }
 
 /*
@@ -90,7 +105,12 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getThreadId0
   (JNIEnv *env, jclass c) {
+#ifndef __linux__
+    throw std::runtime_error("Not supported");
+#else
+      
     return (jint) (pid_t) syscall (SYS_gettid);
+#endif
 }
 
 /*
@@ -100,6 +120,11 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getCpu0
   (JNIEnv *env, jclass c) {
+#ifndef __linux__
+    throw std::runtime_error("Not supported");
+#else
+      
   return (jint) sched_getcpu();
+#endif
 }
 
