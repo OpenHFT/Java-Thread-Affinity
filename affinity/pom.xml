@@ -129,7 +129,7 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>${project.basedir}/${native.source.dir}/Makefile</executable>
+                                    <executable>make</executable>
                                     <workingDirectory>${project.basedir}/${native.source.dir}</workingDirectory>
                                 </configuration>
                             </execution>
