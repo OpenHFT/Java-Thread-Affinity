@@ -20,29 +20,57 @@ package net.openhft.ticker.impl;
 import net.openhft.ticker.ITicker;
 
 /**
- * Default implementation, use plain {@link System#nanoTime()}
- *
- * @author cheremin
- * @since 29.12.11,  18:54
+ * The SystemClock class provides a default implementation of the ITicker interface
+ * using the {@link System#nanoTime()} method for high-resolution time measurement.
+ * <p>
+ * This implementation directly uses the system's nanosecond time source without any additional processing.
+ * </p>
+ * <p>
+ * Author: cheremin
+ * Since: 29.12.11, 18:54
+ * </p>
  */
 public enum SystemClock implements ITicker {
     INSTANCE;
 
+    /**
+     * Returns the current time in nanoseconds using {@link System#nanoTime()}.
+     *
+     * @return the current time in nanoseconds
+     */
     @Override
     public long nanoTime() {
         return System.nanoTime();
     }
 
+    /**
+     * Returns the current time in nanoseconds, same as {@link #nanoTime()}.
+     *
+     * @return the current time in nanoseconds
+     */
     @Override
     public long ticks() {
         return nanoTime();
     }
 
+    /**
+     * Converts the given number of ticks to nanoseconds.
+     * In this implementation, ticks are already in nanoseconds.
+     *
+     * @param ticks the number of ticks
+     * @return the equivalent time in nanoseconds
+     */
     @Override
     public long toNanos(long ticks) {
         return ticks;
     }
 
+    /**
+     * Converts the given number of ticks to microseconds.
+     *
+     * @param ticks the number of ticks
+     * @return the equivalent time in microseconds
+     */
     @Override
     public double toMicros(double ticks) {
         return ticks / 1e3;

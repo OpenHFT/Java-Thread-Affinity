@@ -21,13 +21,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.util.BitSet;
 
-/*
- * Created by andre on 20/06/15.
+/**
+ * Utility class providing various static methods for handling bit sets and system properties.
+ * <p>
+ * This class cannot be instantiated.
  */
 public final class Utilities {
+
+    // Constant indicating whether the operating system is Linux
     public static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
+
+    // Constant indicating whether the JVM is running in 64-bit mode
     static final boolean IS64BIT = is64Bit0();
 
+    // Private constructor to prevent instantiation
     private Utilities() {
         throw new InstantiationError("Must not instantiate this class");
     }
@@ -35,8 +42,8 @@ public final class Utilities {
     /**
      * Creates a hexademical representation of the bit set
      *
-     * @param set the bit set to convert
-     * @return the hexademical string representation
+     * @param set the BitSet to convert
+     * @return the hexadecimal string representation of the BitSet
      */
     public static String toHexString(final BitSet set) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -50,6 +57,12 @@ public final class Utilities {
         return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
     }
 
+    /**
+     * Creates a binary representation of the given BitSet.
+     *
+     * @param set the BitSet to convert
+     * @return the binary string representation of the BitSet
+     */
     public static String toBinaryString(BitSet set) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(out);
@@ -62,10 +75,20 @@ public final class Utilities {
         return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
     }
 
+    /**
+     * Checks if the JVM is running in 64-bit mode.
+     *
+     * @return true if the JVM is 64-bit, false otherwise
+     */
     public static boolean is64Bit() {
         return IS64BIT;
     }
 
+    /**
+     * Determines if the JVM is running in 64-bit mode by checking system properties.
+     *
+     * @return true if the JVM is 64-bit, false otherwise
+     */
     private static boolean is64Bit0() {
         String systemProp;
         systemProp = System.getProperty("com.ibm.vm.bitmode");

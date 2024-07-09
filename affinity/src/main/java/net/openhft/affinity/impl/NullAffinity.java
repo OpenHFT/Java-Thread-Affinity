@@ -25,33 +25,64 @@ import java.lang.management.ManagementFactory;
 import java.util.BitSet;
 
 /**
- * @author peter.lawrey
+ * The NullAffinity class provides a fallback implementation of the IAffinity interface
+ * that performs no operations. This is used when JNI and JNA libraries are not loaded.
+ * <p>
+ * Author: Peter Lawrey
+ * </p>
  */
 public enum NullAffinity implements IAffinity {
     INSTANCE;
+
+    // Logger instance for logging messages
     private static final Logger LOGGER = LoggerFactory.getLogger(NullAffinity.class);
 
+    /**
+     * Gets the CPU affinity of the current process. This implementation returns an empty BitSet.
+     *
+     * @return an empty BitSet
+     */
     @Override
     public BitSet getAffinity() {
         return new BitSet();
     }
 
+    /**
+     * Sets the CPU affinity for the current process. This implementation logs a message and performs no action.
+     *
+     * @param affinity the BitSet representing the CPU affinity
+     */
     @Override
     public void setAffinity(final BitSet affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Utilities.toHexString(affinity));
+        LOGGER.trace("Unable to set mask to {} as the JNI and JNA libraries are not loaded", Utilities.toHexString(affinity));
     }
 
+    /**
+     * Gets the current CPU that the calling thread is running on. This implementation returns -1.
+     *
+     * @return -1 indicating that the operation is not supported
+     */
     @Override
     public int getCpu() {
         return -1;
     }
 
+    /**
+     * Gets the process ID of the current process.
+     *
+     * @return the process ID
+     */
     @Override
     public int getProcessId() {
         final String name = ManagementFactory.getRuntimeMXBean().getName();
         return Integer.parseInt(name.split("@")[0]);
     }
 
+    /**
+     * Gets the thread ID of the calling thread. This implementation throws UnsupportedOperationException.
+     *
+     * @return never returns as it always throws UnsupportedOperationException
+     */
     @Override
     public int getThreadId() {
         throw new UnsupportedOperationException();

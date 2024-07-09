@@ -26,11 +26,20 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * The LinuxHelper class provides methods to interact with CPU affinity and retrieve system information on Linux.
+ * It utilizes native methods via JNA to perform operations such as setting and getting CPU affinity,
+ * getting the current CPU, and obtaining process IDs.
+ * <p>
+ * Author: Peter Lawrey
+ */
 public class LinuxHelper {
+    // Library name for the C standard library
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
     private static final VersionHelper VERSION_2_6 = new VersionHelper(2, 6, 0);
 
+    // Cached version of the Linux kernel
     private static final VersionHelper version;
 
     static {
@@ -41,15 +50,18 @@ public class LinuxHelper {
                 ver = new VersionHelper(uname.getRealeaseVersion());
             }
         } catch (Throwable e) {
-            //Jvm.warn().on(getClass(), "Failed to determine Linux version: " + e);
+            // Logging can be added if needed for failure cases
         }
 
         version = ver;
     }
 
-    public static
-    @NotNull
-    cpu_set_t sched_getaffinity() {
+    /**
+     * Gets the CPU affinity for the current process.
+     *
+     * @return the CPU affinity as a cpu_set_t structure
+     */
+    public static @NotNull cpu_set_t sched_getaffinity() {
         final CLibrary lib = CLibrary.INSTANCE;
         final cpu_set_t cpuset = new cpu_set_t();
         final int size = version.isSameOrNewer(VERSION_2_6) ? cpu_set_t.SIZE_OF_CPU_SET_T : NativeLong.SIZE;
@@ -66,10 +78,21 @@ public class LinuxHelper {
         return cpuset;
     }
 
-	public static void sched_setaffinity(final BitSet affinity) {
-		sched_setaffinity(0, affinity);
-	}
+    /**
+     * Sets the CPU affinity for the current process based on the given BitSet.
+     *
+     * @param affinity the BitSet representing the CPU affinity
+     */
+    public static void sched_setaffinity(final BitSet affinity) {
+        sched_setaffinity(0, affinity);
+    }
 
+    /**
+     * Sets the CPU affinity for a specified process ID based on the given BitSet.
+     *
+     * @param pid      the process ID
+     * @param affinity the BitSet representing the CPU affinity
+     */
     public static void sched_setaffinity(final int pid, final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
         final cpu_set_t cpuset = new cpu_set_t();
@@ -94,6 +117,11 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Gets the current CPU that the calling thread is running on.
+     *
+     * @return the CPU number
+     */
     public static int sched_getcpu() {
         final CLibrary lib = CLibrary.INSTANCE;
         try {
@@ -131,6 +159,11 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Gets the process ID of the calling process.
+     *
+     * @return the process ID
+     */
     public static int getpid() {
         final CLibrary lib = CLibrary.INSTANCE;
         try {
@@ -144,6 +177,13 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Makes a system call with the specified number and arguments.
+     *
+     * @param number the system call number
+     * @param args   the arguments for the system call
+     * @return the result of the system call
+     */
     public static int syscall(int number, Object... args) {
         final CLibrary lib = CLibrary.INSTANCE;
         try {
@@ -157,6 +197,9 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Interface to the C library, providing methods to interact with system calls related to CPU affinity and process information.
+     */
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
 
@@ -218,7 +261,7 @@ public class LinuxHelper {
         public byte[] machine = new byte[_UTSNAME_LENGTH];
 
         /**
-         * NIS or YP domain name
+         * NIS or YP domain name.
          */
         public byte[] domainname = new byte[_UTSNAME_LENGTH];
 
@@ -235,19 +278,39 @@ public class LinuxHelper {
             return FIELD_ORDER;
         }
 
+        /**
+         * Gets the system name.
+         *
+         * @return the system name
+         */
         public String getSysname() {
             return new String(sysname, 0, length(sysname));
         }
 
+        /**
+         * Gets the node name.
+         *
+         * @return the node name
+         */
         @SuppressWarnings("unused")
         public String getNodename() {
             return new String(nodename, 0, length(nodename));
         }
 
+        /**
+         * Gets the release version.
+         *
+         * @return the release version
+         */
         public String getRelease() {
             return new String(release, 0, length(release));
         }
 
+        /**
+         * Gets the release version substring until the first non-digit character.
+         *
+         * @return the release version substring
+         */
         public String getRealeaseVersion() {
             final String release = getRelease();
             final int releaseLen = release.length();
@@ -262,14 +325,29 @@ public class LinuxHelper {
             return release.substring(0, len);
         }
 
+        /**
+         * Gets the version.
+         *
+         * @return the version
+         */
         public String getVersion() {
             return new String(version, 0, length(version));
         }
 
+        /**
+         * Gets the machine name.
+         *
+         * @return the machine name
+         */
         public String getMachine() {
             return new String(machine, 0, length(machine));
         }
 
+        /**
+         * Gets the domain name.
+         *
+         * @return the domain name
+         */
         @SuppressWarnings("UnusedDeclaration")
         public String getDomainname() {
             return new String(domainname, 0, length(domainname));
@@ -282,6 +360,9 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Structure representing the CPU set for affinity operations.
+     */
     public static class cpu_set_t extends Structure {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;

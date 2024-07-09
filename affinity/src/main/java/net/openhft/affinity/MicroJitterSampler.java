@@ -21,10 +21,13 @@ package net.openhft.affinity;
 import java.io.PrintStream;
 
 /**
- * User: peter.lawrey Date: 30/06/13 Time: 13:13
+ * The MicroJitterSampler class samples microsecond-level jitter in the system's time measurements.
+ * It uses a specified CPU and utilization level to perform the sampling and can operate in busy-wait or sleep mode.
+ * The results are printed out showing the jitter counts at various delay levels.
  */
 public class MicroJitterSampler {
 
+    // Array of delay thresholds in nanoseconds
     private static final long[] DELAY = {
             2 * 1000, 3 * 1000, 4 * 1000, 6 * 1000, 8 * 1000, 10 * 1000, 14 * 1000,
             20 * 1000, 30 * 1000, 40 * 1000, 60 * 1000, 80 * 1000, 100 * 1000, 140 * 1000,
@@ -32,14 +35,24 @@ public class MicroJitterSampler {
             2 * 1000 * 1000, 5 * 1000 * 1000, 10 * 1000 * 1000,
             20 * 1000 * 1000, 50 * 1000 * 1000, 100 * 1000 * 1000
     };
+    // Utilization percentage from system property
     private static final double UTIL = Double.parseDouble(System.getProperty("util", "50"));
+    // Busy-wait flag from system property
     private static final boolean BUSYWAIT = Boolean.parseBoolean(System.getProperty("busywait", "false"));
+    // CPU to use from system property
     private static final String CPU = System.getProperty("cpu", "none");
 
-    private final int[] count = new int[DELAY.length];
-    private long totalTime = 0;
+    // Count of delays for each threshold
+    final int[] count = new int[DELAY.length];
+    // Total sampling time
+    long totalTime = 0;
 
-    private static void pause() throws InterruptedException {
+    /**
+     * Pauses the thread for a short duration. Uses busy-wait if BUSYWAIT is true, otherwise sleeps for 1 millisecond.
+     *
+     * @throws InterruptedException if the thread is interrupted
+     */
+    static void pause() throws InterruptedException {
         if (BUSYWAIT) {
             long now = System.nanoTime();
             while (System.nanoTime() - now < 1_000_000) ;
@@ -48,6 +61,12 @@ public class MicroJitterSampler {
         }
     }
 
+    /**
+     * Main method to run the MicroJitterSampler.
+     *
+     * @param ignored command line arguments (ignored)
+     * @throws InterruptedException if the thread is interrupted
+     */
     public static void main(String... ignored) throws InterruptedException {
         MicroJitterSampler sampler = new MicroJitterSampler();
 
@@ -56,7 +75,12 @@ public class MicroJitterSampler {
         t.join();
     }
 
-    private void once() throws InterruptedException {
+    /**
+     * Performs a single sampling run based on the UTIL value.
+     *
+     * @throws InterruptedException if the thread is interrupted
+     */
+    void once() throws InterruptedException {
         if (UTIL >= 100) {
             sample(30L * 1000 * 1000 * 1000);
         } else {
@@ -69,6 +93,9 @@ public class MicroJitterSampler {
         }
     }
 
+    /**
+     * Runs the sampling loop, acquiring an AffinityLock and performing warmup before actual sampling.
+     */
     public void run() {
         try (final AffinityLock lock = AffinityLock.acquireLock(CPU)) {
             assert lock != null;
@@ -91,19 +118,33 @@ public class MicroJitterSampler {
         }
     }
 
-    private static String asString(long timeNS) {
+    /**
+     * Converts a time in nanoseconds to a human-readable string.
+     *
+     * @param timeNS the time in nanoseconds
+     * @return the time as a string with appropriate units
+     */
+    static String asString(long timeNS) {
         return timeNS < 1000 ? timeNS + "ns" :
                 timeNS < 1000000 ? timeNS / 1000 + "us" :
                         timeNS < 1000000000 ? timeNS / 1000000 + "ms" :
                                 timeNS / 1000000000 + "sec";
     }
 
+    /**
+     * Resets the count array and total time.
+     */
     void reset() {
         for (int i = 0; i < DELAY.length; ++i)
             count[i] = 0;
         totalTime = 0;
     }
 
+    /**
+     * Samples the jitter over a specified interval, updating the count array.
+     *
+     * @param intervalNS the sampling interval in nanoseconds
+     */
     void sample(long intervalNS) {
         long prev = System.nanoTime();
         long end = prev + intervalNS;
@@ -123,6 +164,11 @@ public class MicroJitterSampler {
         totalTime += intervalNS;
     }
 
+    /**
+     * Prints the jitter counts to the specified PrintStream.
+     *
+     * @param ps the PrintStream to print to
+     */
     void print(PrintStream ps) {
         ps.println("After " + totalTime / 1000000000 + " seconds, the average per hour was");
         for (int i = 0; i < DELAY.length; i++) {
@@ -133,6 +179,7 @@ public class MicroJitterSampler {
         ps.println();
     }
 }
+
 /* e.g.
 Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3) sudo cpupower -c {cpu} -g performance, run from command line
 After 3600 seconds, the average per hour was

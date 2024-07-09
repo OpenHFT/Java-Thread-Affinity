@@ -30,15 +30,15 @@ import org.slf4j.LoggerFactory;
 import java.util.BitSet;
 
 /**
- * Implementation of {@link net.openhft.affinity.IAffinity} based on JNA call of
- * sched_SetThreadAffinityMask/GetProcessAffinityMask from Windows 'kernel32' library. Applicable for
- * most windows platforms
- * <p> *
+ * Implementation of {@link net.openhft.affinity.IAffinity} based on JNA calls to
+ * SetThreadAffinityMask and GetProcessAffinityMask from Windows 'kernel32' library.
+ * Applicable for most Windows platforms.
  *
- * @author andre.monteiro
+ * This class provides methods to get and set the CPU affinity of the current process and thread.
  */
 public enum WindowsJNAAffinity implements IAffinity {
     INSTANCE;
+
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsJNAAffinity.class);
     private static final ThreadLocal<BitSet> currentAffinity = new ThreadLocal<>();
@@ -49,13 +49,18 @@ public enum WindowsJNAAffinity implements IAffinity {
             INSTANCE.getAffinity();
             loaded = true;
         } catch (UnsatisfiedLinkError e) {
-            LOGGER.warn("Unable to load jna library", e);
+            LOGGER.warn("Unable to load JNA library", e);
         }
         LOADED = loaded;
     }
 
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
+    /**
+     * Retrieves the current CPU affinity of the process.
+     *
+     * @return a BitSet representing the CPU affinity
+     */
     @Override
     public BitSet getAffinity() {
         BitSet bitSet = currentAffinity.get();
@@ -65,6 +70,11 @@ public enum WindowsJNAAffinity implements IAffinity {
         return longs != null ? longs : new BitSet();
     }
 
+    /**
+     * Sets the CPU affinity for the current thread.
+     *
+     * @param affinity the BitSet representing the desired CPU affinity
+     */
     @Override
     public void setAffinity(final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
@@ -95,6 +105,11 @@ public enum WindowsJNAAffinity implements IAffinity {
         currentAffinity.set((BitSet) affinity.clone());
     }
 
+    /**
+     * Retrieves the current CPU affinity of the process using JNA.
+     *
+     * @return a BitSet representing the CPU affinity, or null if an error occurs
+     */
     @Nullable
     private BitSet getAffinity0() {
         final CLibrary lib = CLibrary.INSTANCE;
@@ -118,10 +133,21 @@ public enum WindowsJNAAffinity implements IAffinity {
         return null;
     }
 
+    /**
+     * Converts the process ID to a HANDLE.
+     *
+     * @param pid the process ID
+     * @return the HANDLE representing the process
+     */
     private WinNT.HANDLE handle(int pid) {
         return new WinNT.HANDLE(new Pointer(pid));
     }
 
+    /**
+     * Retrieves the current thread ID.
+     *
+     * @return the current thread ID
+     */
     public int getTid() {
         final CLibrary lib = CLibrary.INSTANCE;
 
@@ -132,16 +158,31 @@ public enum WindowsJNAAffinity implements IAffinity {
         }
     }
 
+    /**
+     * Retrieves the current CPU number.
+     *
+     * @return the current CPU number, or -1 if not applicable
+     */
     @Override
     public int getCpu() {
         return -1;
     }
 
+    /**
+     * Retrieves the process ID of the current process.
+     *
+     * @return the process ID
+     */
     @Override
     public int getProcessId() {
         return Kernel32.INSTANCE.GetCurrentProcessId();
     }
 
+    /**
+     * Retrieves the thread ID of the current thread.
+     *
+     * @return the thread ID
+     */
     @Override
     public int getThreadId() {
         Integer tid = THREAD_ID.get();
@@ -151,7 +192,7 @@ public enum WindowsJNAAffinity implements IAffinity {
     }
 
     /**
-     * @author BegemoT
+     * Interface for accessing Windows 'kernel32' library functions using JNA.
      */
     private interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load("kernel32", CLibrary.class);

@@ -35,12 +35,19 @@ import java.util.BitSet;
  * @author peter.lawrey
  */
 public enum Affinity {
-    ; // none
+    ; // No instances allowed
+
+    // Logger instance for logging messages
     static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
+
+    // The implementation of the IAffinity interface
     @NotNull
     private static final IAffinity AFFINITY_IMPL;
+
+    // Boolean to check if JNA is available
     private static Boolean JNAAvailable;
 
+    // Static block to initialize the AFFINITY_IMPL based on the OS
     static {
         String osName = System.getProperty("os.name");
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
@@ -78,10 +85,20 @@ public enum Affinity {
         }
     }
 
+    /**
+     * Returns the current implementation of the IAffinity interface.
+     *
+     * @return the current implementation of the IAffinity interface
+     */
     public static IAffinity getAffinityImpl() {
         return AFFINITY_IMPL;
     }
 
+    /**
+     * Checks if the Windows JNA-based affinity is usable.
+     *
+     * @return true if usable, false otherwise
+     */
     private static boolean isWindowsJNAAffinityUsable() {
         if (isJNAAvailable()) {
             try {
@@ -96,6 +113,11 @@ public enum Affinity {
         }
     }
 
+    /**
+     * Checks if the Posix JNA-based affinity is usable.
+     *
+     * @return true if usable, false otherwise
+     */
     private static boolean isPosixJNAAffinityUsable() {
         if (isJNAAvailable()) {
             try {
@@ -110,6 +132,11 @@ public enum Affinity {
         }
     }
 
+    /**
+     * Checks if the Linux JNA-based affinity is usable.
+     *
+     * @return true if usable, false otherwise
+     */
     private static boolean isLinuxJNAAffinityUsable() {
         if (isJNAAvailable()) {
             try {
@@ -124,26 +151,40 @@ public enum Affinity {
         }
     }
 
+    /**
+     * Checks if the Mac JNA-based affinity is usable.
+     *
+     * @return true if usable, false otherwise
+     */
     private static boolean isMacJNAAffinityUsable() {
         if (isJNAAvailable()) {
             return true;
-
         } else {
             LOGGER.warn("MAC OSX JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
 
+    /**
+     * Checks if the Solaris JNA-based affinity is usable.
+     *
+     * @return true if usable, false otherwise
+     */
     private static boolean isSolarisJNAAffinityUsable() {
         if (isJNAAvailable()) {
             return true;
-
         } else {
             LOGGER.warn("Solaris JNA-based affinity not usable due to JNA not being available!");
             return false;
         }
     }
 
+    /**
+     * Logs the throwable with a given description.
+     *
+     * @param t           the throwable to log
+     * @param description the description to log with the throwable
+     */
     private static void logThrowable(Throwable t, String description) {
         StringWriter sw = new StringWriter();
         sw.append(description);
@@ -152,28 +193,56 @@ public enum Affinity {
         LOGGER.warn(sw.toString());
     }
 
+    /**
+     * Gets the current CPU affinity as a BitSet.
+     *
+     * @return the current CPU affinity as a BitSet
+     */
     public static BitSet getAffinity() {
         return AFFINITY_IMPL.getAffinity();
     }
 
+    /**
+     * Sets the CPU affinity to the given BitSet.
+     *
+     * @param affinity the BitSet representing the CPU affinity to set
+     */
     public static void setAffinity(final BitSet affinity) {
         AFFINITY_IMPL.setAffinity(affinity);
     }
 
+    /**
+     * Sets the CPU affinity to the given CPU.
+     *
+     * @param cpu the CPU to set the affinity for
+     */
     public static void setAffinity(int cpu) {
         BitSet affinity = new BitSet(Runtime.getRuntime().availableProcessors());
         affinity.set(cpu);
         setAffinity(affinity);
     }
 
+    /**
+     * Gets the current CPU ID.
+     *
+     * @return the current CPU ID
+     */
     public static int getCpu() {
         return AFFINITY_IMPL.getCpu();
     }
 
+    /**
+     * Gets the current thread ID.
+     *
+     * @return the current thread ID
+     */
     public static int getThreadId() {
         return AFFINITY_IMPL.getThreadId();
     }
 
+    /**
+     * Sets the thread ID for the current thread.
+     */
     public static void setThreadId() {
         try {
             int threadId = Affinity.getThreadId();
@@ -187,14 +256,18 @@ public enum Affinity {
         }
     }
 
+    /**
+     * Checks if JNA is available.
+     *
+     * @return true if JNA is available, false otherwise
+     */
     public static boolean isJNAAvailable() {
         if (JNAAvailable == null) {
             int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
-            if(majorVersion < 5) {
+            if (majorVersion < 5) {
                 LOGGER.warn("Affinity library requires JNA version >= 5");
                 JNAAvailable = false;
-            }
-            else {
+            } else {
                 try {
                     Class.forName("com.sun.jna.Platform");
                     JNAAvailable = true;
@@ -206,22 +279,47 @@ public enum Affinity {
         return JNAAvailable;
     }
 
+    /**
+     * Acquires an affinity lock.
+     *
+     * @return the acquired AffinityLock
+     */
     public static AffinityLock acquireLock() {
         return AffinityLock.acquireLock();
     }
 
+    /**
+     * Acquires a core affinity lock.
+     *
+     * @return the acquired core AffinityLock
+     */
     public static AffinityLock acquireCore() {
         return AffinityLock.acquireCore();
     }
 
+    /**
+     * Acquires an affinity lock, optionally binding it.
+     *
+     * @param bind whether to bind the lock
+     * @return the acquired AffinityLock
+     */
     public static AffinityLock acquireLock(boolean bind) {
         return AffinityLock.acquireLock(bind);
     }
 
+    /**
+     * Acquires a core affinity lock, optionally binding it.
+     *
+     * @param bind whether to bind the lock
+     * @return the acquired core AffinityLock
+     */
     public static AffinityLock acquireCore(boolean bind) {
         return AffinityLock.acquireCore(bind);
     }
 
+    /**
+     * Resets to the base affinity.
+     */
     public static void resetToBaseAffinity() {
         Affinity.setAffinity(AffinityLock.BASE_AFFINITY);
     }

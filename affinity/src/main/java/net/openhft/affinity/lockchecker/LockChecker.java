@@ -21,16 +21,45 @@ package net.openhft.affinity.lockchecker;
 import java.io.IOException;
 
 /**
- * @author Tom Shercliff
+ * The LockChecker interface defines methods for checking, obtaining, and releasing locks on CPU cores.
+ * Implementations of this interface provide mechanisms to ensure that only one process can lock a particular CPU core at a time.
+ *
+ * Author: Tom Shercliff
  */
-
 public interface LockChecker {
 
+    /**
+     * Checks if a lock is free for a given CPU ID.
+     *
+     * @param id the CPU ID to check
+     * @return true if the lock is free, false otherwise
+     */
     boolean isLockFree(int id);
 
+    /**
+     * Attempts to obtain a lock for a given CPU ID with meta-information.
+     *
+     * @param id       the CPU ID to lock
+     * @param metaInfo the meta-information to write to the lock file
+     * @return true if the lock was successfully obtained, false otherwise
+     * @throws IOException if an I/O error occurs
+     */
     boolean obtainLock(int id, String metaInfo) throws IOException;
 
+    /**
+     * Releases the lock for a given CPU ID.
+     *
+     * @param id the CPU ID to release the lock for
+     * @return true if the lock was successfully released, false otherwise
+     */
     boolean releaseLock(int id);
 
+    /**
+     * Retrieves the meta-information for a given CPU ID.
+     *
+     * @param id the CPU ID to get the meta-information for
+     * @return the meta-information string, or null if not found
+     * @throws IOException if an I/O error occurs
+     */
     String getMetaInfo(int id) throws IOException;
 }

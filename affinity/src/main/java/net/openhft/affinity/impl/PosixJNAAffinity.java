@@ -40,11 +40,23 @@ import java.util.BitSet;
  */
 public enum PosixJNAAffinity implements IAffinity {
     INSTANCE;
+
+    // Indicates whether the JNA library is loaded
     public static final boolean LOADED;
+
+    // Logger instance for logging messages
     private static final Logger LOGGER = LoggerFactory.getLogger(PosixJNAAffinity.class);
+
+    // Library name based on the platform
     private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
+
+    // Process ID of the current process
     private static final int PROCESS_ID;
+
+    // System call number for getting thread ID
     private static final int SYS_gettid = Utilities.is64Bit() ? 186 : 224;
+
+    // No arguments for syscall
     private static final Object[] NO_ARGS = {};
 
     static {
@@ -68,8 +80,14 @@ public enum PosixJNAAffinity implements IAffinity {
         LOADED = loaded;
     }
 
+    // ThreadLocal variable to store thread IDs
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
+    /**
+     * Gets the CPU affinity of the current process.
+     *
+     * @return a BitSet representing the CPU affinity
+     */
     @Override
     public BitSet getAffinity() {
         final CLibrary lib = CLibrary.INSTANCE;
@@ -92,7 +110,7 @@ public enum PosixJNAAffinity implements IAffinity {
             }
         }
 
-        // fall back to the old method
+        // Fallback to the old method
         final IntByReference cpuset32 = new IntByReference(0);
         try {
             final int ret = lib.sched_getaffinity(0, Integer.SIZE / 8, cpuset32);
@@ -107,6 +125,11 @@ public enum PosixJNAAffinity implements IAffinity {
         }
     }
 
+    /**
+     * Sets the CPU affinity for the current process.
+     *
+     * @param affinity the BitSet representing the CPU affinity
+     */
     @Override
     public void setAffinity(final BitSet affinity) {
         int procs = Runtime.getRuntime().availableProcessors();
@@ -145,6 +168,11 @@ public enum PosixJNAAffinity implements IAffinity {
         }
     }
 
+    /**
+     * Gets the current CPU that the calling thread is running on.
+     *
+     * @return the CPU number
+     */
     @Override
     public int getCpu() {
         final CLibrary lib = CLibrary.INSTANCE;
@@ -171,11 +199,21 @@ public enum PosixJNAAffinity implements IAffinity {
         }
     }
 
+    /**
+     * Gets the process ID of the current process.
+     *
+     * @return the process ID
+     */
     @Override
     public int getProcessId() {
         return PROCESS_ID;
     }
 
+    /**
+     * Gets the thread ID of the calling thread.
+     *
+     * @return the thread ID
+     */
     @Override
     public int getThreadId() {
         if (Utilities.ISLINUX) {
@@ -188,7 +226,7 @@ public enum PosixJNAAffinity implements IAffinity {
     }
 
     /**
-     * @author BegemoT
+     * Interface to the C library, providing methods to interact with CPU affinity and process information.
      */
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);

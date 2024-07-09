@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
  * @author peter.lawrey
  */
 public class NativeAffinityTest {
+
     protected static final int CORES = Runtime.getRuntime().availableProcessors();
     protected static final BitSet CORES_MASK = new BitSet(CORES);
 
@@ -41,6 +42,13 @@ public class NativeAffinityTest {
 
     @BeforeClass
     public static void checkJniLibraryPresent() {
+        Assume.assumeTrue("Skipping non-Linux tests", System.getProperty("os.name").toLowerCase().contains("linux"));
+        Assume.assumeTrue(NativeAffinity.LOADED);
+    }
+
+    @Before
+    public void setUp() {
+        Assume.assumeTrue("Skipping non-Linux tests", System.getProperty("os.name").toLowerCase().contains("linux"));
         Assume.assumeTrue(NativeAffinity.LOADED);
     }
 
@@ -73,11 +81,7 @@ public class NativeAffinityTest {
     @Test
     @Ignore("TODO AFFINITY-25")
     public void getAffinityReturnsValuePreviouslySet() {
-        String osName = System.getProperty("os.name");
-        if (!osName.startsWith("Linux")) {
-            System.out.println("Skipping Linux tests");
-            return;
-        }
+        Assume.assumeTrue("Skipping non-Linux tests", System.getProperty("os.name").toLowerCase().contains("linux"));
         final IAffinity impl = NativeAffinity.INSTANCE;
         final int cores = CORES;
         for (int core = 0; core < cores; core++) {
@@ -90,11 +94,7 @@ public class NativeAffinityTest {
     @Test
     @Ignore("TODO AFFINITY-25")
     public void JNAwithJNI() {
-        String osName = System.getProperty("os.name");
-        if (!osName.startsWith("Linux")) {
-            System.out.println("Skipping Linux tests");
-            return;
-        }
+        Assume.assumeTrue("Skipping non-Linux tests", System.getProperty("os.name").toLowerCase().contains("linux"));
         int nbits = Runtime.getRuntime().availableProcessors();
         BitSet affinity = new BitSet(nbits);
         affinity.set(1);
@@ -131,7 +131,9 @@ public class NativeAffinityTest {
 
     @After
     public void tearDown() {
-        getImpl().setAffinity(CORES_MASK);
+        if (System.getProperty("os.name").toLowerCase().contains("linux") && NativeAffinity.LOADED) {
+            getImpl().setAffinity(CORES_MASK);
+        }
     }
 
     public IAffinity getImpl() {

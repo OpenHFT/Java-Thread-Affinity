@@ -22,18 +22,35 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 /**
- * @author Tom Shercliff
+ * The LockReference class represents a reference to a file lock, holding both the file channel and the file lock.
+ * It is used to manage locks on CPU cores.
+ *
+ * Author: Tom Shercliff
  */
 
 public class LockReference {
+    // The file channel associated with the lock
     protected final FileChannel channel;
+
+    // The file lock
     protected final FileLock lock;
 
+    /**
+     * Constructs a LockReference with the specified file channel and file lock.
+     *
+     * @param channel the file channel associated with the lock
+     * @param lock    the file lock
+     */
     public LockReference(final FileChannel channel, final FileLock lock) {
         this.channel = channel;
         this.lock = lock;
     }
 
+    /**
+     * Returns the file channel associated with the lock.
+     *
+     * @return the file channel
+     */
     public FileChannel getChannel() {
         return channel;
     }

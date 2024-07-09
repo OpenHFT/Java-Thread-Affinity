@@ -29,24 +29,43 @@ import java.util.TreeMap;
 
 import static net.openhft.affinity.Affinity.getAffinityImpl;
 
+/**
+ * The LockInventory class manages locks for CPU cores, allowing threads to be bound to specific cores based on strategies.
+ */
 class LockInventory {
 
+    // Logger instance for logging messages
     private static final Logger LOGGER = LoggerFactory.getLogger(LockInventory.class);
+
     /**
-     * The locks belonging to physical cores. Since a physical core can host multiple logical cores
+     * The locks belonging to physical cores. Since a physical core can host multiple logical cores,
      * the relationship is one to many.
      */
     private final NavigableMap<Integer, AffinityLock[]> physicalCoreLocks = new TreeMap<>();
+
+    // The layout of the CPU
     private CpuLayout cpuLayout;
+
     /**
-     * The lock belonging to each logical core. 1-to-1 relationship
+     * The lock belonging to each logical core. 1-to-1 relationship.
      */
     private AffinityLock[] logicalCoreLocks;
 
+    /**
+     * Constructs a LockInventory with the specified CPU layout.
+     *
+     * @param cpuLayout the layout of the CPU
+     */
     public LockInventory(CpuLayout cpuLayout) {
         set(cpuLayout);
     }
 
+    /**
+     * Dumps the locks to a string representation.
+     *
+     * @param locks the array of locks to dump
+     * @return the string representation of the locks
+     */
     public static String dumpLocks(@NotNull AffinityLock[] locks) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < locks.length; i++) {
@@ -58,6 +77,14 @@ class LockInventory {
         return sb.toString();
     }
 
+    /**
+     * Checks if any strategy matches between two CPUs.
+     *
+     * @param cpuOne     the first CPU
+     * @param cpuTwo     the second CPU
+     * @param strategies the array of strategies to check
+     * @return true if any strategy matches, false otherwise
+     */
     private static boolean anyStrategyMatches(final int cpuOne, final int cpuTwo, final AffinityStrategy[] strategies) {
         for (AffinityStrategy strategy : strategies) {
             if (strategy.matches(cpuOne, cpuTwo)) {
@@ -67,17 +94,24 @@ class LockInventory {
         return false;
     }
 
+    /**
+     * Checks if the specified CPU ID represents any CPU.
+     *
+     * @param cpuId the CPU ID to check
+     * @return true if the CPU ID represents any CPU, false otherwise
+     */
     private static boolean isAnyCpu(final int cpuId) {
         return cpuId == AffinityLock.ANY_CPU;
     }
 
     /**
-     * Update the lock for the current thread
+     * Updates the lock for the current thread.
      *
-     * @param bind      Whether to also bind the thread to the core
-     * @param al        The lock to update
-     * @param wholeCore Whether to bind the whole core
+     * @param bind      whether to bind the thread to the core
+     * @param al        the lock to update
+     * @param wholeCore whether to bind the whole core
      * @return true if the lock was acquired, false otherwise
+     * @throws ClosedByInterruptException if the lock acquisition is interrupted
      */
     private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) throws ClosedByInterruptException {
         try {
@@ -94,10 +128,20 @@ class LockInventory {
         return false;
     }
 
+    /**
+     * Gets the current CPU layout.
+     *
+     * @return the current CPU layout
+     */
     public final synchronized CpuLayout getCpuLayout() {
         return cpuLayout;
     }
 
+    /**
+     * Sets a new CPU layout and initializes the locks.
+     *
+     * @param cpuLayout the new CPU layout to set
+     */
     public final synchronized void set(CpuLayout cpuLayout) {
         if (cpuLayout.equals(this.cpuLayout)) {
             return;
@@ -119,6 +163,14 @@ class LockInventory {
         }
     }
 
+    /**
+     * Acquires a lock based on the specified strategies.
+     *
+     * @param bind     whether to bind the thread to the core
+     * @param cpuId    the preferred CPU ID
+     * @param strategies the array of strategies to use for acquiring the lock
+     * @return the acquired AffinityLock
+     */
     public final synchronized AffinityLock acquireLock(boolean bind, int cpuId, AffinityStrategy... strategies) {
         if (getAffinityImpl() instanceof NullAffinity)
             return noLock();
@@ -186,6 +238,14 @@ class LockInventory {
         return null;
     }
 
+    /**
+     * Acquires a core for the specified CPU and strategies.
+     *
+     * @param bind      whether to bind the thread to the core
+     * @param cpuId     the CPU ID to acquire the core for
+     * @param strategies the array of strategies to use for acquiring the core
+     * @return the acquired AffinityLock
+     */
     public final synchronized AffinityLock acquireCore(boolean bind, int cpuId, AffinityStrategy... strategies) {
         for (AffinityStrategy strategy : strategies) {
             LOOP:
@@ -211,6 +271,11 @@ class LockInventory {
         return acquireLock(bind, cpuId, strategies);
     }
 
+    /**
+     * Binds the whole core for the specified logical core ID.
+     *
+     * @param logicalCoreID the logical core ID to bind
+     */
     public final synchronized void bindWholeCore(int logicalCoreID) {
         if (logicalCoreID < 0) {
             LOGGER.warn("Can't bind core since it was not possible to reserve it!");
@@ -240,6 +305,11 @@ class LockInventory {
         }
     }
 
+    /**
+     * Releases all locks held by the current thread.
+     *
+     * @param resetAffinity whether to reset the affinity to the base affinity
+     */
     public final synchronized void release(boolean resetAffinity) {
         Thread t = Thread.currentThread();
         for (AffinityLock al : logicalCoreLocks) {
@@ -254,24 +324,55 @@ class LockInventory {
             Affinity.resetToBaseAffinity();
     }
 
+    /**
+     * Dumps the current locks to a string representation.
+     *
+     * @return the string representation of the current locks
+     */
     public final synchronized String dumpLocks() {
         return dumpLocks(logicalCoreLocks);
     }
 
+    /**
+     * Creates a new AffinityLock for the specified CPU.
+     *
+     * @param cpuId      the CPU ID
+     * @param base       whether the CPU is part of the base affinity
+     * @param reservable whether the CPU is reservable
+     * @return the created AffinityLock
+     */
     protected AffinityLock newLock(int cpuId, boolean base, boolean reservable) {
         return new AffinityLock(cpuId, base, reservable, this);
     }
 
+    /**
+     * Resets the lock inventory with a new CPU layout.
+     *
+     * @param cpuLayout the new CPU layout
+     */
     private void reset(CpuLayout cpuLayout) {
         this.cpuLayout = cpuLayout;
         this.logicalCoreLocks = new AffinityLock[cpuLayout.cpus()];
         this.physicalCoreLocks.clear();
     }
 
+    /**
+     * Converts a logical core ID to a physical core ID.
+     *
+     * @param layoutId the logical core ID
+     * @return the physical core ID
+     */
     private int toPhysicalCore(int layoutId) {
         return cpuLayout.socketId(layoutId) * cpuLayout.coresPerSocket() + cpuLayout.coreId(layoutId);
     }
 
+    /**
+     * Releases the affinity lock for the specified thread and lock.
+     *
+     * @param t      the thread releasing the lock
+     * @param al     the affinity lock to release
+     * @param format the format string for the log message
+     */
     private void releaseAffinityLock(final Thread t, final AffinityLock al, final String format) {
         LOGGER.info(format, al.cpuId(), t);
         al.assignedThread = null;
@@ -281,6 +382,11 @@ class LockInventory {
         LockCheck.releaseLock(al.cpuId());
     }
 
+    /**
+     * Returns a dummy AffinityLock.
+     *
+     * @return a dummy AffinityLock
+     */
     public AffinityLock noLock() {
         return newLock(AffinityLock.ANY_CPU, false, false);
     }

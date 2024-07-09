@@ -17,18 +17,33 @@
 
 package net.openhft.affinity.impl;
 
+/**
+ * The VersionHelper class provides methods for parsing, comparing, and representing version numbers.
+ */
 public class VersionHelper {
     private static final String DELIM = ".";
     private final int major;
     private final int minor;
     private final int release;
 
+    /**
+     * Constructs a VersionHelper instance with the specified major, minor, and release numbers.
+     *
+     * @param major_   the major version number
+     * @param minor_   the minor version number
+     * @param release_ the release version number
+     */
     public VersionHelper(int major_, int minor_, int release_) {
         major = major_;
         minor = minor_;
         release = release_;
     }
 
+    /**
+     * Constructs a VersionHelper instance by parsing a version string.
+     *
+     * @param ver the version string to parse
+     */
     public VersionHelper(String ver) {
         if (ver != null && (ver = ver.trim()).length() > 0) {
             final String[] parts = ver.split("\\.");
@@ -41,10 +56,23 @@ public class VersionHelper {
         }
     }
 
+    /**
+     * Returns a string representation of the version in the format "major.minor.release".
+     *
+     * @return a string representation of the version
+     */
+    @Override
     public String toString() {
         return major + DELIM + minor + DELIM + release;
     }
 
+    /**
+     * Checks if this VersionHelper is equal to another object.
+     *
+     * @param o the object to compare to
+     * @return true if the objects are equal, false otherwise
+     */
+    @Override
     public boolean equals(Object o) {
         if (o != null && (o instanceof VersionHelper)) {
             VersionHelper ver = (VersionHelper) o;
@@ -57,10 +85,22 @@ public class VersionHelper {
         }
     }
 
+    /**
+     * Returns a hash code for this VersionHelper.
+     *
+     * @return a hash code for this VersionHelper
+     */
+    @Override
     public int hashCode() {
         return (major << 16) | (minor << 8) | release;
     }
 
+    /**
+     * Checks if the major and minor version numbers of this VersionHelper are equal to another VersionHelper.
+     *
+     * @param ver the VersionHelper to compare to
+     * @return true if the major and minor version numbers are equal, false otherwise
+     */
     @SuppressWarnings("unused")
     public boolean majorMinorEquals(final VersionHelper ver) {
         return ver != null
@@ -68,6 +108,12 @@ public class VersionHelper {
                 && this.minor == ver.minor;
     }
 
+    /**
+     * Checks if this VersionHelper is the same or newer than another VersionHelper.
+     *
+     * @param ver the VersionHelper to compare to
+     * @return true if this VersionHelper is the same or newer, false otherwise
+     */
     public boolean isSameOrNewer(final VersionHelper ver) {
         return ver != null
                 && (this.major > ver.major

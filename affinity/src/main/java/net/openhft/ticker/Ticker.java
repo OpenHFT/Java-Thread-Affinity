@@ -21,14 +21,18 @@ import net.openhft.ticker.impl.JNIClock;
 import net.openhft.ticker.impl.SystemClock;
 
 /**
- * Static factory for available {@link ITicker} interface implementation
- *
- * @author Peter.Lawrey
+ * The Ticker class provides a static factory for obtaining an implementation of the {@link ITicker} interface.
+ * It automatically selects the most appropriate implementation based on the availability of native libraries.
+ * <p>
+ * Author: Peter Lawrey
+ * </p>
  */
 public final class Ticker {
+    // Singleton instance of ITicker
     public static final ITicker INSTANCE;
 
     static {
+        // Select the appropriate ITicker implementation
         if (JNIClock.LOADED) {
             INSTANCE = JNIClock.INSTANCE;
         } else {
@@ -36,25 +40,45 @@ public final class Ticker {
         }
     }
 
+    // Private constructor to prevent instantiation
     private Ticker() {
         throw new InstantiationError("Must not instantiate this class");
     }
 
     /**
-     * @return The current value of the system timer, in nanoseconds.
+     * Returns the current value of the system timer in nanoseconds.
+     *
+     * @return the current value of the system timer, in nanoseconds
      */
     public static long ticks() {
         return INSTANCE.ticks();
     }
 
+    /**
+     * Returns the current time in nanoseconds.
+     *
+     * @return the current time in nanoseconds
+     */
     public static long nanoTime() {
         return toNanos(ticks());
     }
 
+    /**
+     * Converts the given number of ticks to nanoseconds.
+     *
+     * @param ticks the number of ticks
+     * @return the equivalent time in nanoseconds
+     */
     public static long toNanos(long ticks) {
         return INSTANCE.toNanos(ticks);
     }
 
+    /**
+     * Converts the given number of ticks to microseconds.
+     *
+     * @param ticks the number of ticks
+     * @return the equivalent time in microseconds
+     */
     public static double toMicros(long ticks) {
         return INSTANCE.toMicros(ticks);
     }

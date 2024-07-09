@@ -42,47 +42,79 @@ import java.util.Set;
 import static java.nio.file.StandardOpenOption.*;
 import static net.openhft.affinity.impl.VanillaCpuLayout.MAX_CPUS_SUPPORTED;
 
+/**
+ * The FileLockBasedLockChecker class provides a mechanism to check and obtain locks on CPU cores using file locks.
+ * It uses file-based locking to ensure that only one process can lock a particular CPU core at a time.
+ * This class implements the LockChecker interface.
+ * <p>
+ * Author: Tom Shercliff
+ */
 public class FileLockBasedLockChecker implements LockChecker {
 
+    // Maximum number of retries for acquiring a lock
     private static final int MAX_LOCK_RETRIES = 5;
-    private static final ThreadLocal<SimpleDateFormat> dfTL = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy.MM" + ".dd 'at' HH:mm:ss z"));
+
+    // Thread-local SimpleDateFormat for formatting dates
+    private static final ThreadLocal<SimpleDateFormat> dfTL = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy.MM.dd 'at' HH:mm:ss z"));
+
+    // File attributes for the lock files
     private static final FileAttribute<Set<PosixFilePermission>> LOCK_FILE_ATTRIBUTES = PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-"));
+
+    // Open options for the lock files
     private static final Set<OpenOption> LOCK_FILE_OPEN_OPTIONS = new HashSet<>(Arrays.asList(READ, WRITE, CREATE, SYNC));
+
+    // Logger instance for logging messages
     private static final Logger LOGGER = LoggerFactory.getLogger(FileLockBasedLockChecker.class);
+
+    // Singleton instance of FileLockBasedLockChecker
     private static final FileLockBasedLockChecker instance = new FileLockBasedLockChecker();
+
+    // Array to hold references to locks for each CPU
     private final LockReference[] locks = new LockReference[MAX_CPUS_SUPPORTED];
 
+    // Protected constructor to prevent instantiation
     protected FileLockBasedLockChecker() {
-        //nothing
+        // nothing
     }
 
+    /**
+     * Returns the singleton instance of FileLockBasedLockChecker.
+     *
+     * @return the singleton instance of FileLockBasedLockChecker
+     */
     public static LockChecker getInstance() {
         return instance;
     }
 
+    /**
+     * Checks if a lock is free for a given CPU ID.
+     *
+     * @param id the CPU ID to check
+     * @return true if the lock is free, false otherwise
+     */
     @Override
     public synchronized boolean isLockFree(int id) {
-        // check if this process already has the lock
+        // Check if this process already has the lock
         if (locks[id] != null) {
             return false;
         }
 
-        // check if another process has the lock
+        // Check if another process has the lock
         File lockFile = toFile(id);
         try (final FileChannel channel = FileChannel.open(lockFile.toPath(), READ)) {
-            // if we can acquire a shared lock, nobody has an exclusive lock
+            // If we can acquire a shared lock, nobody has an exclusive lock
             try (final FileLock fileLock = channel.tryLock(0, Long.MAX_VALUE, true)) {
                 if (fileLock != null && fileLock.isValid()) {
-                    if (!lockFile.delete()) { // try and clean up the orphaned lock file
+                    if (!lockFile.delete()) { // Try to clean up the orphaned lock file
                         LOGGER.debug("Couldn't delete orphaned lock file " + lockFile);
                     }
                     return true;
                 } else {
-                    // another process has an exclusive lock
+                    // Another process has an exclusive lock
                     return false;
                 }
             } catch (OverlappingFileLockException e) {
-                // someone else (in the same JVM) has an exclusive lock
+                // Someone else (in the same JVM) has an exclusive lock
                 /*
                  * This shouldn't happen under normal circumstances, we have the singleton
                  * {@link #locks} array to prevent overlapping locks from the same JVM, but
@@ -91,7 +123,7 @@ public class FileLockBasedLockChecker implements LockChecker {
                 return false;
             }
         } catch (NoSuchFileException e) {
-            // no lock file exists, nobody has the lock
+            // No lock file exists, nobody has the lock
             return true;
         } catch (IOException e) {
             LOGGER.warn("An unexpected error occurred checking if the lock was free, assuming it's not", e);
@@ -99,6 +131,14 @@ public class FileLockBasedLockChecker implements LockChecker {
         }
     }
 
+    /**
+     * Attempts to obtain a lock for a given CPU ID with meta-information.
+     *
+     * @param id       the CPU ID to lock
+     * @param metaInfo the meta-information to write to the lock file
+     * @return true if the lock was successfully obtained, false otherwise
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public synchronized boolean obtainLock(int id, String metaInfo) throws IOException {
         int attempt = 0;
@@ -120,7 +160,6 @@ public class FileLockBasedLockChecker implements LockChecker {
 
     /**
      * Attempts to acquire an exclusive lock on the core lock file.
-     * <p>
      * It will fail if another process already has an exclusive lock on the file.
      *
      * @param id       The CPU ID to acquire
@@ -135,22 +174,22 @@ public class FileLockBasedLockChecker implements LockChecker {
         try {
             final FileLock fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, false);
             if (fileLock == null) {
-                // someone else has a lock (exclusive or shared), fail to acquire
+                // Someone else has a lock (exclusive or shared), fail to acquire
                 closeQuietly(fileChannel);
                 return null;
             } else {
                 if (!lockFile.exists()) {
-                    // someone deleted the file between us opening it and acquiring the lock, signal to retry
+                    // Someone deleted the file between us opening it and acquiring the lock, signal to retry
                     closeQuietly(fileLock, fileChannel);
                     throw new ConcurrentLockFileDeletionException();
                 } else {
-                    // we have the lock, the file exists. That's success.
+                    // We have the lock, the file exists. That's success.
                     writeMetaInfoToFile(fileChannel, metaInfo);
                     return new LockReference(fileChannel, fileLock);
                 }
             }
         } catch (OverlappingFileLockException e) {
-            // someone else (in the same JVM) has a lock, fail to acquire
+            // Someone else (in the same JVM) has a lock, fail to acquire
             /*
              * This shouldn't happen under normal circumstances, we have the singleton
              * {@link #locks} array to prevent overlapping locks from the same JVM, but
@@ -161,6 +200,13 @@ public class FileLockBasedLockChecker implements LockChecker {
         }
     }
 
+    /**
+     * Writes meta-information to the lock file.
+     *
+     * @param fc       The FileChannel of the lock file
+     * @param metaInfo The meta-information to write
+     * @throws IOException If an I/O error occurs
+     */
     private void writeMetaInfoToFile(FileChannel fc, String metaInfo) throws IOException {
         byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(content);
@@ -169,6 +215,12 @@ public class FileLockBasedLockChecker implements LockChecker {
         }
     }
 
+    /**
+     * Releases the lock for a given CPU ID.
+     *
+     * @param id the CPU ID to release the lock for
+     * @return true if the lock was successfully released, false otherwise
+     */
     @Override
     public synchronized boolean releaseLock(int id) {
         if (locks[id] != null) {
@@ -183,6 +235,11 @@ public class FileLockBasedLockChecker implements LockChecker {
         return false;
     }
 
+    /**
+     * Closes AutoCloseable resources quietly.
+     *
+     * @param closeables the resources to close
+     */
     private void closeQuietly(AutoCloseable... closeables) {
         for (AutoCloseable closeable : closeables) {
             try {
@@ -195,6 +252,13 @@ public class FileLockBasedLockChecker implements LockChecker {
         }
     }
 
+    /**
+     * Retrieves the meta-information for a given CPU ID.
+     *
+     * @param id the CPU ID to get the meta-information for
+     * @return the meta-information string, or null if not found
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public String getMetaInfo(int id) throws IOException {
         final File file = toFile(id);
@@ -211,6 +275,14 @@ public class FileLockBasedLockChecker implements LockChecker {
         }
     }
 
+    /**
+     * Reads meta-information from a lock file channel.
+     *
+     * @param lockFile       The lock file
+     * @param lockFileChannel The FileChannel of the lock file
+     * @return The meta-information string
+     * @throws IOException If an I/O error occurs
+     */
     private String readMetaInfoFromLockFileChannel(File lockFile, FileChannel lockFileChannel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(64);
         int len = lockFileChannel.read(buffer, 0);
@@ -222,12 +294,23 @@ public class FileLockBasedLockChecker implements LockChecker {
         return content.substring(0, content.indexOf("\n"));
     }
 
+    /**
+     * Converts a CPU ID to a lock file.
+     *
+     * @param id the CPU ID
+     * @return the lock file
+     */
     @NotNull
     protected File toFile(int id) {
         assert id >= 0;
         return new File(tmpDir(), "cpu-" + id + ".lock");
     }
 
+    /**
+     * Returns the temporary directory for lock files.
+     *
+     * @return the temporary directory
+     */
     private File tmpDir() {
         final File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
@@ -238,7 +321,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     /**
-     * Thrown when another process deleted the lock file between us opening the file and acquiring the lock
+     * Thrown when another process deleted the lock file between us opening the file and acquiring the lock.
      */
     class ConcurrentLockFileDeletionException extends Exception {
         private static final long serialVersionUID = 0L;

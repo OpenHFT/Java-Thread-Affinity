@@ -84,4 +84,72 @@ public class LockCheckTest extends BaseAffinityTest {
 
         LockCheck.isCpuFree(cpu);
     }
+
+    @Test
+    public void testGetPID() {
+        long pid = LockCheck.getPID();
+        Assert.assertTrue(pid > 0);
+    }
+
+    @Test
+    public void testCanOSSupportOperation() {
+        Assert.assertEquals(LockCheck.IS_LINUX, LockCheck.canOSSupportOperation());
+    }
+
+    @Test
+    public void testIsCpuFree() {
+        boolean isFree = LockCheck.isCpuFree(cpu);
+        Assert.assertTrue(isFree);
+    }
+
+    @Test
+    public void testReplacePid() throws IOException {
+        long testPid = LockCheck.getPID();
+        Assert.assertTrue(LockCheck.replacePid(cpu, testPid));
+    }
+
+    @Test
+    public void testIsProcessRunning() {
+        long testPid = LockCheck.getPID();
+        boolean isRunning = LockCheck.isProcessRunning(testPid);
+        Assert.assertTrue(isRunning);
+
+        // Test with a non-existent PID
+        Assert.assertFalse(LockCheck.isProcessRunning(999999));
+    }
+
+    @Test
+    public void testStorePid() throws IOException {
+        long testPid = LockCheck.getPID();
+        Assert.assertTrue(LockCheck.storePid(testPid, cpu));
+    }
+
+    @Test
+    public void testIsLockFree() {
+        boolean isFree = LockCheck.isLockFree(cpu);
+        Assert.assertTrue(isFree);
+    }
+
+    @Test
+    public void testGetProcessForCpu() throws IOException {
+        long testPid = LockCheck.getPID();
+        LockCheck.storePid(testPid, cpu);
+
+        int pidForCpu = LockCheck.getProcessForCpu(cpu);
+        Assert.assertEquals(testPid, pidForCpu);
+    }
+
+    @Test
+    public void testUpdateCpu() throws IOException {
+        boolean updated = LockCheck.updateCpu(cpu);
+        Assert.assertTrue(updated);
+    }
+
+    @Test
+    public void testReleaseLock() {
+        LockCheck.releaseLock(cpu);
+
+        // Check if the lock is actually released
+        Assert.assertTrue(LockCheck.isLockFree(cpu));
+    }
 }

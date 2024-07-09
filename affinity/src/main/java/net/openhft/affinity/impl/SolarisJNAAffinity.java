@@ -35,30 +35,61 @@ import java.util.BitSet;
  */
 public enum SolarisJNAAffinity implements IAffinity {
     INSTANCE;
+
+    // Logger instance for logging messages
     private static final Logger LOGGER = LoggerFactory.getLogger(SolarisJNAAffinity.class);
+
+    // ThreadLocal variable to store thread IDs
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
+    /**
+     * Gets the CPU affinity of the current process.
+     *
+     * @return an empty BitSet
+     */
     @Override
     public BitSet getAffinity() {
         return new BitSet();
     }
 
+    /**
+     * Sets the CPU affinity for the current process.
+     * This implementation logs a message and performs no action.
+     *
+     * @param affinity the BitSet representing the CPU affinity
+     */
     @Override
     public void setAffinity(final BitSet affinity) {
         LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Utilities.toHexString(affinity));
     }
 
+    /**
+     * Gets the current CPU that the calling thread is running on.
+     * This implementation returns -1.
+     *
+     * @return -1 indicating that the operation is not supported
+     */
     @Override
     public int getCpu() {
         return -1;
     }
 
+    /**
+     * Gets the process ID of the current process.
+     *
+     * @return the process ID
+     */
     @Override
     public int getProcessId() {
         final String name = ManagementFactory.getRuntimeMXBean().getName();
         return Integer.parseInt(name.split("@")[0]);
     }
 
+    /**
+     * Gets the thread ID of the calling thread.
+     *
+     * @return the thread ID
+     */
     @Override
     public int getThreadId() {
         Integer tid = THREAD_ID.get();
@@ -71,9 +102,18 @@ public enum SolarisJNAAffinity implements IAffinity {
         return tid;
     }
 
+    /**
+     * Interface to the C library, providing methods to interact with pthread functions.
+     */
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load("c", CLibrary.class);
 
+        /**
+         * Returns the thread ID of the calling thread.
+         *
+         * @return the thread ID
+         * @throws LastErrorException if an error occurs
+         */
         int pthread_self() throws LastErrorException;
     }
 }

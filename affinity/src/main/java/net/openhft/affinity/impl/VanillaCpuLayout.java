@@ -28,7 +28,8 @@ import java.util.*;
 import static java.lang.Integer.parseInt;
 
 /**
- * @author peter.lawrey
+ * This class represents the CPU layout for a system, providing information about
+ * sockets, cores, and threads.
  */
 public class VanillaCpuLayout implements CpuLayout {
     public static final int MAX_CPUS_SUPPORTED = 256;
@@ -39,6 +40,11 @@ public class VanillaCpuLayout implements CpuLayout {
     private final int coresPerSocket;
     private final int threadsPerCore;
 
+    /**
+     * Constructs a VanillaCpuLayout instance with the given CPU details.
+     *
+     * @param cpuDetails a list of CpuInfo objects representing the CPU details
+     */
     VanillaCpuLayout(@NotNull List<CpuInfo> cpuDetails) {
         this.cpuDetails = cpuDetails;
         SortedSet<Integer> sockets = new TreeSet<>(),
@@ -65,11 +71,25 @@ public class VanillaCpuLayout implements CpuLayout {
         }
     }
 
+    /**
+     * Creates a VanillaCpuLayout instance from a properties file.
+     *
+     * @param fileName the name of the properties file
+     * @return a VanillaCpuLayout instance
+     * @throws IOException if an I/O error occurs
+     */
     @NotNull
     public static VanillaCpuLayout fromProperties(String fileName) throws IOException {
         return fromProperties(openFile(fileName));
     }
 
+    /**
+     * Creates a VanillaCpuLayout instance from an InputStream of properties.
+     *
+     * @param is the InputStream of properties
+     * @return a VanillaCpuLayout instance
+     * @throws IOException if an I/O error occurs
+     */
     @NotNull
     public static VanillaCpuLayout fromProperties(InputStream is) throws IOException {
         Properties prop = new Properties();
@@ -77,6 +97,12 @@ public class VanillaCpuLayout implements CpuLayout {
         return fromProperties(prop);
     }
 
+    /**
+     * Creates a VanillaCpuLayout instance from a Properties object.
+     *
+     * @param prop the Properties object
+     * @return a VanillaCpuLayout instance
+     */
     @NotNull
     public static VanillaCpuLayout fromProperties(@NotNull Properties prop) {
         List<CpuInfo> cpuDetails = new ArrayList<>();
@@ -91,16 +117,36 @@ public class VanillaCpuLayout implements CpuLayout {
         return new VanillaCpuLayout(cpuDetails);
     }
 
+    /**
+     * Creates a VanillaCpuLayout instance from the /proc/cpuinfo file.
+     *
+     * @return a VanillaCpuLayout instance
+     * @throws IOException if an I/O error occurs
+     */
     @NotNull
     public static VanillaCpuLayout fromCpuInfo() throws IOException {
         return fromCpuInfo("/proc/cpuinfo");
     }
 
+    /**
+     * Creates a VanillaCpuLayout instance from a specified cpuinfo file.
+     *
+     * @param filename the name of the cpuinfo file
+     * @return a VanillaCpuLayout instance
+     * @throws IOException if an I/O error occurs
+     */
     @NotNull
     public static VanillaCpuLayout fromCpuInfo(String filename) throws IOException {
         return fromCpuInfo(openFile(filename));
     }
 
+    /**
+     * Opens a file and returns its InputStream.
+     *
+     * @param filename the name of the file
+     * @return an InputStream of the file
+     * @throws FileNotFoundException if the file is not found
+     */
     private static InputStream openFile(String filename) throws FileNotFoundException {
         try {
             return new FileInputStream(filename);
@@ -112,6 +158,13 @@ public class VanillaCpuLayout implements CpuLayout {
         }
     }
 
+    /**
+     * Creates a VanillaCpuLayout instance from an InputStream of cpuinfo.
+     *
+     * @param is the InputStream of cpuinfo
+     * @return a VanillaCpuLayout instance
+     * @throws IOException if an I/O error occurs
+     */
     @NotNull
     public static VanillaCpuLayout fromCpuInfo(InputStream is) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
@@ -143,39 +196,82 @@ public class VanillaCpuLayout implements CpuLayout {
         return new VanillaCpuLayout(cpuDetails);
     }
 
+    /**
+     * Gets the number of CPUs.
+     *
+     * @return the number of CPUs
+     */
     @Override
     public int cpus() {
         return cpuDetails.size();
     }
 
+    /**
+     * Gets the number of sockets.
+     *
+     * @return the number of sockets
+     */
     public int sockets() {
         return sockets;
     }
 
+    /**
+     * Gets the number of cores per socket.
+     *
+     * @return the number of cores per socket
+     */
     public int coresPerSocket() {
         return coresPerSocket;
     }
 
+    /**
+     * Gets the number of threads per core.
+     *
+     * @return the number of threads per core
+     */
     @Override
     public int threadsPerCore() {
         return threadsPerCore;
     }
 
+    /**
+     * Gets the socket ID for the given CPU ID.
+     *
+     * @param cpuId the CPU ID
+     * @return the socket ID
+     */
     @Override
     public int socketId(int cpuId) {
         return cpuDetails.get(cpuId).socketId;
     }
 
+    /**
+     * Gets the core ID for the given CPU ID.
+     *
+     * @param cpuId the CPU ID
+     * @return the core ID
+     */
     @Override
     public int coreId(int cpuId) {
         return cpuDetails.get(cpuId).coreId;
     }
 
+    /**
+     * Gets the thread ID for the given CPU ID.
+     *
+     * @param cpuId the CPU ID
+     * @return the thread ID
+     */
     @Override
     public int threadId(int cpuId) {
         return cpuDetails.get(cpuId).threadId;
     }
 
+    /**
+     * Returns a string representation of the VanillaCpuLayout.
+     *
+     * @return a string representation of the VanillaCpuLayout
+     */
     @NotNull
     @Override
     public String toString() {
@@ -187,6 +283,12 @@ public class VanillaCpuLayout implements CpuLayout {
         return sb.toString();
     }
 
+    /**
+     * Checks if this VanillaCpuLayout is equal to another object.
+     *
+     * @param o the object to compare to
+     * @return true if the objects are equal, false otherwise
+     */
     @Override
     public boolean equals(@Nullable Object o) {
         if (this == o) return true;
@@ -201,6 +303,11 @@ public class VanillaCpuLayout implements CpuLayout {
 
     }
 
+    /**
+     * Returns a hash code for this VanillaCpuLayout.
+     *
+     * @return a hash code for this VanillaCpuLayout
+     */
     @Override
     public int hashCode() {
         int result = cpuDetails.hashCode();
@@ -210,18 +317,36 @@ public class VanillaCpuLayout implements CpuLayout {
         return result;
     }
 
+    /**
+     * This class represents the details of a CPU, including the socket ID, core ID, and thread ID.
+     */
     static class CpuInfo {
         int socketId, coreId, threadId;
 
+        /**
+         * Default constructor for CpuInfo.
+         */
         CpuInfo() {
         }
 
+        /**
+         * Constructs a CpuInfo instance with the given socket ID, core ID, and thread ID.
+         *
+         * @param socketId the socket ID
+         * @param coreId   the core ID
+         * @param threadId the thread ID
+         */
         CpuInfo(int socketId, int coreId, int threadId) {
             this.socketId = socketId;
             this.coreId = coreId;
             this.threadId = threadId;
         }
 
+        /**
+         * Returns a string representation of the CpuInfo.
+         *
+         * @return a string representation of the CpuInfo
+         */
         @NotNull
         @Override
         public String toString() {
@@ -232,6 +357,12 @@ public class VanillaCpuLayout implements CpuLayout {
                     '}';
         }
 
+        /**
+         * Checks if this CpuInfo is equal to another object.
+         *
+         * @param o the object to compare to
+         * @return true if the objects are equal, false otherwise
+         */
         @Override
         public boolean equals(@Nullable Object o) {
             if (this == o) return true;
@@ -245,6 +376,11 @@ public class VanillaCpuLayout implements CpuLayout {
 
         }
 
+        /**
+         * Returns a hash code for this CpuInfo.
+         *
+         * @return a hash code for this CpuInfo
+         */
         @Override
         public int hashCode() {
             int result = socketId;

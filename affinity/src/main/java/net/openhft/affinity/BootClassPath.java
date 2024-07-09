@@ -30,11 +30,20 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * The BootClassPath enum provides functionality to inspect and query the boot classpath for resources.
+ */
 enum BootClassPath {
     INSTANCE;
 
-    private final Set<String> bootClassPathResources = Collections.unmodifiableSet(getResourcesOnBootClasspath());
+    // Set of resources on the boot classpath
+    final Set<String> bootClassPathResources = Collections.unmodifiableSet(getResourcesOnBootClasspath());
 
+    /**
+     * Retrieves all resources on the boot classpath.
+     *
+     * @return a Set of resource names on the boot classpath
+     */
     private static Set<String> getResourcesOnBootClasspath() {
         final Logger logger = LoggerFactory.getLogger(BootClassPath.class);
         final Set<String> resources = new HashSet<>();
@@ -46,6 +55,7 @@ enum BootClassPath {
 
         final String[] pathElements = bootClassPath.split(pathSeparator);
 
+        // Iterate over each path element in the boot classpath
         for (final String pathElement : pathElements) {
             resources.addAll(findResources(Paths.get(pathElement), logger));
         }
@@ -53,7 +63,14 @@ enum BootClassPath {
         return resources;
     }
 
-    private static Set<String> findResources(final Path path, final Logger logger) {
+    /**
+     * Finds resources at the specified path.
+     *
+     * @param path   the path to search for resources
+     * @param logger the logger for logging messages
+     * @return a Set of resource names found at the specified path
+     */
+    static Set<String> findResources(final Path path, final Logger logger) {
         if (!Files.exists(path)) {
             return Collections.emptySet();
         }
@@ -65,7 +82,14 @@ enum BootClassPath {
         return findResourcesInJar(path, logger);
     }
 
-    private static Set<String> findResourcesInJar(final Path path, final Logger logger) {
+    /**
+     * Finds resources in a JAR file at the specified path.
+     *
+     * @param path   the path to the JAR file
+     * @param logger the logger for logging messages
+     * @return a Set of resource names found in the JAR file
+     */
+    static Set<String> findResourcesInJar(final Path path, final Logger logger) {
         final Set<String> jarResources = new HashSet<>();
         try (final JarFile jarFile = new JarFile(path.toFile())) {
             final Enumeration<JarEntry> entries = jarFile.entries();
@@ -82,7 +106,14 @@ enum BootClassPath {
         return jarResources;
     }
 
-    private static Set<String> findResourcesInDirectory(final Path path, final Logger logger) {
+    /**
+     * Finds resources in a directory at the specified path.
+     *
+     * @param path   the path to the directory
+     * @param logger the logger for logging messages
+     * @return a Set of resource names found in the directory
+     */
+    static Set<String> findResourcesInDirectory(final Path path, final Logger logger) {
         final Set<String> dirResources = new HashSet<>();
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
@@ -101,6 +132,12 @@ enum BootClassPath {
         return dirResources;
     }
 
+    /**
+     * Checks if the specified class is present on the boot classpath.
+     *
+     * @param binaryClassName the binary name of the class to check
+     * @return true if the class is present on the boot classpath, false otherwise
+     */
     public final boolean has(String binaryClassName) {
         final String resourceClassName = binaryClassName.replace('.', '/').concat(".class");
         return bootClassPathResources.contains(resourceClassName);
