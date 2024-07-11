@@ -89,7 +89,7 @@ class LockInventory {
             throw e;
 
         } catch (IOException e) {
-            LOGGER.warn("Error occurred acquiring lock", e);
+            LOGGER.info("Error occurred acquiring lock, trying another " + e);
         }
         return false;
     }
