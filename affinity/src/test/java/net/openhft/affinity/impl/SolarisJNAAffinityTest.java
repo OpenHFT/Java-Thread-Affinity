@@ -1,30 +1,12 @@
-/*
- * Copyright 2016-2020 chronicle.software
- *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
-
 package net.openhft.affinity.impl;
 
 import junit.framework.TestCase;
 import net.openhft.affinity.IAffinity;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.BitSet;
 
-public class PosixJNAAffinityTest extends TestCase {
+public class SolarisJNAAffinityTest extends TestCase {
 
     private IAffinity affinity;
     private boolean libraryLoaded = false;
@@ -33,10 +15,12 @@ public class PosixJNAAffinityTest extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         try {
-            // Attempt to initialize the PosixJNAAffinity class
-            Class.forName("net.openhft.affinity.impl.PosixJNAAffinity");
-            affinity = PosixJNAAffinity.INSTANCE;
-            libraryLoaded = PosixJNAAffinity.LOADED;
+            // Attempt to initialize the SolarisJNAAffinity class
+            Class.forName("net.openhft.affinity.impl.SolarisJNAAffinity");
+            affinity = SolarisJNAAffinity.INSTANCE;
+            // Check if the library is loaded
+            SolarisJNAAffinity.CLibrary.INSTANCE.pthread_self();
+            libraryLoaded = true;
         } catch (ClassNotFoundException | NoClassDefFoundError | UnsatisfiedLinkError e) {
             System.out.println("Library not loaded: " + e.getMessage());
         }
@@ -82,21 +66,16 @@ public class PosixJNAAffinityTest extends TestCase {
         }
         try {
             int cpu = affinity.getCpu();
-            assertTrue(cpu >= 0);
+            assertEquals(-1, cpu);
         } catch (IllegalStateException e) {
             System.out.println("Expected exception: " + e.getMessage());
         }
     }
 
     public void testGetProcessId() throws Exception {
-        if (!libraryLoaded) {
-            System.out.println("Skipping testGetProcessId as the library is not loaded.");
-            return;
-        }
         int processId = affinity.getProcessId();
-        Field field = PosixJNAAffinity.class.getDeclaredField("PROCESS_ID");
-        field.setAccessible(true);
-        int expectedProcessId = field.getInt(null);
+        String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+        int expectedProcessId = Integer.parseInt(name.split("@")[0]);
         assertEquals(expectedProcessId, processId);
     }
 
@@ -114,6 +93,6 @@ public class PosixJNAAffinityTest extends TestCase {
     }
 
     public void testLoggerInitialization() {
-        assertNotNull(LoggerFactory.getLogger(PosixJNAAffinity.class));
+        assertNotNull(LoggerFactory.getLogger(SolarisJNAAffinity.class));
     }
 }

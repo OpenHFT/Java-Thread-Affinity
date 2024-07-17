@@ -17,65 +17,75 @@
 
 package net.openhft.ticker.impl;
 
-import net.openhft.affinity.Affinity;
-import org.junit.Ignore;
-import org.junit.Test;
+import junit.framework.TestCase;
 
-import static org.junit.Assert.assertEquals;
+public class JNIClockTest extends TestCase {
 
-/*
- * Created by Peter Lawrey on 13/07/15.
- */
-public class JNIClockTest {
+    private boolean libraryLoaded = false;
 
-    @Test
-    @Ignore("TODO Fix")
-    public void testNanoTime() throws InterruptedException {
-        for (int i = 0; i < 20000; i++)
-            System.nanoTime();
-        Affinity.setAffinity(2);
-
-        JNIClock instance = JNIClock.INSTANCE;
-        for (int i = 0; i < 50; i++) {
-            long start0 = System.nanoTime();
-            long start1 = instance.ticks();
-            Thread.sleep(10);
-            long time0 = System.nanoTime();
-            long time1 = instance.ticks();
-            if (i > 1) {
-                assertEquals(10_100_000, time0 - start0, 100_000);
-                assertEquals(10_100_000, instance.toNanos(time1 - start1), 100_000);
-                assertEquals(instance.toNanos(time1 - start1) / 1e3, instance.toMicros(time1 - start1), 0.6);
-            }
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        try {
+            libraryLoaded = JNIClock.LOADED;
+        } catch (UnsatisfiedLinkError e) {
+            System.out.println("Library not loaded: " + e.getMessage());
         }
     }
 
-    @Test
-    @Ignore("Long running")
-    public void testJitter() {
-        Affinity.setAffinity(2);
-        assertEquals(2, Affinity.getCpu());
-        int samples = 100000, count = 0;
-        long[] time = new long[samples];
-        long[] length = new long[samples];
+    public void testLibraryLoaded() {
+        if (!libraryLoaded) {
+            System.out.println("Skipping testLibraryLoaded as the library is not loaded.");
+            return;
+        }
+        assertTrue("Library should be loaded", libraryLoaded);
+    }
 
-        JNIClock clock = JNIClock.INSTANCE;
-        long start = clock.ticks(), prev = start, prevJump = start;
-        for (int i = 0; i < 1000_000_000; i++) {
-            long now = clock.ticks();
-            long delta = now - prev;
-            if (delta > 4_000) {
-                time[count] = now - prevJump;
-                prevJump = now;
-                length[count] = delta;
-                count++;
-                if (count >= samples)
-                    break;
-            }
-            prev = now;
+    public void testNanoTime() {
+        if (!libraryLoaded) {
+            System.out.println("Skipping testNanoTime as the library is not loaded.");
+            return;
         }
-        for (int i = 0; i < count; i++) {
-            System.out.println(((long) (clock.toMicros(time[i]) * 10)) / 10.0 + ", " + ((long) (clock.toMicros(length[i]) * 10) / 10.0));
+        long nanoTime = JNIClock.INSTANCE.nanoTime();
+        assertTrue(nanoTime > 0);
+    }
+
+    public void testTicks() {
+        if (!libraryLoaded) {
+            System.out.println("Skipping testTicks as the library is not loaded.");
+            return;
         }
+        long ticks = JNIClock.INSTANCE.ticks();
+        assertTrue(ticks > 0);
+    }
+
+    public void testToNanos() {
+        if (!libraryLoaded) {
+            System.out.println("Skipping testToNanos as the library is not loaded.");
+            return;
+        }
+        long ticks = JNIClock.INSTANCE.ticks();
+        long nanos = JNIClock.INSTANCE.toNanos(ticks);
+        assertTrue(nanos > 0);
+    }
+
+    public void testToMicros() {
+        if (!libraryLoaded) {
+            System.out.println("Skipping testToMicros as the library is not loaded.");
+            return;
+        }
+        long ticks = JNIClock.INSTANCE.ticks();
+        double micros = JNIClock.INSTANCE.toMicros(ticks);
+        assertTrue(micros > 0);
+    }
+
+    public void testTscToNano() {
+        if (!libraryLoaded) {
+            System.out.println("Skipping testTscToNano as the library is not loaded.");
+            return;
+        }
+        long ticks = JNIClock.INSTANCE.ticks();
+        long nanos = JNIClock.tscToNano(ticks);
+        assertTrue(nanos > 0);
     }
 }

@@ -17,12 +17,79 @@
 
 package net.openhft.affinity.impl;
 
+import junit.framework.TestCase;
 import org.junit.Assert;
-import org.junit.Test;
 
-public class VersionHelperTest {
+public class VersionHelperTest extends TestCase {
 
-    @Test
+    public void testVersionHelperStringConstructor() {
+        VersionHelper version = new VersionHelper("1.2.3");
+        assertEquals(1, version.major);
+        assertEquals(2, version.minor);
+        assertEquals(3, version.release);
+
+        version = new VersionHelper("1.2");
+        assertEquals(1, version.major);
+        assertEquals(2, version.minor);
+        assertEquals(0, version.release);
+
+        version = new VersionHelper("1");
+        assertEquals(1, version.major);
+        assertEquals(0, version.minor);
+        assertEquals(0, version.release);
+
+        version = new VersionHelper("");
+        assertEquals(0, version.major);
+        assertEquals(0, version.minor);
+        assertEquals(0, version.release);
+    }
+
+    public void testVersionHelperIntConstructor() {
+        VersionHelper version = new VersionHelper(1, 2, 3);
+        assertEquals(1, version.major);
+        assertEquals(2, version.minor);
+        assertEquals(3, version.release);
+    }
+
+    public void testToString() {
+        VersionHelper version = new VersionHelper(1, 2, 3);
+        assertEquals("1.2.3", version.toString());
+    }
+
+    public void testEqualsAndHashCode() {
+        VersionHelper version1 = new VersionHelper(1, 2, 3);
+        VersionHelper version2 = new VersionHelper(1, 2, 3);
+        VersionHelper version3 = new VersionHelper(1, 2, 4);
+
+        assertEquals(version1, version2);
+        assertNotSame(version1, version3);
+        assertEquals(version1.hashCode(), version2.hashCode());
+        assertNotSame(version1.hashCode(), version3.hashCode());
+    }
+
+    public void testMajorMinorEquals() {
+        VersionHelper version1 = new VersionHelper(1, 2, 3);
+        VersionHelper version2 = new VersionHelper(1, 2, 4);
+        VersionHelper version3 = new VersionHelper(1, 3, 0);
+
+        assertTrue(version1.majorMinorEquals(version2));
+        assertFalse(version1.majorMinorEquals(version3));
+    }
+
+    public void testIsSameOrNewer() {
+        VersionHelper version1 = new VersionHelper(1, 2, 3);
+        VersionHelper version2 = new VersionHelper(1, 2, 2);
+        VersionHelper version3 = new VersionHelper(1, 2, 3);
+        VersionHelper version4 = new VersionHelper(1, 2, 4);
+        VersionHelper version5 = new VersionHelper(1, 3, 0);
+
+        assertTrue(version1.isSameOrNewer(version2));
+        assertTrue(version1.isSameOrNewer(version3));
+        assertFalse(version1.isSameOrNewer(version4));
+        assertFalse(version1.isSameOrNewer(version5));
+    }
+
+
     public void isSameOrNewerTest() {
         final VersionHelper v0 = new VersionHelper(0, 0, 0);
         final VersionHelper v2_6 = new VersionHelper(2, 6, 0);

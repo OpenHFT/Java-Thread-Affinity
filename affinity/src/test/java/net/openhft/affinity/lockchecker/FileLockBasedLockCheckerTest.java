@@ -17,13 +17,12 @@ public class FileLockBasedLockCheckerTest extends TestCase {
     private static final int TEST_CPU_ID = 0;
     private static final String META_INFO = "test_meta_info";
     private File lockFile;
-    private int testId = 0;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
         lockChecker = (FileLockBasedLockChecker) FileLockBasedLockChecker.getInstance();
-        lockFile = new File(TEMP_DIR, "cpu-" + testId + ".lock");
+        lockFile = new File(TEMP_DIR, "cpu-" + TEST_CPU_ID + ".lock");
         if (lockFile.exists()) {
             Files.delete(lockFile.toPath());
         }
@@ -35,7 +34,7 @@ public class FileLockBasedLockCheckerTest extends TestCase {
         if (lockFile.exists()) {
             Files.delete(lockFile.toPath());
         }
-        lockChecker.releaseLock(testId);
+        lockChecker.releaseLock(TEST_CPU_ID);
     }
 
     public void testGetInstance() {
@@ -44,7 +43,7 @@ public class FileLockBasedLockCheckerTest extends TestCase {
 
     public void testIsLockFree_NoLockFileExists() throws IOException {
         assertFalse(lockFile.exists());
-        boolean isLockFree = lockChecker.isLockFree(testId);
+        boolean isLockFree = lockChecker.isLockFree(TEST_CPU_ID);
         assertTrue(isLockFree);
     }
 
@@ -55,7 +54,7 @@ public class FileLockBasedLockCheckerTest extends TestCase {
 
         try (FileChannel channel = FileChannel.open(lockFile.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE)) {
             try (java.nio.channels.FileLock lock = channel.lock()) {
-                boolean isLockFree = lockChecker.isLockFree(testId);
+                boolean isLockFree = lockChecker.isLockFree(TEST_CPU_ID);
                 assertFalse(isLockFree);
             }
         } finally {
@@ -96,5 +95,10 @@ public class FileLockBasedLockCheckerTest extends TestCase {
         tmpDirMethod.setAccessible(true);
         File tmpDir = (File) tmpDirMethod.invoke(lockChecker);
         assertEquals(new File(System.getProperty("java.io.tmpdir")), tmpDir);
+    }
+
+    public void testIsLockFree() {
+        boolean result = lockChecker.isLockFree(0); // Adjust the CPU number as necessary for your environment
+        assertTrue(result);
     }
 }

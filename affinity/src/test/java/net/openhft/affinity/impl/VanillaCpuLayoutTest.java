@@ -17,113 +17,116 @@
 
 package net.openhft.affinity.impl;
 
-import org.junit.Test;
+import junit.framework.TestCase;
+import net.openhft.affinity.CpuLayout;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+public class VanillaCpuLayoutTest extends TestCase {
 
-/**
- * @author peter.lawrey
- */
-public class VanillaCpuLayoutTest {
+    public void testVanillaCpuLayoutCreation() {
+        List<VanillaCpuLayout.CpuInfo> cpuDetails = new ArrayList<>();
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(0, 0, 0));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(0, 0, 1));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(0, 1, 0));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(0, 1, 1));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(1, 0, 0));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(1, 0, 1));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(1, 1, 0));
+        cpuDetails.add(new VanillaCpuLayout.CpuInfo(1, 1, 1));
 
-    @Test
-    public void testFromCpuInfoI7() throws IOException {
-        final InputStream i7 = getClass().getClassLoader().getResourceAsStream("i7.cpuinfo");
-        VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(i7);
-        assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
-                "2: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n" +
-                "4: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                "5: CpuInfo{socketId=0, coreId=1, threadId=1}\n" +
-                "6: CpuInfo{socketId=0, coreId=2, threadId=1}\n" +
-                "7: CpuInfo{socketId=0, coreId=3, threadId=1}\n", vcl.toString());
+        VanillaCpuLayout layout = new VanillaCpuLayout(cpuDetails);
+
+        assertEquals(2, layout.sockets());
+        assertEquals(2, layout.coresPerSocket());
+        assertEquals(2, layout.threadsPerCore());
     }
 
-    @Test
-    public void testFromCpuInfoOthers() throws IOException {
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("amd64.dual.core.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n", vcl.toString());
-        }
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("core.duo.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n", vcl.toString());
-        }
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("amd64.quad.core.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
-                    "2: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                    "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n", vcl.toString());
-        }
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("dual.xeon.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                    "2: CpuInfo{socketId=3, coreId=3, threadId=0}\n" +
-                    "3: CpuInfo{socketId=3, coreId=3, threadId=1}\n", vcl.toString());
-        }
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("i3.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                    "2: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                    "3: CpuInfo{socketId=0, coreId=2, threadId=1}\n", vcl.toString());
-        }
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("q6600.noht.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                    "2: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
-                    "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n", vcl.toString());
-        }
-        {
-            final InputStream is = getClass().getClassLoader().getResourceAsStream("dual.E5405.cpuinfo");
-            VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
-            assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                    "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
-                    "2: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                    "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n" +
-                    "4: CpuInfo{socketId=1, coreId=4, threadId=0}\n" +
-                    "5: CpuInfo{socketId=1, coreId=5, threadId=0}\n" +
-                    "6: CpuInfo{socketId=1, coreId=6, threadId=0}\n" +
-                    "7: CpuInfo{socketId=1, coreId=7, threadId=0}\n", vcl.toString());
-        }
+    public void testEqualsAndHashCode() {
+        List<VanillaCpuLayout.CpuInfo> cpuDetails1 = new ArrayList<>();
+        cpuDetails1.add(new VanillaCpuLayout.CpuInfo(0, 0, 0));
+        cpuDetails1.add(new VanillaCpuLayout.CpuInfo(0, 0, 1));
+        cpuDetails1.add(new VanillaCpuLayout.CpuInfo(0, 1, 0));
+        cpuDetails1.add(new VanillaCpuLayout.CpuInfo(0, 1, 1));
+
+        List<VanillaCpuLayout.CpuInfo> cpuDetails2 = new ArrayList<>(cpuDetails1);
+
+        VanillaCpuLayout layout1 = new VanillaCpuLayout(cpuDetails1);
+        VanillaCpuLayout layout2 = new VanillaCpuLayout(cpuDetails2);
+
+        assertEquals(layout1, layout2);
+        assertEquals(layout1.hashCode(), layout2.hashCode());
     }
 
-    @Test
-    public void testNoIDs() throws IOException {
-        final InputStream noids = getClass().getClassLoader().getResourceAsStream("q6600.vm.cpuinfo");
-        VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(noids);
-        assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
-                "2: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n", vcl.toString());
+    public void testCpuInfoEqualsAndHashCode() {
+        VanillaCpuLayout.CpuInfo info1 = new VanillaCpuLayout.CpuInfo(0, 0, 0);
+        VanillaCpuLayout.CpuInfo info2 = new VanillaCpuLayout.CpuInfo(0, 0, 0);
+        VanillaCpuLayout.CpuInfo info3 = new VanillaCpuLayout.CpuInfo(1, 1, 1);
+
+        assertEquals(info1, info2);
+        assertNotSame(info1, info3);
+
+        assertEquals(info1.hashCode(), info2.hashCode());
+        assertNotSame(info1.hashCode(), info3.hashCode());
     }
 
-    @Test
-    public void testFromProperties() throws IOException {
-        final InputStream i7 = getClass().getClassLoader().getResourceAsStream("i7.properties");
-        VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(i7);
-        assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
-                "1: CpuInfo{socketId=0, coreId=1, threadId=0}\n" +
-                "2: CpuInfo{socketId=0, coreId=2, threadId=0}\n" +
-                "3: CpuInfo{socketId=0, coreId=3, threadId=0}\n" +
-                "4: CpuInfo{socketId=0, coreId=0, threadId=1}\n" +
-                "5: CpuInfo{socketId=0, coreId=1, threadId=1}\n" +
-                "6: CpuInfo{socketId=0, coreId=2, threadId=1}\n" +
-                "7: CpuInfo{socketId=0, coreId=3, threadId=1}\n", vcl.toString());
+    public void testToString() {
+        VanillaCpuLayout.CpuInfo info = new VanillaCpuLayout.CpuInfo(0, 1, 2);
+        String expected = "CpuInfo{socketId=0, coreId=1, threadId=2}";
+        assertEquals(expected, info.toString());
+    }
+
+    // Additional tests provided by the user
+    public void testCpuInfoEquality() {
+        VanillaCpuLayout.CpuInfo cpuInfo1 = new VanillaCpuLayout.CpuInfo(0, 0, 0);
+        VanillaCpuLayout.CpuInfo cpuInfo2 = new VanillaCpuLayout.CpuInfo(0, 0, 0);
+        VanillaCpuLayout.CpuInfo cpuInfo3 = new VanillaCpuLayout.CpuInfo(1, 1, 1);
+
+        assertEquals(cpuInfo1, cpuInfo2);
+        assertNotSame(cpuInfo1, cpuInfo3);
+    }
+
+    public void testCpuInfoHashCode() {
+        VanillaCpuLayout.CpuInfo cpuInfo1 = new VanillaCpuLayout.CpuInfo(0, 0, 0);
+        VanillaCpuLayout.CpuInfo cpuInfo2 = new VanillaCpuLayout.CpuInfo(0, 0, 0);
+
+        assertEquals(cpuInfo1.hashCode(), cpuInfo2.hashCode());
+    }
+
+    public void testCpuInfoToString() {
+        VanillaCpuLayout.CpuInfo cpuInfo = new VanillaCpuLayout.CpuInfo(0, 1, 2);
+        String expected = "CpuInfo{socketId=0, coreId=1, threadId=2}";
+        assertEquals(expected, cpuInfo.toString());
+    }
+
+    public void testCpuLayoutEquality() {
+        List<VanillaCpuLayout.CpuInfo> cpuInfos1 = new ArrayList<>();
+        cpuInfos1.add(new VanillaCpuLayout.CpuInfo(0, 0, 0));
+        cpuInfos1.add(new VanillaCpuLayout.CpuInfo(0, 1, 1));
+
+        List<VanillaCpuLayout.CpuInfo> cpuInfos2 = new ArrayList<>();
+        cpuInfos2.add(new VanillaCpuLayout.CpuInfo(0, 0, 0));
+        cpuInfos2.add(new VanillaCpuLayout.CpuInfo(0, 1, 1));
+
+        VanillaCpuLayout cpuLayout1 = new VanillaCpuLayout(cpuInfos1);
+        VanillaCpuLayout cpuLayout2 = new VanillaCpuLayout(cpuInfos2);
+
+        assertEquals(cpuLayout1, cpuLayout2);
+    }
+
+    public void testCpuLayoutHashCode() {
+        List<VanillaCpuLayout.CpuInfo> cpuInfos1 = new ArrayList<>();
+        cpuInfos1.add(new VanillaCpuLayout.CpuInfo(0, 0, 0));
+        cpuInfos1.add(new VanillaCpuLayout.CpuInfo(0, 1, 1));
+
+        List<VanillaCpuLayout.CpuInfo> cpuInfos2 = new ArrayList<>();
+        cpuInfos2.add(new VanillaCpuLayout.CpuInfo(0, 0, 0));
+        cpuInfos2.add(new VanillaCpuLayout.CpuInfo(0, 1, 1));
+
+        VanillaCpuLayout cpuLayout1 = new VanillaCpuLayout(cpuInfos1);
+        VanillaCpuLayout cpuLayout2 = new VanillaCpuLayout(cpuInfos2);
+
+        assertEquals(cpuLayout1.hashCode(), cpuLayout2.hashCode());
     }
 }

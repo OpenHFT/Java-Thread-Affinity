@@ -22,9 +22,9 @@ package net.openhft.affinity.impl;
  */
 public class VersionHelper {
     private static final String DELIM = ".";
-    private final int major;
-    private final int minor;
-    private final int release;
+    final int major;
+    final int minor;
+    final int release;
 
     /**
      * Constructs a VersionHelper instance with the specified major, minor, and release numbers.
