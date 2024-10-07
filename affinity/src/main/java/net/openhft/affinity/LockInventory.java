@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -116,6 +117,24 @@ class LockInventory {
                 physicalCoreLocks.put(physicalCore, locks = new AffinityLock[cpuLayout.threadsPerCore()]);
             }
             locks[cpuLayout.threadId(layoutId)] = lock;
+        }
+        shrink(physicalCoreLocks);
+    }
+
+    /**
+     * If some CPUs are hyper-threaded, but not others, fix up the HT CPUs
+     */
+    private void shrink(NavigableMap<Integer, AffinityLock[]> physicalCoreLocks) {
+        for (Map.Entry<Integer, AffinityLock[]> e : physicalCoreLocks.entrySet()) {
+            final AffinityLock[] locks = e.getValue();
+            for (int i=0; i<locks.length; i++) {
+                if (locks[i] == null) {
+                    final AffinityLock[] locks2 = new AffinityLock[i];
+                    System.arraycopy(locks, 0, locks2, 0, i);
+                    physicalCoreLocks.put(e.getKey(), locks2);
+                    break;
+                }
+            }
         }
     }
 
