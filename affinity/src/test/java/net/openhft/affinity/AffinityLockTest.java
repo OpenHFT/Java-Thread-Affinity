@@ -331,6 +331,33 @@ public class AffinityLockTest extends BaseAffinityTest {
         AffinityLock.acquireLock(new int[] {123456});
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+
+        final AffinityLock lock = AffinityLock.acquireLock(false);
+        Thread t = new Thread(() -> {
+            lock.bind();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+                // ignored
+            }
+        });
+        t.start();
+
+        while (!lock.isBound()) {
+            Thread.sleep(10);
+        }
+
+        try {
+            lock.bind();
+        } finally {
+            t.join();
+            lock.release();
+        }
+    }
+
     /**
      * In Java 21 the toString contents of Thread changed to include an ID. This breaks the tests here in Java 21.
      * Strip out the thread ID here so that existing tests continue to pass.
