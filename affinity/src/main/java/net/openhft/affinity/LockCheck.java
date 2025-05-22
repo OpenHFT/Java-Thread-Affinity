@@ -39,9 +39,7 @@ public enum LockCheck {
     private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
     public static long getPID() {
-        String processName =
-                java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-        return Long.parseLong(processName.split("@")[0]);
+        return Utilities.currentProcessId();
     }
 
     static boolean canOSSupportOperation() {
