@@ -178,6 +178,9 @@ public class AffinityLock implements Closeable {
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireLock(int cpuId) {
+        if (cpuId < 0 || cpuId >= PROCESSORS) {
+            throw new IllegalArgumentException("cpuId must be between 0 and " + (PROCESSORS - 1) + ": " + cpuId);
+        }
         return acquireLock(true, cpuId, AffinityStrategies.ANY);
     }
 
@@ -192,6 +195,9 @@ public class AffinityLock implements Closeable {
      */
     public static AffinityLock acquireLock(int[] cpus) {
         for (int cpu : cpus) {
+            if (cpu < 0 || cpu >= PROCESSORS) {
+                throw new IllegalArgumentException("cpuId must be between 0 and " + (PROCESSORS - 1) + ": " + cpu);
+            }
             AffinityLock lock = tryAcquireLock(true, cpu);
             if (lock != null) {
                 LOGGER.info("Acquired lock on CPU {}", cpu);
