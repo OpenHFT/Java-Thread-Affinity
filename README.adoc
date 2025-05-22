@@ -127,7 +127,21 @@ try (final AffinityLock al = AffinityLock.acquireLock()) {
     t.start();
 }
 ----    
-In this example, the library will prefer a free CPU on the same Socket as the first thread, otherwise it will pick any free CPU. 
+In this example, the library will prefer a free CPU on the same Socket as the first thread, otherwise it will pick any free CPU.
+
+=== Affinity strategies
+The `AffinityStrategies` enum defines hints for selecting a CPU relative to an existing lock.
+
+[options="header",cols="1,3"]
+|===
+| Strategy | Meaning
+
+|`ANY`|Use any available CPU.
+|`SAME_CORE`|Select a CPU on the same core.
+|`SAME_SOCKET`|Select a CPU on the same socket but a different core.
+|`DIFFERENT_CORE`|Select a CPU on another core (possibly another socket).
+|`DIFFERENT_SOCKET`|Select a CPU on a different socket.
+|===
 
 === Getting the thread id
 You can get the current thread id using
