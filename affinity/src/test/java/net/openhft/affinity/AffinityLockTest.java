@@ -20,6 +20,8 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import net.openhft.affinity.CpuLayout;
+import net.openhft.affinity.LockCheck;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -261,6 +263,25 @@ public class AffinityLockTest extends BaseAffinityTest {
         assertFalse(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
     }
 
+    @Test
+    public void wholeCoreLockReservesAllLogicalCpus() throws IOException {
+        if (!Utilities.ISLINUX || !new File("/proc/cpuinfo").exists()) {
+            return;
+        }
+        AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
+
+        try (AffinityLock lock = AffinityLock.acquireCore()) {
+            CpuLayout layout = AffinityLock.cpuLayout();
+            int socketId = layout.socketId(lock.cpuId());
+            int coreId = layout.coreId(lock.cpuId());
+            for (int i = 0; i < layout.cpus(); i++) {
+                if (layout.socketId(i) == socketId && layout.coreId(i) == coreId) {
+                    assertFalse("CPU " + i + " should be reserved", LockCheck.isCpuFree(i));
+                }
+            }
+        }
+    }
+
     private void displayStatus() {
         System.out.println(Thread.currentThread() + " on " + Affinity.getCpu() + "\n" + AffinityLock.dumpLocks());
     }
@@ -300,17 +321,40 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
-            assertNotNull(ignored);
-        }
+        AffinityLock.acquireLock(123456);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
-            assertNotNull(ignored);
+        AffinityLock.acquireLock(new int[] {123456});
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+
+        final AffinityLock lock = AffinityLock.acquireLock(false);
+        Thread t = new Thread(() -> {
+            lock.bind();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+                // ignored
+            }
+        });
+        t.start();
+
+        while (!lock.isBound()) {
+            Thread.sleep(10);
+        }
+
+        try {
+            lock.bind();
+        } finally {
+            t.join();
+            lock.release();
         }
     }
 

@@ -183,7 +183,7 @@ public class LinuxHelper {
     public static class utsname extends Structure {
         public static final int _UTSNAME_LENGTH = 65;
 
-        static final List<String> FIELD_ORDER = Arrays.asList(
+        static List<String> FIELD_ORDER = Arrays.asList(
                 "sysname",
                 "nodename",
                 "release",
@@ -195,32 +195,32 @@ public class LinuxHelper {
         /**
          * Name of the implementation of the operating system.
          */
-        public final byte[] sysname = new byte[_UTSNAME_LENGTH];
+        public byte[] sysname = new byte[_UTSNAME_LENGTH];
 
         /**
          * Name of this node on the network.
          */
-        public final byte[] nodename = new byte[_UTSNAME_LENGTH];
+        public byte[] nodename = new byte[_UTSNAME_LENGTH];
 
         /**
          * Current release level of this implementation.
          */
-        public final byte[] release = new byte[_UTSNAME_LENGTH];
+        public byte[] release = new byte[_UTSNAME_LENGTH];
 
         /**
          * Current version level of this release.
          */
-        public final byte[] version = new byte[_UTSNAME_LENGTH];
+        public byte[] version = new byte[_UTSNAME_LENGTH];
 
         /**
          * Name of the hardware type the system is running on.
          */
-        public final byte[] machine = new byte[_UTSNAME_LENGTH];
+        public byte[] machine = new byte[_UTSNAME_LENGTH];
 
         /**
          * NIS or YP domain name
          */
-        public final byte[] domainname = new byte[_UTSNAME_LENGTH];
+        public byte[] domainname = new byte[_UTSNAME_LENGTH];
 
         static int length(final byte[] data) {
             int len = 0;
@@ -286,8 +286,8 @@ public class LinuxHelper {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
         static final int SIZE_OF_CPU_SET_T = (__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE;
-        static final List<String> FIELD_ORDER = Collections.singletonList("__bits");
-        public final NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
+        static List<String> FIELD_ORDER = Collections.singletonList("__bits");
+        public NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
 
         public cpu_set_t() {
             for (int i = 0; i < __bits.length; i++) {

@@ -39,9 +39,24 @@ public enum Affinity {
     static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
     @NotNull
     private static final IAffinity AFFINITY_IMPL;
+    /**
+     * Cached reference to {@code Thread.tid} when available, otherwise {@code null}.
+     */
+    private static final Field THREAD_TID_FIELD;
     private static Boolean JNAAvailable;
 
     static {
+        Field tidField = null;
+        try {
+            tidField = Thread.class.getDeclaredField("tid");
+            tidField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            LOGGER.info("Thread.tid field not present; thread id won't be set via reflection");
+        } catch (Exception e) {
+            LOGGER.warn("Unable to access Thread.tid field", e);
+        }
+        THREAD_TID_FIELD = tidField;
+
         String osName = System.getProperty("os.name");
         if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
             LOGGER.trace("Using Windows JNA-based affinity control implementation");
@@ -175,12 +190,14 @@ public enum Affinity {
     }
 
     public static void setThreadId() {
+        int threadId = Affinity.getThreadId();
+        if (THREAD_TID_FIELD == null) {
+            LOGGER.info("Thread.tid field unavailable; skipping setting thread id {}", threadId);
+            return;
+        }
         try {
-            int threadId = Affinity.getThreadId();
-            final Field tid = Thread.class.getDeclaredField("tid");
-            tid.setAccessible(true);
             final Thread thread = Thread.currentThread();
-            tid.setLong(thread, threadId);
+            THREAD_TID_FIELD.setLong(thread, threadId);
             Affinity.LOGGER.info("Set {} to thread id {}", thread.getName(), threadId);
         } catch (Exception e) {
             throw new IllegalStateException(e);

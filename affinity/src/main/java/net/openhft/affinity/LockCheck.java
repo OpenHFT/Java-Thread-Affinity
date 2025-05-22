@@ -17,6 +17,7 @@
 
 package net.openhft.affinity;
 
+import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
 import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
@@ -39,9 +40,7 @@ public enum LockCheck {
     private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
     public static long getPID() {
-        String processName =
-                java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-        return Long.parseLong(processName.split("@")[0]);
+        return Utilities.currentProcessId();
     }
 
     static boolean canOSSupportOperation() {

@@ -71,4 +71,29 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
 
         LockCheck.isCpuFree(cpu);
     }
+
+    @Test
+    public void lockFileDeletedWhileHeld() throws Exception {
+        cpu++;
+
+        Assert.assertTrue(LockCheck.isCpuFree(cpu));
+        LockCheck.updateCpu(cpu);
+
+        File lockFile = lockChecker.doToFile(cpu);
+        Assert.assertTrue(lockFile.exists());
+
+        Assert.assertTrue("Could not delete lock file", lockFile.delete());
+        Assert.assertFalse(lockFile.exists());
+
+        Assert.assertFalse("CPU should remain locked despite missing file", LockCheck.isCpuFree(cpu));
+        Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
+
+        LockCheck.releaseLock(cpu);
+
+        Assert.assertTrue("Lock should be free after release", LockCheck.isCpuFree(cpu));
+        LockCheck.updateCpu(cpu);
+
+        lockFile = lockChecker.doToFile(cpu);
+        Assert.assertTrue("Lock file should be recreated", lockFile.exists());
+    }
 }
