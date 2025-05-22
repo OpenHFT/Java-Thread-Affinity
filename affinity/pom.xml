@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2016 chronicle.software
+  ~ Copyright 2016-2025 chronicle.software
   ~
   ~ Licensed under the *Apache License, Version 2.0* (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -253,14 +253,21 @@
         </plugins>
     </build>
 
-    <!-- todo remove once next parent pom is adopted -->
     <repositories>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/content/repositories/staging</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>chronicle-enterprise-snapshots</id>
+            <name>Snapshot Repository</name>
+            <url>https://nexus.chronicle.software/content/repositories/snapshots</url>
+        </repository>
+        <repository>
             <releases>
                 <enabled>true</enabled>
             </releases>
+            <id>chronicle-enterprise-release</id>
+            <url>https://nexus.chronicle.software/content/repositories/releases</url>
         </repository>
     </repositories>
 
@@ -269,7 +276,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
         </developerConnection>
-        <tag>Java-Thread-Affinity-3.26ea4</tag>
+        <tag>ea</tag>
     </scm>
 
 </project>
