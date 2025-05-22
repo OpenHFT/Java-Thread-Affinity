@@ -45,7 +45,7 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
     @Test
     public void test() throws IOException {
         Assert.assertTrue(LockCheck.isCpuFree(cpu));
-        LockCheck.updateCpu(cpu);
+        LockCheck.updateCpu(cpu, 0);
         Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
     }
 
@@ -58,13 +58,13 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
     public void testReplace() throws IOException {
         cpu++;
         Assert.assertTrue(LockCheck.isCpuFree(cpu + 1));
-        LockCheck.replacePid(cpu, 123L);
+        LockCheck.replacePid(cpu, 0, 123L);
         Assert.assertEquals(123L, LockCheck.getProcessForCpu(cpu));
     }
 
     @Test
     public void shouldNotBlowUpIfPidFileIsEmpty() throws Exception {
-        LockCheck.updateCpu(cpu);
+        LockCheck.updateCpu(cpu, 0);
 
         final File file = lockChecker.doToFile(cpu);
         new RandomAccessFile(file, "rw").setLength(0);
@@ -77,7 +77,7 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
         cpu++;
 
         Assert.assertTrue(LockCheck.isCpuFree(cpu));
-        LockCheck.updateCpu(cpu);
+        LockCheck.updateCpu(cpu, 0);
 
         File lockFile = lockChecker.doToFile(cpu);
         Assert.assertTrue(lockFile.exists());
@@ -91,7 +91,7 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
         LockCheck.releaseLock(cpu);
 
         Assert.assertTrue("Lock should be free after release", LockCheck.isCpuFree(cpu));
-        LockCheck.updateCpu(cpu);
+        LockCheck.updateCpu(cpu, 0);
 
         lockFile = lockChecker.doToFile(cpu);
         Assert.assertTrue("Lock file should be recreated", lockFile.exists());

@@ -20,8 +20,6 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
-import net.openhft.affinity.CpuLayout;
-import net.openhft.affinity.LockCheck;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,14 +49,14 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void dumpLocksI7() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false, lockInventory),
-                new AffinityLock(1, false, false, lockInventory),
-                new AffinityLock(2, false, true, lockInventory),
-                new AffinityLock(3, false, true, lockInventory),
-                new AffinityLock(4, true, false, lockInventory),
-                new AffinityLock(5, false, false, lockInventory),
-                new AffinityLock(6, false, true, lockInventory),
-                new AffinityLock(7, false, true, lockInventory),
+                new AffinityLock(0, 0, true, false, lockInventory),
+                new AffinityLock(1, 5, false, false, lockInventory),
+                new AffinityLock(2, 6, false, true, lockInventory),
+                new AffinityLock(3, 7, false, true, lockInventory),
+                new AffinityLock(4, 0, true, false, lockInventory),
+                new AffinityLock(5, 1, false, false, lockInventory),
+                new AffinityLock(6, 2, false, true, lockInventory),
+                new AffinityLock(7, 3, false, true, lockInventory),
         };
         locks[2].assignedThread = new Thread(new InterrupedThread(), "logger");
         locks[2].assignedThread.start();
@@ -88,10 +86,10 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void dumpLocksI3() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false, lockInventory),
-                new AffinityLock(1, false, true, lockInventory),
-                new AffinityLock(2, true, false, lockInventory),
-                new AffinityLock(3, false, true, lockInventory),
+                new AffinityLock(0, 0,true, false, lockInventory),
+                new AffinityLock(1, 3, false, true, lockInventory),
+                new AffinityLock(2, 0, true, false, lockInventory),
+                new AffinityLock(3, 1, false, true, lockInventory),
         };
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
@@ -111,8 +109,8 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void dumpLocksCoreDuo() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false, lockInventory),
-                new AffinityLock(1, false, true, lockInventory),
+                new AffinityLock(0, 0,true, false, lockInventory),
+                new AffinityLock(1, 0,false, true, lockInventory),
         };
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
@@ -328,7 +326,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
-        AffinityLock.acquireLock(new int[] {123456});
+        AffinityLock.acquireLock(new int[]{123456});
     }
 
     @Test(expected = IllegalStateException.class)

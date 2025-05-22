@@ -69,6 +69,7 @@ public class AffinityLock implements Closeable {
      * Logical ID of the CPU to which this lock belongs to.
      */
     private final int cpuId;
+    private final int cpuId2;
     /**
      * CPU to which this lock belongs to is of general use.
      */
@@ -88,9 +89,10 @@ public class AffinityLock implements Closeable {
     Throwable boundHere;
     private boolean resetAffinity = true;
 
-    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+    AffinityLock(int cpuId, int cpuId2, boolean base, boolean reservable, LockInventory lockInventory) {
         this.lockInventory = lockInventory;
         this.cpuId = cpuId;
+        this.cpuId2 = cpuId2;
         this.base = base;
         this.reservable = reservable;
     }
@@ -459,6 +461,10 @@ public class AffinityLock implements Closeable {
      */
     public int cpuId() {
         return cpuId;
+    }
+
+    public int cpuId2() {
+        return cpuId2;
     }
 
     /**

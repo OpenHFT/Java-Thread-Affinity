@@ -177,6 +177,19 @@ public class VanillaCpuLayout implements CpuLayout {
         return cpuDetails.get(cpuId).threadId;
     }
 
+    @Override
+    public int pair(int cpuId) {
+        for (int i = 0; i < cpuDetails.size(); i++) {
+            CpuInfo info = cpuDetails.get(i);
+            if (info.socketId == cpuDetails.get(cpuId).socketId &&
+                    info.coreId == cpuDetails.get(cpuId).coreId &&
+                    info.threadId != cpuDetails.get(cpuId).threadId) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
     @NotNull
     @Override
     public String toString() {
