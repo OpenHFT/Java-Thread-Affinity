@@ -271,7 +271,7 @@ public class AffinityLock implements Closeable {
             }
         }
         if (cpuId <= 0) {
-            System.err.println("Cannot allocate 0 or negative cpuIds '" + desc + "'");
+            LOGGER.warn("Cannot allocate 0 or negative cpuIds '{}'", desc);
             return LOCK_INVENTORY.noLock();
         }
         return acquireLock(cpuId);
