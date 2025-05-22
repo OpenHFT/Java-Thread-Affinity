@@ -79,4 +79,30 @@ public final class Utilities {
         systemProp = System.getProperty("java.vm.version");
         return systemProp != null && systemProp.contains("_64");
     }
+
+    /**
+     * Returns the current process id. Uses {@code ProcessHandle} when running
+     * on Java&nbsp;9 or later and falls back to parsing
+     * {@code RuntimeMXBean#getName()} on earlier versions.
+     *
+     * @return the process id or {@code -1} if it cannot be determined
+     */
+    public static int currentProcessId() {
+        try {
+            // Java 9+ provides ProcessHandle which has a pid() method.
+            Class<?> phClass = Class.forName("java.lang.ProcessHandle");
+            Object current = phClass.getMethod("current").invoke(null);
+            long pid = (Long) phClass.getMethod("pid").invoke(current);
+            return (int) pid;
+        } catch (Throwable ignored) {
+            // ignore and fallback to the pre-Java 9 approach
+        }
+
+        try {
+            String name = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+            return Integer.parseInt(name.split("@")[0]);
+        } catch (Throwable e) {
+            return -1;
+        }
+    }
 }

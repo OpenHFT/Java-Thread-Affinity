@@ -300,18 +300,14 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
-            assertNotNull(ignored);
-        }
+        AffinityLock.acquireLock(123456);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
-            assertNotNull(ignored);
-        }
+        AffinityLock.acquireLock(new int[] {123456});
     }
 
     /**

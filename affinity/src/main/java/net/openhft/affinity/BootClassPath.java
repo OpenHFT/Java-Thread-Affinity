@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
@@ -40,19 +41,54 @@ enum BootClassPath {
     private static Set<String> getResourcesOnBootClasspath() {
         final Logger logger = LoggerFactory.getLogger(BootClassPath.class);
         final Set<String> resources = new HashSet<>();
+
         final String bootClassPath = System.getProperty("sun.boot.class.path", "");
-        logger.trace("Boot class-path is: {}", bootClassPath);
+        if (!bootClassPath.isEmpty()) {
+            logger.trace("Boot class-path is: {}", bootClassPath);
 
-        final String pathSeparator = File.pathSeparator;
-        logger.trace("Path separator is: '{}'", pathSeparator);
+            final String pathSeparator = File.pathSeparator;
+            logger.trace("Path separator is: '{}'", pathSeparator);
 
-        final String[] pathElements = bootClassPath.split(pathSeparator);
+            final String[] pathElements = bootClassPath.split(pathSeparator);
 
-        for (final String pathElement : pathElements) {
-            resources.addAll(findResources(Paths.get(pathElement), logger));
+            for (final String pathElement : pathElements) {
+                resources.addAll(findResources(Paths.get(pathElement), logger));
+            }
+        } else {
+            resources.addAll(findResourcesInJrt(logger));
         }
 
         return resources;
+    }
+
+    private static Set<String> findResourcesInJrt(final Logger logger) {
+        final Set<String> jrtResources = new HashSet<>();
+        try {
+            FileSystem fs;
+            try {
+                fs = FileSystems.getFileSystem(URI.create("jrt:/"));
+            } catch (FileSystemNotFoundException | ProviderNotFoundException e) {
+                fs = FileSystems.newFileSystem(URI.create("jrt:/"), Collections.emptyMap());
+            }
+            final Path modules = fs.getPath("/modules");
+            Files.walkFileTree(modules, new SimpleFileVisitor<Path>() {
+                @Override
+                public @NotNull FileVisitResult visitFile(final @NotNull Path file,
+                                                          final @NotNull BasicFileAttributes attrs) throws IOException {
+                    if (file.getFileName().toString().endsWith(".class")) {
+                        Path relative = modules.relativize(file);
+                        if (relative.getNameCount() > 1) {
+                            Path classPath = relative.subpath(1, relative.getNameCount());
+                            jrtResources.add(classPath.toString());
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException e) {
+            logger.warn("Error walking jrt filesystem", e);
+        }
+        return jrtResources;
     }
 
     private static Set<String> findResources(final Path path, final Logger logger) {

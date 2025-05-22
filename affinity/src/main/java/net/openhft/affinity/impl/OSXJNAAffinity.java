@@ -28,7 +28,6 @@ import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
 import java.util.BitSet;
 
 /**
@@ -80,6 +79,7 @@ public enum OSXJNAAffinity implements IAffinity {
         SystemB.INSTANCE.mach_port_deallocate(SystemB.INSTANCE.mach_task_self(), thread);
         if (rc != 0)
             LOGGER.warn("thread_policy_set rc=" + rc);
+        LOGGER.trace("unable to set mask to {} as the JNI and JNA libraries not loaded", Utilities.toHexString(affinity));
     }
 
     @Override
@@ -89,8 +89,7 @@ public enum OSXJNAAffinity implements IAffinity {
 
     @Override
     public int getProcessId() {
-        final String name = ManagementFactory.getRuntimeMXBean().getName();
-        return Integer.parseInt(name.split("@")[0]);
+        return Utilities.currentProcessId();
     }
 
     @Override
