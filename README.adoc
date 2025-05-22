@@ -90,6 +90,21 @@ To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, 
 
 isolcpus=1,3
 
+Using GRUB
+[source]
+----
+sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="isolcpus=1,3 /' /etc/default/grub
+sudo update-grub
+sudo reboot
+----
+
+Using systemd-boot
+[source]
+----
+sudo sed -i 's/^options \(.*\)/options \1 isolcpus=1,3/' /boot/loader/entries/*.conf
+sudo reboot
+----
+
 == Using AffinityLock
 
 === Acquiring a CPU lock for a thread
