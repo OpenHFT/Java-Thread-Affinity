@@ -160,7 +160,28 @@ If you want to get/set the affinity directly you can do
 ---- 
 long currentAffinity = AffinitySupport.getAffinity();
 AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
-----   
+----
+
+=== Lock file directory
+
+AffinityLock stores a small lock file for each CPU. These files are placed in
+the directory specified by the `java.io.tmpdir` system property, which by
+default points to your system's temporary directory (usually `/tmp` on Linux).
+
+If you want to keep the lock files elsewhere, set this property before using any
+affinity APIs:
+
+[source, bash]
+----
+java -Djava.io.tmpdir=/path/to/dir ...
+----
+
+or in code
+
+[source, java]
+----
+System.setProperty("java.io.tmpdir", "/path/to/dir");
+----
 
 === Debugging affinity state
 
