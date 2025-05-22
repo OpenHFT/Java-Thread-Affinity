@@ -20,6 +20,10 @@ package net.openhft.affinity.impl;
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.Platform;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.platform.mac.SystemB;
+import com.sun.jna.platform.mac.SystemB.thread_affinity_policy_data_t;
 import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +42,44 @@ public enum OSXJNAAffinity implements IAffinity {
     private static final Logger LOGGER = LoggerFactory.getLogger(OSXJNAAffinity.class);
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
+    private static final int THREAD_AFFINITY_POLICY = 4; // from thread_policy.h
+    private static final int THREAD_AFFINITY_POLICY_COUNT = 1;
+
     @Override
     public BitSet getAffinity() {
-        return new BitSet();
+        if (!Platform.isMac())
+            return new BitSet();
+        IntByReference count = new IntByReference(THREAD_AFFINITY_POLICY_COUNT);
+        IntByReference def = new IntByReference();
+        thread_affinity_policy_data_t policy = new thread_affinity_policy_data_t();
+        int thread = SystemB.INSTANCE.pthread_mach_thread_np(CLibrary.INSTANCE.pthread_self());
+        int rc = SystemB.INSTANCE.thread_policy_get(thread, THREAD_AFFINITY_POLICY, policy, count, def);
+        SystemB.INSTANCE.mach_port_deallocate(SystemB.INSTANCE.mach_task_self(), thread);
+        if (rc != 0) {
+            LOGGER.warn("thread_policy_get rc=" + rc);
+            return new BitSet();
+        }
+        BitSet bs = new BitSet();
+        if (policy.affinity_tag >= 0)
+            bs.set(policy.affinity_tag);
+        return bs;
     }
 
     @Override
     public void setAffinity(final BitSet affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Utilities.toHexString(affinity));
+        if (!Platform.isMac()) {
+            LOGGER.trace("Non Mac platform - ignoring setAffinity");
+            return;
+        }
+        long[] arr = affinity.toLongArray();
+        int tag = arr.length > 0 ? (int) arr[0] : 0;
+        thread_affinity_policy_data_t policy = new thread_affinity_policy_data_t();
+        policy.affinity_tag = tag;
+        int thread = SystemB.INSTANCE.pthread_mach_thread_np(CLibrary.INSTANCE.pthread_self());
+        int rc = SystemB.INSTANCE.thread_policy_set(thread, THREAD_AFFINITY_POLICY, policy, THREAD_AFFINITY_POLICY_COUNT);
+        SystemB.INSTANCE.mach_port_deallocate(SystemB.INSTANCE.mach_task_self(), thread);
+        if (rc != 0)
+            LOGGER.warn("thread_policy_set rc=" + rc);
     }
 
     @Override
@@ -72,8 +106,10 @@ public enum OSXJNAAffinity implements IAffinity {
     }
 
     interface CLibrary extends Library {
-        CLibrary INSTANCE = Native.load("libpthread.dylib", CLibrary.class);
+        CLibrary INSTANCE = Native.load("System", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
+
+        int pthread_mach_thread_np(int pthread);
     }
 }

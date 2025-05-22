@@ -135,7 +135,12 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Override
     public int getCpu() {
-        return -1;
+        try {
+            return Kernel32.INSTANCE.GetCurrentProcessorNumber();
+        } catch (UnsatisfiedLinkError e) {
+            LOGGER.warn("GetCurrentProcessorNumber not available", e);
+            return -1;
+        }
     }
 
     @Override
