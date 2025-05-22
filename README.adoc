@@ -185,6 +185,25 @@ $ for i in "$(ls cpu-*)";
 
 ----
 
+== Using AffinityThreadFactory
+
+`AffinityThreadFactory` binds each thread it creates according to a set of
+`AffinityStrategy` rules.  This allows executors to automatically run tasks on
+cores selected by the library.
+
+[source, java]
+----
+ExecutorService es = Executors.newFixedThreadPool(4,
+        new AffinityThreadFactory("worker",
+                AffinityStrategies.SAME_CORE,
+                AffinityStrategies.DIFFERENT_SOCKET,
+                AffinityStrategies.ANY));
+es.submit(() -> {
+    // your task here
+});
+System.out.println("\nThe assignment of CPUs is\n" + AffinityLock.dumpLocks());
+----
+
 == Support Material
 
 https://groups.google.com/forum/?hl=en-GB#!forum/java-thread-affinity[Java Thread Affinity support group]
