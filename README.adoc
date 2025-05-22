@@ -54,7 +54,20 @@ The library looks for isolated CPUs determined by looking at the CPUs you are no
 i.e. if you have 16 CPUs but 8 of them are not available for general use (as determined by the affinity of the process on startup) it will start assigning to those CPUs.
 
 Note: if you have more than one process using this library you need to specify which CPUs the process can use otherwise it will assign the same CPUs to both processes.
-To control which CPUs a process can use, add -Daffinity.reserved={cpu-mask-in-hex} to the command line of the process.
+
+To control which CPUs a process can use, add `-Daffinity.reserved={cpu-mask-in-hex}`
+to the command line of the process. The mask is a hexadecimal bit mask without
+the `0x` prefix where bit `0` represents CPU `0`, bit `1` represents CPU `1` and
+so on. Multiple CPUs can be specified by setting more than one bit.
+
+For example:
+
+* `-Daffinity.reserved=2` reserves only CPU `1`.
+* `-Daffinity.reserved=6` reserves CPUs `1` and `2`.
+* `-Daffinity.reserved=10` reserves CPUs `1` and `3` (hexadecimal `a`).
+
+Use an appropriate mask when starting each process to avoid reserving the same
+cores for multiple JVMs.
 
 Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
