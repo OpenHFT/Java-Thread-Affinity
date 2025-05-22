@@ -192,10 +192,29 @@ long reservedAffinity = AffinityLock.RESERVED_AFFINITY;
 ----    
 If you want to get/set the affinity directly you can do
 [source, java]
----- 
+----
 long currentAffinity = AffinitySupport.getAffinity();
 AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
 ----
+
+=== Understanding dumpLocks() output
+
+Several examples print the current CPU assignments using `AffinityLock.dumpLocks()`.
+Each line of the output begins with the zero based CPU id followed by the status
+of that CPU. Example output might look like:
+
+[source]
+----
+0: Reserved for this application
+1: Thread[reader,5,main] alive=true
+2: General use CPU
+3: CPU not available
+----
+
+The number on each line is the logical CPU index as recognised by the library.
+The text after the colon describes whether that CPU is free, reserved or already
+bound to a thread. Use these indices when calling `AffinityLock.acquireLock(n)`
+or when constructing explicit affinity masks.
 
 === Lock file directory
 
