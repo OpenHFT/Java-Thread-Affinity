@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -190,11 +190,10 @@ public enum Affinity {
     public static boolean isJNAAvailable() {
         if (JNAAvailable == null) {
             int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
-            if(majorVersion < 5) {
+            if (majorVersion < 5) {
                 LOGGER.warn("Affinity library requires JNA version >= 5");
                 JNAAvailable = false;
-            }
-            else {
+            } else {
                 try {
                     Class.forName("com.sun.jna.Platform");
                     JNAAvailable = true;

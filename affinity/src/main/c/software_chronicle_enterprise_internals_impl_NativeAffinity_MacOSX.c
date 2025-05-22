@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 Peter Lawrey & Jerry Shea
+ * Copyright 2011-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -66,9 +66,9 @@ public class LinuxHelper {
         return cpuset;
     }
 
-	public static void sched_setaffinity(final BitSet affinity) {
-		sched_setaffinity(0, affinity);
-	}
+    public static void sched_setaffinity(final BitSet affinity) {
+        sched_setaffinity(0, affinity);
+    }
 
     public static void sched_setaffinity(final int pid, final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;

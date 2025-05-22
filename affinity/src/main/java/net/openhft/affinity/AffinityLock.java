@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -131,7 +131,7 @@ public class AffinityLock implements Closeable {
         reservedAffinity = reservedAffinity.trim();
         long[] longs = new long[1 + (reservedAffinity.length() - 1) / 16];
         int end = reservedAffinity.length();
-        for(int i = 0; i < longs.length ; i++) {
+        for (int i = 0; i < longs.length; i++) {
             int begin = Math.max(0, end - 16);
             longs[i] = Long.parseLong(reservedAffinity.substring(begin, end), 16);
             end = begin;
@@ -146,14 +146,6 @@ public class AffinityLock implements Closeable {
      */
     public static AffinityLock acquireLock() {
         return acquireLock(true);
-    }
-
-    static class Warnings {
-        static void warmNoReservedCPUs() {
-            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
-                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
-            }
-        }
     }
 
     /**
@@ -199,11 +191,9 @@ public class AffinityLock implements Closeable {
      * @return A handle for an affinity lock, or nolock if no available CPU in the array
      */
     public static AffinityLock acquireLock(int[] cpus) {
-        for( int cpu : cpus )
-        {
+        for (int cpu : cpus) {
             AffinityLock lock = tryAcquireLock(true, cpu);
-            if(lock != null)
-            {
+            if (lock != null) {
                 LOGGER.info("Acquired lock on CPU {}", cpu);
                 return lock;
             }
@@ -309,7 +299,7 @@ public class AffinityLock implements Closeable {
      * Try to acquire a lock on the specified core
      * Returns lock if successful, or null if cpu cannot be acquired
      *
-     * @param bind - if true, bind the current thread; if false, reserve a cpu which can be bound later
+     * @param bind  - if true, bind the current thread; if false, reserve a cpu which can be bound later
      * @param cpuId - the cpu to lock
      * @return - A handle to an affinity lock on success; null if failed to lock
      */
@@ -489,5 +479,13 @@ public class AffinityLock implements Closeable {
         else
             sb.append("CPU not available");
         return sb.toString();
+    }
+
+    static class Warnings {
+        static void warmNoReservedCPUs() {
+            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
+                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
+            }
+        }
     }
 }

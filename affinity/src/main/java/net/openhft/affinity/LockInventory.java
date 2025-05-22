@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -127,7 +127,7 @@ class LockInventory {
     private void shrink(NavigableMap<Integer, AffinityLock[]> physicalCoreLocks) {
         for (Map.Entry<Integer, AffinityLock[]> e : physicalCoreLocks.entrySet()) {
             final AffinityLock[] locks = e.getValue();
-            for (int i=0; i<locks.length; i++) {
+            for (int i = 0; i < locks.length; i++) {
                 if (locks[i] == null) {
                     final AffinityLock[] locks2 = new AffinityLock[i];
                     System.arraycopy(locks, 0, locks2, 0, i);
@@ -215,9 +215,9 @@ class LockInventory {
 
                 final AffinityLock al = als[0];
                 try {
-                if (updateLockForCurrentThread(bind, al, true)) {
-                    return al;
-                }
+                    if (updateLockForCurrentThread(bind, al, true)) {
+                        return al;
+                    }
                 } catch (ClosedByInterruptException e) {
                     Thread.currentThread().interrupt();
                     return noLock();
