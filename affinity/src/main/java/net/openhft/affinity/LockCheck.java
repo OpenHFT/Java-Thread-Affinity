@@ -17,6 +17,7 @@
 
 package net.openhft.affinity;
 
+import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
 import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
