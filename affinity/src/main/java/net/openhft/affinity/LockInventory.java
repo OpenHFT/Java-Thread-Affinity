@@ -53,7 +53,7 @@ class LockInventory {
         for (int i = 0; i < locks.length; i++) {
             AffinityLock al = locks[i];
             sb.append(i).append(": ");
-            sb.append(al.toString());
+            sb.append(al);
             sb.append('\n');
         }
         return sb.toString();
@@ -90,7 +90,7 @@ class LockInventory {
             throw e;
 
         } catch (IOException e) {
-            LOGGER.info("Error occurred acquiring lock, trying another " + e);
+            LOGGER.info("Error occurred acquiring lock, trying another {}", String.valueOf(e));
         }
         return false;
     }
@@ -108,6 +108,8 @@ class LockInventory {
             final boolean base = AffinityLock.BASE_AFFINITY.get(i);
             final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
             LOGGER.trace("cpu {} base={} reservable= {}", i, base, reservable);
+            assert logicalCoreLocks != null;
+            @SuppressWarnings("resource")
             AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);
 
             int layoutId = lock.cpuId();

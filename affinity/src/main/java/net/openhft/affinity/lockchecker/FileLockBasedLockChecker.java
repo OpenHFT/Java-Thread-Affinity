@@ -72,7 +72,7 @@ public class FileLockBasedLockChecker implements LockChecker {
             try (final FileLock fileLock = channel.tryLock(0, Long.MAX_VALUE, true)) {
                 if (fileLock != null && fileLock.isValid()) {
                     if (!lockFile.delete()) { // try and clean up the orphaned lock file
-                        LOGGER.debug("Couldn't delete orphaned lock file " + lockFile);
+                        LOGGER.debug("Couldn't delete orphaned lock file {}", lockFile);
                     }
                     return true;
                 } else {
@@ -112,7 +112,7 @@ public class FileLockBasedLockChecker implements LockChecker {
                 attempt++;
             }
         }
-        LOGGER.warn("Exceeded maximum retries for locking CPU " + id + ", failing acquire");
+        LOGGER.warn("Exceeded maximum retries for locking CPU {}, failing acquire", id);
         return false;
     }
 
@@ -163,6 +163,7 @@ public class FileLockBasedLockChecker implements LockChecker {
         byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(content);
         while (buffer.hasRemaining()) {
+            //noinspection ResultOfMethodCallIgnored
             fc.write(buffer);
         }
     }
@@ -172,7 +173,7 @@ public class FileLockBasedLockChecker implements LockChecker {
         if (locks[id] != null) {
             final File lockFile = toFile(id);
             if (!lockFile.delete()) {
-                LOGGER.warn("Couldn't delete lock file on release: " + lockFile);
+                LOGGER.warn("Couldn't delete lock file on release: {}", lockFile);
             }
             closeQuietly(locks[id].lock, locks[id].channel);
             locks[id] = null;
@@ -188,7 +189,7 @@ public class FileLockBasedLockChecker implements LockChecker {
                     closeable.close();
                 }
             } catch (Exception e) {
-                LOGGER.warn("Error closing " + closeable.getClass().getName(), e);
+                LOGGER.warn("Error closing {}", closeable.getClass().getName(), e);
             }
         }
     }
@@ -230,7 +231,7 @@ public class FileLockBasedLockChecker implements LockChecker {
         final File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
         if (!tempDir.exists())
-            tempDir.mkdirs();
+            tempDir.mkdirs(); // should warn if it fails
 
         return tempDir;
     }
@@ -238,7 +239,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     /**
      * Thrown when another process deleted the lock file between us opening the file and acquiring the lock
      */
-    class ConcurrentLockFileDeletionException extends Exception {
+    static class ConcurrentLockFileDeletionException extends Exception {
         private static final long serialVersionUID = 0L;
     }
 }

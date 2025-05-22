@@ -17,9 +17,11 @@
 
 package net.openhft.affinity;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -41,7 +43,7 @@ enum BootClassPath {
         final String bootClassPath = System.getProperty("sun.boot.class.path", "");
         logger.trace("Boot class-path is: {}", bootClassPath);
 
-        final String pathSeparator = System.getProperty("path.separator");
+        final String pathSeparator = File.pathSeparator;
         logger.trace("Path separator is: '{}'", pathSeparator);
 
         final String[] pathElements = bootClassPath.split(pathSeparator);
@@ -87,7 +89,7 @@ enum BootClassPath {
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                public @NotNull FileVisitResult visitFile(final @NotNull Path file, final @NotNull BasicFileAttributes attrs) throws IOException {
                     if (file.getFileName().toString().endsWith(".class")) {
                         dirResources.add(path.relativize(file).toString());
                     }
@@ -95,7 +97,7 @@ enum BootClassPath {
                 }
             });
         } catch (IOException e) {
-            logger.warn("Error walking dir: " + path, e);
+            logger.warn("Error walking dir: {}", path, e);
         }
 
         return dirResources;

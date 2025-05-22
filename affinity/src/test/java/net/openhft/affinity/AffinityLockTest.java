@@ -21,7 +21,6 @@ import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.hamcrest.MatcherAssert;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -223,14 +222,11 @@ public class AffinityLockTest extends BaseAffinityTest {
         try (AffinityLock al = AffinityLock.acquireLock()) {
             System.out.println("Main locked");
             displayStatus();
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.ANY);
-                    System.out.println("Thread-0 locked");
-                    displayStatus();
-                    al2.release();
-                }
+            Thread t = new Thread(() -> {
+                AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.ANY);
+                System.out.println("Thread-0 locked");
+                displayStatus();
+                al2.release();
             });
             t.start();
             t.join();

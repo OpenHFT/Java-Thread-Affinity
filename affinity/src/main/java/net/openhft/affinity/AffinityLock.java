@@ -199,7 +199,7 @@ public class AffinityLock implements Closeable {
             }
         }
 
-        LOGGER.warn("Failed to lock any CPU in explicit list " + Arrays.toString(cpus));
+        LOGGER.warn("Failed to lock any CPU in explicit list {}", Arrays.toString(cpus));
         return LOCK_INVENTORY.noLock();
     }
 
@@ -218,7 +218,7 @@ public class AffinityLock implements Closeable {
      * <ul>
      *     <li>"N" being a positive integer means allocate this CPU,</li>
      *     <li>"last" or "last-N" means allocate from the end,</li>
-     *     <li>"csv:1,2,5,6 eg means allocate first free core from the provided</li>
+     *     <li>"csv:1,2,5,6" eg means allocate first free core from the provided</li>
      *     <li>"any" means allow any</li>
      *     <li>"none" or null means</li>
      *     <li>"0" is not allowed</li>
@@ -251,7 +251,7 @@ public class AffinityLock implements Closeable {
 
         } else if (desc.startsWith("csv:")) {
             String content = desc.substring(4);
-            int[] cpus = Arrays.asList(content.split(",")).stream()
+            int[] cpus = Arrays.stream(content.split(","))
                     .map(String::trim)
                     .mapToInt(Integer::parseInt).toArray();
 
@@ -322,7 +322,9 @@ public class AffinityLock implements Closeable {
 
     private static boolean areAssertionsEnabled() {
         boolean debug = false;
+        //noinspection AssertWithSideEffects
         assert debug = true;
+        //noinspection ConstantValue
         return debug;
     }
 
@@ -440,7 +442,7 @@ public class AffinityLock implements Closeable {
     @Override
     protected void finalize() throws Throwable {
         if (bound) {
-            LOGGER.warn("Affinity lock for " + assignedThread + " was discarded rather than release()d in a controlled manner.", boundHere);
+            LOGGER.warn("Affinity lock for {} was discarded rather than release()d in a controlled manner.", assignedThread, boundHere);
             release();
         }
         super.finalize();
