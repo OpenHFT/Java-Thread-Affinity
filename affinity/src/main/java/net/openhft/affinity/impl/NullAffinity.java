@@ -38,7 +38,7 @@ public enum NullAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final BitSet affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Utilities.toHexString(affinity));
+        LOGGER.trace("unable to set mask to {} as the JNI and JNA libraries not loaded", Utilities.toHexString(affinity));
     }
 
     @Override
