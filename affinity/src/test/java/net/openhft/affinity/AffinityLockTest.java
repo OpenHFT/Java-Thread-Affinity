@@ -20,6 +20,8 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import net.openhft.affinity.CpuLayout;
+import net.openhft.affinity.LockCheck;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -259,6 +261,25 @@ public class AffinityLockTest extends BaseAffinityTest {
         lock.release();
 
         assertFalse(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
+    }
+
+    @Test
+    public void wholeCoreLockReservesAllLogicalCpus() throws IOException {
+        if (!Utilities.ISLINUX || !new File("/proc/cpuinfo").exists()) {
+            return;
+        }
+        AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
+
+        try (AffinityLock lock = AffinityLock.acquireCore()) {
+            CpuLayout layout = AffinityLock.cpuLayout();
+            int socketId = layout.socketId(lock.cpuId());
+            int coreId = layout.coreId(lock.cpuId());
+            for (int i = 0; i < layout.cpus(); i++) {
+                if (layout.socketId(i) == socketId && layout.coreId(i) == coreId) {
+                    assertFalse("CPU " + i + " should be reserved", LockCheck.isCpuFree(i));
+                }
+            }
+        }
     }
 
     private void displayStatus() {
