@@ -29,6 +29,7 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
             String name = "worker-" + i;
             Thread t = new Thread(() -> {
                 try (AffinityLock lock = AffinityLock.acquireLock()) {
+                    supressUnusedWarning(lock);
                     acquired.countDown();
                     release.await();
                 } catch (InterruptedException e) {
@@ -50,5 +51,9 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
         for (Thread t : threads) {
             t.join();
         }
+    }
+
+    static void supressUnusedWarning(AutoCloseable c) {
+        // do nothing
     }
 }
