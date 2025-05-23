@@ -123,7 +123,7 @@ public class FileLockBasedLockChecker implements LockChecker {
                 attempt++;
             }
         }
-        LOGGER.warn("Exceeded maximum retries for locking CPU {}, failing acquire", id);
+        LOGGER.warn("Exceeded maximum retries for locking CPU {}, {}, failing acquire", id, id2);
         return false;
     }
 
