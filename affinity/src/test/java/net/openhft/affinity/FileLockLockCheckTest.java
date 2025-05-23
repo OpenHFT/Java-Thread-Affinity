@@ -96,4 +96,12 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
         lockFile = lockChecker.doToFile(cpu);
         Assert.assertTrue("Lock file should be recreated", lockFile.exists());
     }
+
+    @Test
+    public void getProcessForCpuReturnsEmptyPidWhenNoFile() throws IOException {
+        int freeCpu = 99;
+        File lockFile = lockChecker.doToFile(freeCpu);
+        Assert.assertFalse(lockFile.exists());
+        Assert.assertEquals(Integer.MIN_VALUE, LockCheck.getProcessForCpu(freeCpu));
+    }
 }
