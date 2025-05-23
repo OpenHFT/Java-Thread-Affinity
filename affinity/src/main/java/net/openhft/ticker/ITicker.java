@@ -21,7 +21,7 @@ package net.openhft.ticker;
  * Abstraction of a high resolution time source used throughout the library.
  * <p>
  * Implementations may be based on {@link System#nanoTime()} or platform
- * specific timers such as the processor&apos;s time stamp counter accessed via
+ * specific timers such as the processor's time stamp counter accessed via
  * JNI.  The {@linkplain #ticks() tick values} returned are therefore
  * implementation dependent.  They always increase monotonically but the unit
  * they represent can vary from nanoseconds to CPU cycles.
