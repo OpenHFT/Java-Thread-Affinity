@@ -19,7 +19,6 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,6 @@ import static org.junit.Assume.assumeTrue;
 public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
-    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
 
     @Test
     public void dumpLocksI7() throws IOException {
@@ -255,11 +254,12 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
         final AffinityLock lock = AffinityLock.acquireLock();
 
-        assertTrue(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
+        Path lockFile = Paths.get(System.getProperty("java.io.tmpdir"), "cpu-" + lock.cpuId() + ".lock");
+        assertTrue(Files.exists(lockFile));
 
         lock.release();
 
-        assertFalse(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
+        assertFalse(Files.exists(lockFile));
     }
 
     @Test
