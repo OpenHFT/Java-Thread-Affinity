@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 package net.openhft.affinity;
 
+import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
 import net.openhft.affinity.lockchecker.LockChecker;
 import org.slf4j.Logger;
@@ -39,9 +40,7 @@ public enum LockCheck {
     private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
     public static long getPID() {
-        String processName =
-                java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-        return Long.parseLong(processName.split("@")[0]);
+        return Utilities.currentProcessId();
     }
 
     static boolean canOSSupportOperation() {
@@ -55,8 +54,8 @@ public enum LockCheck {
         return isLockFree(cpu);
     }
 
-    static boolean replacePid(int cpu, long processID) throws IOException {
-        return storePid(processID, cpu);
+    static boolean replacePid(int cpu, int cpu2, long processID) throws IOException {
+        return storePid(processID, cpu, cpu2);
     }
 
     public static boolean isProcessRunning(long pid) {
@@ -70,8 +69,8 @@ public enum LockCheck {
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
      */
-    private synchronized static boolean storePid(long processID, int cpu) throws IOException {
-        return lockChecker.obtainLock(cpu, Long.toString(processID));
+    private synchronized static boolean storePid(long processID, int cpu, int cpu2) throws IOException {
+        return lockChecker.obtainLock(cpu, cpu2, Long.toString(processID));
     }
 
     private synchronized static boolean isLockFree(int id) {
@@ -79,6 +78,9 @@ public enum LockCheck {
     }
 
     public static int getProcessForCpu(int core) throws IOException {
+        if (!canOSSupportOperation())
+            return EMPTY_PID;
+
         String meta = lockChecker.getMetaInfo(core);
 
         if (meta != null && !meta.isEmpty()) {
@@ -91,10 +93,10 @@ public enum LockCheck {
         return EMPTY_PID;
     }
 
-    static boolean updateCpu(int cpu) throws IOException {
+    static boolean updateCpu(int cpu, int cpu2) throws IOException {
         if (!canOSSupportOperation())
             return true;
-        return replacePid(cpu, getPID());
+        return replacePid(cpu, cpu2, getPID());
     }
 
     public static void releaseLock(int cpu) {

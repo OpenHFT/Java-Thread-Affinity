@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class VersionHelper {
     }
 
     public VersionHelper(String ver) {
-        if (ver != null && (ver = ver.trim()).length() > 0) {
+        if (ver != null && !(ver = ver.trim()).isEmpty()) {
             final String[] parts = ver.split("\\.");
             major = parts.length > 0 ? Integer.parseInt(parts[0]) : 0;
             minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
@@ -46,7 +46,7 @@ public class VersionHelper {
     }
 
     public boolean equals(Object o) {
-        if (o != null && (o instanceof VersionHelper)) {
+        if (o instanceof VersionHelper) {
             VersionHelper ver = (VersionHelper) o;
             return this.major == ver.major
                     && this.minor == ver.minor
@@ -61,7 +61,7 @@ public class VersionHelper {
         return (major << 16) | (minor << 8) | release;
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings("unused")
     public boolean majorMinorEquals(final VersionHelper ver) {
         return ver != null
                 && this.major == ver.major
@@ -77,4 +77,3 @@ public class VersionHelper {
                 && this.release >= ver.release));
     }
 }
-

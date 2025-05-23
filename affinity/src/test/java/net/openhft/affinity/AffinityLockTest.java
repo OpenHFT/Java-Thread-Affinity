@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,8 +19,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
-import org.jetbrains.annotations.NotNull;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.BitSet;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.hamcrest.CoreMatchers.is;
@@ -43,20 +44,19 @@ import static org.junit.Assume.assumeTrue;
 public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
-    private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
 
     @Test
     public void dumpLocksI7() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false, lockInventory),
-                new AffinityLock(1, false, false, lockInventory),
-                new AffinityLock(2, false, true, lockInventory),
-                new AffinityLock(3, false, true, lockInventory),
-                new AffinityLock(4, true, false, lockInventory),
-                new AffinityLock(5, false, false, lockInventory),
-                new AffinityLock(6, false, true, lockInventory),
-                new AffinityLock(7, false, true, lockInventory),
+                new AffinityLock(0, 0, true, false, lockInventory),
+                new AffinityLock(1, 5, false, false, lockInventory),
+                new AffinityLock(2, 6, false, true, lockInventory),
+                new AffinityLock(3, 7, false, true, lockInventory),
+                new AffinityLock(4, 0, true, false, lockInventory),
+                new AffinityLock(5, 1, false, false, lockInventory),
+                new AffinityLock(6, 2, false, true, lockInventory),
+                new AffinityLock(7, 3, false, true, lockInventory),
         };
         locks[2].assignedThread = new Thread(new InterrupedThread(), "logger");
         locks[2].assignedThread.start();
@@ -86,10 +86,10 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void dumpLocksI3() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false, lockInventory),
-                new AffinityLock(1, false, true, lockInventory),
-                new AffinityLock(2, true, false, lockInventory),
-                new AffinityLock(3, false, true, lockInventory),
+                new AffinityLock(0, 0,true, false, lockInventory),
+                new AffinityLock(1, 3, false, true, lockInventory),
+                new AffinityLock(2, 0, true, false, lockInventory),
+                new AffinityLock(3, 1, false, true, lockInventory),
         };
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
@@ -109,8 +109,8 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void dumpLocksCoreDuo() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
         AffinityLock[] locks = {
-                new AffinityLock(0, true, false, lockInventory),
-                new AffinityLock(1, false, true, lockInventory),
+                new AffinityLock(0, 0,true, false, lockInventory),
+                new AffinityLock(1, 0,false, true, lockInventory),
         };
         locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
         locks[1].assignedThread.start();
@@ -161,6 +161,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
         assertEquals(1, Affinity.getAffinity().cardinality());
         try (AffinityLock lock = AffinityLock.acquireLock()) {
+            assertNotNull(lock);
         }
         assertTrue(Affinity.getAffinity().cardinality() > 1);
     }
@@ -221,14 +222,11 @@ public class AffinityLockTest extends BaseAffinityTest {
         try (AffinityLock al = AffinityLock.acquireLock()) {
             System.out.println("Main locked");
             displayStatus();
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.ANY);
-                    System.out.println("Thread-0 locked");
-                    displayStatus();
-                    al2.release();
-                }
+            Thread t = new Thread(() -> {
+                AffinityLock al2 = al.acquireLock(AffinityStrategies.SAME_SOCKET, AffinityStrategies.ANY);
+                System.out.println("Thread-0 locked");
+                displayStatus();
+                al2.release();
             });
             t.start();
             t.join();
@@ -244,7 +242,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
 
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
-            assertThat(affinityLock.cpuId(), is(3));
+            MatcherAssert.assertThat(affinityLock.cpuId(), is(3));
         }
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
@@ -256,11 +254,31 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
         final AffinityLock lock = AffinityLock.acquireLock();
 
-        assertTrue(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
+        Path lockFile = Paths.get(System.getProperty("java.io.tmpdir"), "cpu-" + lock.cpuId() + ".lock");
+        assertTrue(Files.exists(lockFile));
 
         lock.release();
 
-        assertFalse(Files.exists(Paths.get(lockChecker.doToFile(lock.cpuId()).getAbsolutePath())));
+        assertFalse(Files.exists(lockFile));
+    }
+
+    @Test
+    public void wholeCoreLockReservesAllLogicalCpus() throws IOException {
+        if (!Utilities.ISLINUX || !new File("/proc/cpuinfo").exists()) {
+            return;
+        }
+        AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
+
+        try (AffinityLock lock = AffinityLock.acquireCore()) {
+            CpuLayout layout = AffinityLock.cpuLayout();
+            int socketId = layout.socketId(lock.cpuId());
+            int coreId = layout.coreId(lock.cpuId());
+            for (int i = 0; i < layout.cpus(); i++) {
+                if (layout.socketId(i) == socketId && layout.coreId(i) == coreId) {
+                    assertFalse("CPU " + i + " should be reserved", LockCheck.isCpuFree(i));
+                }
+            }
+        }
     }
 
     private void displayStatus() {
@@ -273,15 +291,19 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
+            assertNotNull(lock);
             assertEquals(PROCESSORS - 2, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
+            assertNotNull(lock);
             assertEquals(1, Affinity.getCpu());
         }
         try (AffinityLock lock = AffinityLock.acquireLock("any")) {
@@ -299,14 +321,54 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testTooHighCpuId() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
+    public void acquireLockWithoutBindingDoesNotChangeAffinity() {
+        BitSet before = (BitSet) Affinity.getAffinity().clone();
+        try (AffinityLock lock = AffinityLock.acquireLock(false)) {
+            assertFalse(lock.isBound());
+            assertEquals(before, Affinity.getAffinity());
         }
+        assertEquals(before, Affinity.getAffinity());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
+    public void testTooHighCpuId() {
+        AffinityLock.acquireLock(123456);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNegativeCpuId() {
+        AffinityLock.acquireLock(-1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
+        AffinityLock.acquireLock(new int[]{123456});
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+
+        final AffinityLock lock = AffinityLock.acquireLock(false);
+        Thread t = new Thread(() -> {
+            lock.bind();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+                // ignored
+            }
+        });
+        t.start();
+
+        while (!lock.isBound()) {
+            Thread.sleep(10);
+        }
+
+        try {
+            lock.bind();
+        } finally {
+            t.join();
+            lock.release();
         }
     }
 

@@ -1,7 +1,5 @@
 /*
- * Copyright 2016-2022 chronicle.software
- *
- *       https://chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +26,7 @@ public interface LockChecker {
 
     boolean isLockFree(int id);
 
-    boolean obtainLock(int id, String metaInfo) throws IOException;
+    boolean obtainLock(int id, int id2, String metaInfo) throws IOException;
 
     boolean releaseLock(int id);
 

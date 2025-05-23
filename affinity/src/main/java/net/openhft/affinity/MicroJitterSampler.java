@@ -1,7 +1,5 @@
 /*
- * Copyright 2014 Higher Frequency Trading
- *
- *       https://chronicle.software
+ * Copyright 2014-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +40,11 @@ public class MicroJitterSampler {
     private static void pause() throws InterruptedException {
         if (BUSYWAIT) {
             long now = System.nanoTime();
+            //noinspection StatementWithEmptyBody
             while (System.nanoTime() - now < 1_000_000) ;
         } else {
             Thread.sleep(1);
         }
-
     }
 
     public static void main(String... ignored) throws InterruptedException {
@@ -55,6 +53,13 @@ public class MicroJitterSampler {
         Thread t = new Thread(sampler::run);
         t.start();
         t.join();
+    }
+
+    private static String asString(long timeNS) {
+        return timeNS < 1000 ? timeNS + "ns" :
+                timeNS < 1000000 ? timeNS / 1000 + "us" :
+                        timeNS < 1000000000 ? timeNS / 1000000 + "ms" :
+                                timeNS / 1000000000 + "sec";
     }
 
     private void once() throws InterruptedException {
@@ -72,6 +77,7 @@ public class MicroJitterSampler {
 
     public void run() {
         try (final AffinityLock lock = AffinityLock.acquireLock(CPU)) {
+            assert lock != null;
             boolean first = true;
             System.out.println("Warming up...");
             while (!Thread.currentThread().isInterrupted()) {
@@ -89,13 +95,6 @@ public class MicroJitterSampler {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-    }
-
-    private static String asString(long timeNS) {
-        return timeNS < 1000 ? timeNS + "ns" :
-                timeNS < 1000000 ? timeNS / 1000 + "us" :
-                        timeNS < 1000000000 ? timeNS / 1000000 + "ms" :
-                                timeNS / 1000000000 + "sec";
     }
 
     void reset() {
@@ -133,7 +132,6 @@ public class MicroJitterSampler {
         ps.println();
     }
 }
-
 /* e.g.
 Ubuntu 20.04, Ryzen 5950X with an isolated CPU. (init 3) sudo cpupower -c {cpu} -g performance, run from command line
 After 3600 seconds, the average per hour was

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -53,12 +53,11 @@ public class AffinityThreadFactory implements ThreadFactory {
     public synchronized Thread newThread(@NotNull final Runnable r) {
         String name2 = id <= 1 ? name : (name + '-' + id);
         id++;
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try (AffinityLock ignored = acquireLockBasedOnLast()) {
-                    r.run();
-                }
+        Thread t = new Thread(() -> {
+            try (AffinityLock ignored = acquireLockBasedOnLast()) {
+                //noinspection ConstantValue
+                assert ignored != null;
+                r.run();
             }
         }, name2);
         t.setDaemon(daemon);

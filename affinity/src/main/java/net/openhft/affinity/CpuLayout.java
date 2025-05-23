@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,4 +49,10 @@ public interface CpuLayout {
      * @return which thread on a core this cpu is on.
      */
     int threadId(int cpuId);
+
+    /**
+     * @param cpuId the logical processor number
+     * @return the hyperthreaded pair number or 0 if not hyperthreaded.
+     */
+    int pair(int cpuId);
 }

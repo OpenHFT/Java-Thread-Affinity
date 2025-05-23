@@ -1,5 +1,5 @@
 /* vim: syntax=cpp
- * Copyright 2015 Higher Frequency Trading
+ * Copyright 2015-2025 chronicle.software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,30 @@ unsigned long long rdtsc(){
   unsigned long long rval;
   __asm__ __volatile__("mfspr %%r3, 268": "=r" (rval));
   return rval;
+}
+#elif defined(__aarch64__) // ARMv8-A (AArch64)
+#include <cstdint>
+inline uint64_t rdtsc() {
+    uint64_t virtual_timer_value;
+    asm volatile("mrs %0, cntvct_el0" : "=r"(virtual_timer_value));
+    return virtual_timer_value;
+}
+#elif defined(__ARM_ARCH) && (__ARM_ARCH >= 7) // ARMv7-A (32-bit)
+#include <sys/time.h>
+inline uint64_t rdtsc() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+}
+#elif defined(__APPLE__)
+#include <mach/mach_time.h>
+inline uint64_t rdtsc() {
+    return mach_absolute_time();
+}
+#elif defined(_MSC_VER)
+#include <intrin.h>
+inline uint64_t rdtsc() {
+    return __rdtsc();
 }
 #endif
 

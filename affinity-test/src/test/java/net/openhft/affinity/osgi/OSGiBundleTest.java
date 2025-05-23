@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     public void checkBundleState() {
         final Bundle bundle = findBundle(context, "net.openhft.affinity");
         assertNotNull(bundle);
-        assertEquals(bundle.getState(), Bundle.ACTIVE);
+        assertEquals(Bundle.ACTIVE, bundle.getState());
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -69,6 +69,7 @@ public class AffinityLock implements Closeable {
      * Logical ID of the CPU to which this lock belongs to.
      */
     private final int cpuId;
+    private final int cpuId2;
     /**
      * CPU to which this lock belongs to is of general use.
      */
@@ -88,9 +89,10 @@ public class AffinityLock implements Closeable {
     Throwable boundHere;
     private boolean resetAffinity = true;
 
-    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+    AffinityLock(int cpuId, int cpuId2, boolean base, boolean reservable, LockInventory lockInventory) {
         this.lockInventory = lockInventory;
         this.cpuId = cpuId;
+        this.cpuId2 = cpuId2;
         this.base = base;
         this.reservable = reservable;
     }
@@ -131,9 +133,9 @@ public class AffinityLock implements Closeable {
         reservedAffinity = reservedAffinity.trim();
         long[] longs = new long[1 + (reservedAffinity.length() - 1) / 16];
         int end = reservedAffinity.length();
-        for(int i = 0; i < longs.length ; i++) {
+        for (int i = 0; i < longs.length; i++) {
             int begin = Math.max(0, end - 16);
-            longs[i] = Long.parseLong(reservedAffinity.substring(begin, end), 16);
+            longs[i] = Long.parseUnsignedLong(reservedAffinity.substring(begin, end), 16);
             end = begin;
         }
         return BitSet.valueOf(longs);
@@ -146,14 +148,6 @@ public class AffinityLock implements Closeable {
      */
     public static AffinityLock acquireLock() {
         return acquireLock(true);
-    }
-
-    static class Warnings {
-        static void warmNoReservedCPUs() {
-            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
-                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
-            }
-        }
     }
 
     /**
@@ -186,6 +180,9 @@ public class AffinityLock implements Closeable {
      * @return A handle for an affinity lock.
      */
     public static AffinityLock acquireLock(int cpuId) {
+        if (cpuId < 0 || cpuId >= PROCESSORS) {
+            throw new IllegalArgumentException("cpuId must be between 0 and " + (PROCESSORS - 1) + ": " + cpuId);
+        }
         return acquireLock(true, cpuId, AffinityStrategies.ANY);
     }
 
@@ -199,17 +196,18 @@ public class AffinityLock implements Closeable {
      * @return A handle for an affinity lock, or nolock if no available CPU in the array
      */
     public static AffinityLock acquireLock(int[] cpus) {
-        for( int cpu : cpus )
-        {
+        for (int cpu : cpus) {
+            if (cpu < 0 || cpu >= PROCESSORS) {
+                throw new IllegalArgumentException("cpuId must be between 0 and " + (PROCESSORS - 1) + ": " + cpu);
+            }
             AffinityLock lock = tryAcquireLock(true, cpu);
-            if(lock != null)
-            {
+            if (lock != null) {
                 LOGGER.info("Acquired lock on CPU {}", cpu);
                 return lock;
             }
         }
 
-        LOGGER.warn("Failed to lock any CPU in explicit list " + Arrays.toString(cpus));
+        LOGGER.warn("Failed to lock any CPU in explicit list {}", Arrays.toString(cpus));
         return LOCK_INVENTORY.noLock();
     }
 
@@ -228,7 +226,7 @@ public class AffinityLock implements Closeable {
      * <ul>
      *     <li>"N" being a positive integer means allocate this CPU,</li>
      *     <li>"last" or "last-N" means allocate from the end,</li>
-     *     <li>"csv:1,2,5,6 eg means allocate first free core from the provided</li>
+     *     <li>"csv:1,2,5,6" eg means allocate first free core from the provided</li>
      *     <li>"any" means allow any</li>
      *     <li>"none" or null means</li>
      *     <li>"0" is not allowed</li>
@@ -261,7 +259,7 @@ public class AffinityLock implements Closeable {
 
         } else if (desc.startsWith("csv:")) {
             String content = desc.substring(4);
-            int[] cpus = Arrays.asList(content.split(",")).stream()
+            int[] cpus = Arrays.stream(content.split(","))
                     .map(String::trim)
                     .mapToInt(Integer::parseInt).toArray();
 
@@ -281,7 +279,7 @@ public class AffinityLock implements Closeable {
             }
         }
         if (cpuId <= 0) {
-            System.err.println("Cannot allocate 0 or negative cpuIds '" + desc + "'");
+            LOGGER.warn("Cannot allocate 0 or negative cpuIds '{}'", desc);
             return LOCK_INVENTORY.noLock();
         }
         return acquireLock(cpuId);
@@ -309,7 +307,7 @@ public class AffinityLock implements Closeable {
      * Try to acquire a lock on the specified core
      * Returns lock if successful, or null if cpu cannot be acquired
      *
-     * @param bind - if true, bind the current thread; if false, reserve a cpu which can be bound later
+     * @param bind  - if true, bind the current thread; if false, reserve a cpu which can be bound later
      * @param cpuId - the cpu to lock
      * @return - A handle to an affinity lock on success; null if failed to lock
      */
@@ -332,7 +330,9 @@ public class AffinityLock implements Closeable {
 
     private static boolean areAssertionsEnabled() {
         boolean debug = false;
+        //noinspection AssertWithSideEffects
         assert debug = true;
+        //noinspection ConstantValue
         return debug;
     }
 
@@ -446,10 +446,11 @@ public class AffinityLock implements Closeable {
         release();
     }
 
+    @SuppressWarnings({"deprecation", "removal"})
     @Override
     protected void finalize() throws Throwable {
         if (bound) {
-            LOGGER.warn("Affinity lock for " + assignedThread + " was discarded rather than release()d in a controlled manner.", boundHere);
+            LOGGER.warn("Affinity lock for {} was discarded rather than release()d in a controlled manner.", assignedThread, boundHere);
             release();
         }
         super.finalize();
@@ -460,6 +461,10 @@ public class AffinityLock implements Closeable {
      */
     public int cpuId() {
         return cpuId;
+    }
+
+    public int cpuId2() {
+        return cpuId2;
     }
 
     /**
@@ -488,5 +493,13 @@ public class AffinityLock implements Closeable {
         else
             sb.append("CPU not available");
         return sb.toString();
+    }
+
+    static class Warnings {
+        static void warmNoReservedCPUs() {
+            if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
+                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
+            }
+        }
     }
 }

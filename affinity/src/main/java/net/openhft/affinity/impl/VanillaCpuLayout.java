@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static java.lang.Integer.parseInt;
@@ -114,7 +115,7 @@ public class VanillaCpuLayout implements CpuLayout {
 
     @NotNull
     public static VanillaCpuLayout fromCpuInfo(InputStream is) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+        BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
         String line;
         List<CpuInfo> cpuDetails = new ArrayList<>();
         CpuInfo details = new CpuInfo();
@@ -174,6 +175,19 @@ public class VanillaCpuLayout implements CpuLayout {
     @Override
     public int threadId(int cpuId) {
         return cpuDetails.get(cpuId).threadId;
+    }
+
+    @Override
+    public int pair(int cpuId) {
+        for (int i = 0; i < cpuDetails.size(); i++) {
+            CpuInfo info = cpuDetails.get(i);
+            if (info.socketId == cpuDetails.get(cpuId).socketId &&
+                    info.coreId == cpuDetails.get(cpuId).coreId &&
+                    info.threadId != cpuDetails.get(cpuId).threadId) {
+                return i;
+            }
+        }
+        return 0;
     }
 
     @NotNull

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -62,6 +62,11 @@ public class NoCpuLayout implements CpuLayout {
 
     @Override
     public int threadId(int cpuId) {
+        return 0;
+    }
+
+    @Override
+    public int pair(int cpuId) {
         return 0;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -65,13 +65,14 @@ public enum JNIClock implements ITicker {
         return (tsc * RDTSC_FACTOR) >> FACTOR_BITS;
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     private static void estimateFrequency(int factor) {
         final long start = System.nanoTime();
         long now;
-        while ((now = System.nanoTime()) == start) {
+        while (System.nanoTime() == start) {
         }
 
-        long end = start + factor * 1000000;
+        long end = start + factor * 1000000L;
         final long start0 = rdtsc0();
         while ((now = System.nanoTime()) < end) {
         }

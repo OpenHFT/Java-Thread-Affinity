@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public enum LinuxJNAAffinity implements IAffinity {
             loaded = true;
         } catch (NoClassDefFoundError | UnsatisfiedLinkError e) {
             if (IS_LINUX)
-                LOGGER.warn("Unable to load jna library {}", e);
+                LOGGER.warn("Unable to load jna library", e);
         }
         LOADED = loaded;
     }
@@ -72,7 +72,6 @@ public enum LinuxJNAAffinity implements IAffinity {
         return ret;
     }
 
-    // TODO: FIXME!!! CHANGE IAffinity TO SUPPORT PLATFORMS WITH 64+ CORES FIXME!!!
     @Override
     public void setAffinity(final BitSet affinity) {
         LinuxHelper.sched_setaffinity(affinity);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2016 chronicle.software
+  ~ Copyright 2016-2025 chronicle.software
   ~
   ~ Licensed under the *Apache License, Version 2.0* (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.25.4</version>
+        <version>1.27ea0</version>
         <relativePath />
     </parent>
 
     <artifactId>affinity</artifactId>
-    <version>3.24ea0-SNAPSHOT</version>
+    <version>3.27ea1-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity/affinity</name>
@@ -42,14 +42,14 @@
             <dependency>
                 <groupId>net.openhft</groupId>
                 <artifactId>third-party-bom</artifactId>
+                <version>3.27ea0</version>
                 <type>pom</type>
-                <version>3.24.0</version>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>net.openhft</groupId>
                 <artifactId>chronicle-bom</artifactId>
-                <version>2.24ea-SNAPSHOT</version>
+                <version>2.27ea-SNAPSHOT</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -133,7 +133,7 @@
                                     <goal>exec</goal>
                                 </goals>
                                 <configuration>
-                                    <executable>${project.basedir}/${native.source.dir}/Makefile</executable>
+                                    <executable>make</executable>
                                     <workingDirectory>${project.basedir}/${native.source.dir}</workingDirectory>
                                 </configuration>
                             </execution>
@@ -182,7 +182,7 @@
                     <compilerArgs>
                         <arg>-h</arg>
                         <arg>${project.build.directory}/jni</arg>
-                        <arg>-Xlint:deprecation</arg>
+                        <arg>-Xlint:all,-options</arg>
                     </compilerArgs>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -257,14 +257,21 @@
         </plugins>
     </build>
 
-    <!-- todo remove once next parent pom is adopted -->
     <repositories>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/content/repositories/staging</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>chronicle-enterprise-snapshots</id>
+            <name>Snapshot Repository</name>
+            <url>https://nexus.chronicle.software/content/repositories/snapshots</url>
+        </repository>
+        <repository>
             <releases>
                 <enabled>true</enabled>
             </releases>
+            <id>chronicle-enterprise-release</id>
+            <url>https://nexus.chronicle.software/content/repositories/releases</url>
         </repository>
     </repositories>
 

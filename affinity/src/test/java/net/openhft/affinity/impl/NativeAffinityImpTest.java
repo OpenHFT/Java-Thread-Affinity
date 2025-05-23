@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -53,7 +53,9 @@ public class NativeAffinityImpTest extends AbstractAffinityImplTest {
             long time = 0;
             for (int i = 0; i < runs; i++) {
                 long start = System.nanoTime();
-                tid = Thread.currentThread().getId();
+                @SuppressWarnings("deprecation")
+                long tid0 = Thread.currentThread().getId();
+                tid = tid0;
                 time += System.nanoTime() - start;
                 assertTrue(tid > 0);
                 assertTrue(tid < 1 << 16);

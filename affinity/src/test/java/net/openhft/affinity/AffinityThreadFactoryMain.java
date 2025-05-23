@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020 chronicle.software
+ * Copyright 2016-2025 chronicle.software
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -37,16 +37,14 @@ public final class AffinityThreadFactoryMain {
 
     public static void main(String... args) throws InterruptedException {
         for (int i = 0; i < 12; i++)
-            ES.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws InterruptedException {
-                    Thread.sleep(100);
-                    return null;
-                }
+            ES.submit((Callable<Void>) () -> {
+                Thread.sleep(100);
+                return null;
             });
         Thread.sleep(200);
         System.out.println("\nThe assignment of CPUs is\n" + AffinityLock.dumpLocks());
         ES.shutdown();
+        //noinspection ResultOfMethodCallIgnored
         ES.awaitTermination(1, TimeUnit.SECONDS);
     }
 }
