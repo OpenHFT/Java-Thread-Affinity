@@ -1,0 +1,297 @@
+= Requirements Document: Java Thread Affinity
+Author: Gemini AI
+Date: 23 May 2025
+Version: 1.0
+:toc: left
+:toclevels: 3
+:sectnums:
+
+== 1. Introduction
+
+This document outlines the requirements for the *Java Thread Affinity* library. The primary purpose of this library is to provide Java applications with the capability to control Central Processing Unit (CPU) affinity for their threads. This allows developers to bind specific threads to designated CPU cores, which can lead to performance improvements, especially in latency-sensitive applications, by reducing context switching and improving cache utilisation.
+
+The library aims to offer a cross-platform API, with the most comprehensive support for Linux systems, leveraging Java Native Access (JNA) and, where applicable, Java Native Interface (JNI) for low-level system interactions.
+
+== 2. Scope
+
+The scope of the Java Thread Affinity project includes:
+
+* Providing mechanisms to get and set thread affinity on supported operating systems.
+* Offering a CPU locking mechanism (`AffinityLock`) to manage core reservations for threads or entire cores.
+* Detecting or allowing specification of the CPU layout (sockets, cores, threads per core).
+* Providing a high-resolution timer.
+* Supporting inter-process lock checking for CPU core reservations.
+* Delivering a thread factory that assigns affinity to newly created threads.
+* Packaging the core library and an OSGi-compatible test bundle.
+
+== 3. Definitions, Acronyms, and Abbreviations
+
+* *CPU*: Central Processing Unit
+* *JNA*: Java Native Access
+* *JNI*: Java Native Interface
+* *OS*: Operating System
+* *PID*: Process Identifier
+* *OSGi*: Open Service Gateway initiative
+* *POM*: Project Object Model (Maven)
+* *API*: Application Programming Interface
+
+== 4. References
+
+* Project Repository: https://github.com/OpenHFT/Java-Thread-Affinity
+* JNA: https://github.com/java-native-access/jna
+
+== 5. Project Overview
+
+The *Java Thread Affinity* library enables fine-grained control over which CPU cores Java threads execute on. This is particularly beneficial for high-performance computing and low-latency applications where minimising jitter and maximising cache efficiency is critical. The library abstracts OS-specific details, providing a unified Java API.
+
+=== 5.1. Purpose
+
+* To allow Java threads to be bound to specific CPU cores.
+* To provide tools for understanding and managing CPU topology from within a Java application.
+* To offer a high-resolution timing mechanism.
+
+=== 5.2. Benefits
+
+* _Performance Improvement_: Reduced thread migration and context switching.
+* _Cache Efficiency_: Better utilisation of CPU caches (L1, L2, L3).
+* _Jitter Reduction_: More predictable thread execution times.
+
+== 6. Functional Requirements
+
+=== 6.1. Core Affinity Control (net.openhft.affinity.Affinity)
+
+* *FR1*: The system _shall_ allow setting the affinity of the current thread to a specific CPU core or a set of cores (BitSet).
+** `Affinity.setAffinity(BitSet affinity)`
+** `Affinity.setAffinity(int cpu)`
+* *FR2*: The system _shall_ allow retrieving the current affinity mask of the current thread.
+** `Affinity.getAffinity()`
+* *FR3*: The system _shall_ allow querying the logical CPU ID the current thread is running on.
+** `Affinity.getCpu()`
+* *FR4*: The system _shall_ allow retrieving the native process ID of the current Java process.
+** `IAffinity.getProcessId()`
+* *FR5*: The system _shall_ allow retrieving the native thread ID of the current Java thread.
+** `IAffinity.getThreadId()`
+** `Affinity.setThreadId()` (to update `Thread.tid` via reflection if available)
+
+=== 6.2. CPU Lock Management (net.openhft.affinity.AffinityLock)
+
+* *FR6.1*: The system _shall_ provide a mechanism to acquire an exclusive lock on an available CPU core for the current thread.
+** `AffinityLock.acquireLock()`
+** `AffinityLock.acquireLock(boolean bind)`
+** `AffinityLock.acquireLock(int cpuId)`
+** `AffinityLock.acquireLock(String desc)` (e.g., "last", "last-N", "N", "any", "none", "csv:1,2,3")
+* *FR6.2*: The system _shall_ provide a mechanism to acquire an exclusive lock on an entire physical core (including all its logical CPUs/hyper-threads).
+** `AffinityLock.acquireCore()`
+** `AffinityLock.acquireCore(boolean bind)`
+* *FR6.3*: Acquired locks _shall_ be releasable, restoring the thread's affinity to a base state or a defined default.
+** `AffinityLock.release()`
+** `AffinityLock.close()` (for try-with-resources)
+* *FR6.4*: The system _shall_ support affinity strategies for acquiring new locks relative to existing locks (e.g., same core, same socket, different core, different socket).
+** `AffinityLock.acquireLock(AffinityStrategy... strategies)`
+** `AffinityStrategies` enum: `ANY`, `SAME_CORE`, `SAME_SOCKET`, `DIFFERENT_CORE`, `DIFFERENT_SOCKET`.
+* *FR6.5*: The system _shall_ provide a method to dump the current status of all CPU locks managed by the library.
+** `AffinityLock.dumpLocks()`
+* *FR6.6*: The system _shall_ allow querying if a lock is allocated and bound.
+** `AffinityLock.isAllocated()`
+** `AffinityLock.isBound()`
+
+=== 6.3. CPU Layout Detection (net.openhft.affinity.CpuLayout)
+
+* *FR7.1*: On Linux, the system _shall_ attempt to automatically detect the CPU layout (sockets, cores per socket, threads per core) by parsing `/proc/cpuinfo`.
+** `VanillaCpuLayout.fromCpuInfo()`
+* *FR7.2*: The system _shall_ allow applications to programmatically define the CPU layout.
+** `AffinityLock.cpuLayout(CpuLayout cpuLayout)`
+* *FR7.3*: The CPU layout _shall_ provide information about:
+** Total number of logical CPUs: `CpuLayout.cpus()`
+** Number of sockets: `CpuLayout.sockets()`
+** Cores per socket: `CpuLayout.coresPerSocket()`
+** Threads per core: `CpuLayout.threadsPerCore()`
+** Mapping a logical CPU ID to its socket, core, and thread ID: `socketId(int)`, `coreId(int)`, `threadId(int)`.
+** Hyper-threaded pair for a CPU: `pair(int)`.
+
+=== 6.4. High-Resolution Timer (net.openhft.ticker.Ticker)
+
+* *FR8.1*: The system _shall_ provide a high-resolution time source.
+** `Ticker.ticks()` (raw timer ticks)
+** `Ticker.nanoTime()` (ticks converted to nanoseconds)
+* *FR8.2*: If native JNI components are available and loaded (specifically `libCEInternals.so`), the timer _shall_ attempt to use `rdtsc` (Read Time-Stamp Counter).
+** `JNIClock.rdtsc0()`
+* *FR8.3*: If JNI-based `rdtsc` is not available, the timer _shall_ fall back to `System.nanoTime()`.
+** `SystemClock.INSTANCE`
+* *FR8.4*: The timer _shall_ provide methods to convert ticks to nanoseconds and microseconds.
+** `ITicker.toNanos(long ticks)`
+** `ITicker.toMicros(double ticks)`
+
+=== 6.5. OS-Specific Implementations (net.openhft.affinity.impl)
+
+* *FR9.1*: The system _shall_ provide tailored implementations of `IAffinity` for different operating systems:
+** *Linux*: Full affinity control, CPU ID, Process ID, Thread ID via JNA (`LinuxJNAAffinity`, `PosixJNAAffinity`) or JNI (`NativeAffinity`).
+** *Windows*: Thread affinity control, Process ID, Thread ID via JNA (`WindowsJNAAffinity`). `getCpu()` returns -1.
+** *macOS*: Process ID, Thread ID via JNA (`OSXJNAAffinity`). No affinity modification; `getCpu()` returns -1.
+** *Solaris*: Process ID, Thread ID via JNA (`SolarisJNAAffinity`). No affinity modification; `getCpu()` returns -1.
+* *FR9.2*: A `NullAffinity` implementation _shall_ be used as a fallback if no suitable native implementation can be loaded or for unsupported OS.
+
+=== 6.6. Affinity Thread Factory (net.openhft.affinity.AffinityThreadFactory)
+
+* *FR10.1*: The system _shall_ provide a `ThreadFactory` that assigns affinity to newly created threads based on specified `AffinityStrategy` rules.
+** `new AffinityThreadFactory(String name, AffinityStrategy... strategies)`
+* *FR10.2*: If no strategies are provided, `AffinityStrategies.ANY` _shall_ be used by default.
+
+=== 6.7. Inter-Process Lock Checking (net.openhft.affinity.lockchecker)
+
+* *FR11.1*: On Linux, the system _shall_ provide a mechanism to check if a specific CPU core is free or already locked by another process.
+** `LockCheck.isCpuFree(int cpu)`
+* *FR11.2*: This mechanism _shall_ use file-based locks located in the directory specified by the `java.io.tmpdir` system property.
+** `FileLockBasedLockChecker`
+* *FR11.3*: The system _shall_ allow obtaining and releasing these inter-process locks for specified CPU IDs.
+** `LockChecker.obtainLock(int id, int id2, String metaInfo)`
+** `LockChecker.releaseLock(int id)`
+* *FR11.4*: The system _shall_ store meta-information (e.g., PID of the locking process) within the lock file and allow its retrieval.
+** `LockChecker.getMetaInfo(int id)`
+
+=== 6.8. Native Code Compilation (C/C++)
+
+* *FR12.1*: The system _shall_ include C/C++ source code for native functions required for affinity and timer operations on Linux and macOS.
+    ** `software_chronicle_enterprise_internals_impl_NativeAffinity.cpp` (Linux)
+    ** `software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c` (macOS)
+    ** `net_openhft_ticker_impl_JNIClock.cpp` (for `rdtsc`)
+* *FR12.2*: A Makefile _shall_ be provided to compile the native C/C++ code into a shared library (`libCEInternals.so`).
+* *FR12.3*: The Java code _shall_ load this native library if available.
+** `software.chronicle.enterprise.internals.impl.NativeAffinity.loadAffinityNativeLibrary()`
+
+== 7. Non-Functional Requirements
+
+* *NFR1. Platform Support*:
+** *Primary Support*: Linux (full functionality).
+** *Partial Support*: Windows (affinity setting, PID/TID, no `getCpu()`).
+** *Limited Support*: macOS, Solaris (PID/TID only, no affinity setting or `getCpu()`).
+* *NFR2. Dependencies*:
+** *JNA*: `net.java.dev.jna:jna`, `net.java.dev.jna:jna-platform`. Version 5.x or higher is recommended for full functionality. The project currently uses version 4.4.0 (as per README, though POMs might show updates).
+** *SLF4J API*: `org.slf4j:slf4j-api` for logging.
+** *JetBrains Annotations*: `org.jetbrains:annotations` for code quality.
+* *NFR3. Performance*: The library _should_ introduce minimal overhead. Native calls _should_ be efficient. The primary goal is to enable performance improvements in the client application.
+* *NFR4. Licensing*: The project _shall_ be licensed under the Apache License, Version 2.0.
+* *NFR5. Build System*: The project _shall_ use Apache Maven for building and dependency management.
+* *NFR6. Language*:
+** Core library _shall_ be implemented in Java (1.8+ as per POM).
+** Native components _shall_ be implemented in C/C++.
+* *NFR7. Usability*:
+** The API _should_ be clear and relatively simple to use.
+** Javadoc _shall_ be provided for public APIs.
+** Example usage _shall_ be available (e.g., in test sources and README).
+* *NFR8. Error Handling and Resilience*:
+** The library _shall_ degrade gracefully if JNA or native libraries are not available or if an OS does not support certain features (e.g., falling back to `NullAffinity`).
+** Errors during native calls _should_ be appropriately logged and/or propagated as exceptions.
+* *NFR9. Configuration*:
+** Reserved CPUs for the application _shall_ be configurable via the system property `affinity.reserved={hex-mask}`.
+** The lock file directory _shall_ default to `java.io.tmpdir` and be overridable by setting this system property.
+* *NFR10. OSGi Support*: The `affinity-test` module _shall_ be packaged as an OSGi bundle, demonstrating OSGi compatibility.
+* *NFR11. Language Style*: Code and documentation _shall_ use British English, except for established technical US spellings (e.g., `synchronized`).
+
+== 8. System Architecture
+
+=== 8.1. High-Level Architecture
+
+The Java Thread Affinity library is a Java-based system that interfaces with the underlying operating system through JNA (primarily) and JNI (for specific `libCEInternals.so` functionalities). It abstracts OS-specific system calls related to thread affinity, CPU information, and timing.
+
+=== 8.2. Key Components
+
+* *`net.openhft.affinity.Affinity`*: Main public API facade for basic affinity operations.
+* *`net.openhft.affinity.IAffinity`*: Interface defining the contract for OS-specific implementations.
+** Concrete Implementations: `LinuxJNAAffinity`, `WindowsJNAAffinity`, `OSXJNAAffinity`, `SolarisJNAAffinity`, `PosixJNAAffinity`, `NativeAffinity` (JNI), `NullAffinity`.
+* *`net.openhft.affinity.AffinityLock`*: Manages CPU reservations and bindings.
+* *`net.openhft.affinity.LockInventory`*: Tracks the state of CPU locks based on `CpuLayout`.
+* *`net.openhft.affinity.CpuLayout`*: Interface for CPU topology information.
+** `VanillaCpuLayout`: Parses `/proc/cpuinfo` or properties files.
+** `NoCpuLayout`: Default layout if detection fails.
+* *`net.openhft.affinity.AffinityStrategies`*: Enum defining strategies for selecting CPUs.
+* *`net.openhft.affinity.AffinityThreadFactory`*: A `java.util.concurrent.ThreadFactory` that sets affinity for new threads.
+* *`net.openhft.ticker.Ticker`*: Provides high-resolution time.
+** `JNIClock`: Uses `rdtsc` via JNI.
+** `SystemClock`: Uses `System.nanoTime()`.
+* *`net.openhft.affinity.lockchecker.LockChecker`*: Interface for inter-process lock management.
+** `FileLockBasedLockChecker`: Implementation using file system locks.
+* *Native Code (`src/main/c`)*: C/C++ sources for `libCEInternals.so` providing functions like `getAffinity0`, `setAffinity0` (Linux JNI), `rdtsc0`.
+
+=== 8.3. Maven Modules
+
+* *`Java-Thread-Affinity` (Parent POM)*: Aggregates sub-modules.
+** Group ID: `net.openhft`
+** Artifact ID: `Java-Thread-Affinity`
+* *`affinity` (Core Library)*: Contains the main library code, JNA/JNI integrations, and native sources.
+** Artifact ID: `affinity`
+** Packaging: `bundle` (OSGi compatible)
+* *`affinity-test` (Test Module)*: Contains OSGi integration tests and example usage.
+** Artifact ID: `affinity-test`
+** Packaging: `bundle`
+
+== 9. Native Components (libCEInternals.so)
+
+The library can utilise an optional native shared library, `libCEInternals.so`, for certain operations, primarily on Linux.
+
+* *Purpose*: Provides direct JNI implementations for thread affinity and the `rdtsc` timer.
+* *Source Location*: `Java-Thread-Affinity/affinity/src/main/c/`
+* *Build*: Compiled using the `Makefile` in the source directory (typically invoked by Maven's `exec-maven-plugin`).
+* *Key Native Functions Implemented*:
+** `Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getAffinity0`
+** `Java_software_chronicle_enterprise_internals_impl_NativeAffinity_setAffinity0`
+** `Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getCpu0`
+** `Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getProcessId0`
+** `Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getThreadId0`
+** `Java_net_openhft_ticker_impl_JNIClock_rdtsc0`
+* *Platform Specifics*:
+** *Linux*: Uses `sched_getaffinity`, `sched_setaffinity`, `sched_getcpu`, `getpid`, `syscall(SYS_gettid)`.
+** *macOS*: (Separate C file `software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c`) Uses `pthread_mach_thread_np`, `thread_policy_get`, `thread_policy_set`. Note: JNA implementations are generally preferred on macOS.
+* *Loading*: The `NativeAffinity.java` class attempts to load `System.loadLibrary("CEInternals")`.
+
+== 10. API Overview
+
+A brief overview of the primary public classes and interfaces:
+
+* *`net.openhft.affinity.Affinity`*:
+** Static utility methods for basic affinity operations: `getAffinity()`, `setAffinity(BitSet)`, `setAffinity(int cpu)`, `getCpu()`, `getThreadId()`.
+** Manages selection of the appropriate `IAffinity` implementation.
+* *`net.openhft.affinity.AffinityLock`*:
+** Manages acquisition and release of CPU locks: `acquireLock()`, `acquireCore()`, `release()`, `close()`.
+** Configures CPU layout: `cpuLayout(CpuLayout)`.
+** Provides information about reserved CPUs: `BASE_AFFINITY`, `RESERVED_AFFINITY`.
+* *`net.openhft.affinity.AffinityStrategies`*:
+** Enum defining CPU selection strategies for `AffinityLock`.
+* *`net.openhft.affinity.CpuLayout`*:
+** Interface to describe the machine's CPU topology.
+* *`net.openhft.affinity.IAffinity`*:
+** Core interface implemented by OS-specific providers.
+* *`net.openhft.ticker.Ticker`*:
+** Static utility for accessing high-resolution time: `ticks()`, `nanoTime()`.
+* *`net.openhft.affinity.AffinityThreadFactory`*:
+** Implements `java.util.concurrent.ThreadFactory` to create threads with specific affinity settings.
+
+== 11. Build and Deployment
+
+* The project is built using Apache Maven.
+* The main artifact `net.openhft:affinity` is an OSGi bundle.
+* Dependencies are managed via `pom.xml` files, including a `third-party-bom` and `chronicle-bom`.
+* The `make-c` profile in `affinity/pom.xml` triggers the compilation of native C code using `make`.
+* The `maven-bundle-plugin` is used to generate OSGi manifest information.
+* The `maven-scm-publish-plugin` is configured for publishing Javadoc to `gh-pages`.
+
+== 12. Testing
+
+The project includes a comprehensive suite of tests:
+
+* *Unit Tests*: Located in `affinity/src/test/java/`.
+** `NativeAffinityTest`, `JnaAffinityTest`: Test core JNI/JNA functionalities.
+** `AffinityLockTest`: Tests `AffinityLock` logic, including descriptions and inter-thread lock acquisition.
+** `VanillaCpuLayoutTest`, `VanillaCpuLayoutPropertiesParseTest`: Test parsing of `cpuinfo` files and properties files for CPU layout.
+** `TickerTest`, `JNIClockTest`: Test timer implementations.
+** `LockCheckTest`, `FileLockLockCheckTest`: Test inter-process lock checking.
+** `MultiProcessAffinityTest`: Tests affinity locking behavior across multiple Java processes.
+* *OSGi Bundle Tests*: Located in `affinity-test/src/test/java/net/openhft/affinity/osgi/`.
+** `OSGiBundleTest`: Verifies bundle activation and package exports in an OSGi environment using Pax Exam.
+* *Test Resources*: Includes sample `cpuinfo` files for various architectures and corresponding properties files to test layout parsing.
+** `affinity/src/test/resources/`
+* *Test Infrastructure*:
+** `BaseAffinityTest`: Provides common setup for tests, including temporary folder management for lock files.
+** `chronicle-test-framework`: Used for some test utilities, like `JavaProcessBuilder` for multi-process tests.
+
+The tests cover various aspects including basic affinity setting, CPU layout parsing, lock management, multi-threading scenarios, multi-process contention, and OSGi integration.
