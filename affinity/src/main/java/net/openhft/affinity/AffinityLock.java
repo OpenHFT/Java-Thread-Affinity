@@ -135,7 +135,7 @@ public class AffinityLock implements Closeable {
         int end = reservedAffinity.length();
         for (int i = 0; i < longs.length; i++) {
             int begin = Math.max(0, end - 16);
-            longs[i] = Long.parseLong(reservedAffinity.substring(begin, end), 16);
+            longs[i] = Long.parseUnsignedLong(reservedAffinity.substring(begin, end), 16);
             end = begin;
         }
         return BitSet.valueOf(longs);
