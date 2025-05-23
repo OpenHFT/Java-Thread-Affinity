@@ -333,6 +333,16 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
+    public void acquireLockWithoutBindingDoesNotChangeAffinity() {
+        BitSet before = (BitSet) Affinity.getAffinity().clone();
+        try (AffinityLock lock = AffinityLock.acquireLock(false)) {
+            assertFalse(lock.isBound());
+            assertEquals(before, Affinity.getAffinity());
+        }
+        assertEquals(before, Affinity.getAffinity());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId() {
         AffinityLock lock = AffinityLock.acquireLock(123456);
         assertFalse(lock.isBound());
@@ -344,7 +354,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         assertFalse(lock.isBound());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
         AffinityLock lock = AffinityLock.acquireLock(new int[]{-1, 123456});
         assertFalse(lock.isBound());
