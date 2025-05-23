@@ -110,6 +110,10 @@
         <profile>
             <id>make-c</id>
             <activation>
+                <os>
+                    <family>linux</family>
+                    <arch>!arm</arch>
+                </os>
                 <property>
                     <name>!dontMake</name>
                 </property>

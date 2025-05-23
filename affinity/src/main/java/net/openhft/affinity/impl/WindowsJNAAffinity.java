@@ -90,7 +90,7 @@ public enum WindowsJNAAffinity implements IAffinity {
         }
         BitSet affinity2 = getAffinity0();
         assert affinity2 != null;
-        if (!affinity2.equals(affinity)) {
+        if (!affinity2.intersects(affinity)) {
             LoggerFactory.getLogger(WindowsJNAAffinity.class).warn("Tried to set affinity to {} but was {} you may have insufficient access rights", affinity, affinity2);
         }
         currentAffinity.set((BitSet) affinity.clone());
