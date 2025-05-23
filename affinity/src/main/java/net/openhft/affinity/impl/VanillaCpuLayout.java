@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static java.lang.Integer.parseInt;
@@ -114,7 +115,7 @@ public class VanillaCpuLayout implements CpuLayout {
 
     @NotNull
     public static VanillaCpuLayout fromCpuInfo(InputStream is) throws IOException {
-        BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+        BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
         String line;
         List<CpuInfo> cpuDetails = new ArrayList<>();
         CpuInfo details = new CpuInfo();

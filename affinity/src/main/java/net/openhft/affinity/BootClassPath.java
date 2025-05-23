@@ -17,6 +17,7 @@
 
 package net.openhft.affinity;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,7 +88,7 @@ enum BootClassPath {
         try {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 @Override
-                public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+                public @NotNull FileVisitResult visitFile(final @NotNull Path file, final @NotNull BasicFileAttributes attrs) throws IOException {
                     if (file.getFileName().toString().endsWith(".class")) {
                         dirResources.add(path.relativize(file).toString());
                     }
@@ -95,7 +96,7 @@ enum BootClassPath {
                 }
             });
         } catch (IOException e) {
-            logger.warn("Error walking dir: " + path, e);
+            logger.warn("Error walking dir: {}", path, e);
         }
 
         return dirResources;

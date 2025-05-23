@@ -53,7 +53,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws IOException, InterruptedException {
+    public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws InterruptedException {
         // run the separate affinity locker
         final Process affinityLockerProcess = JavaProcessBuilder.create(AffinityLockerProcess.class)
                 .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
@@ -64,6 +64,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
             // wait for the CPU to be locked
             long endTime = System.currentTimeMillis() + 5_000;
             while (LockCheck.isCpuFree(lastCpuId)) {
+                //noinspection BusyWait
                 Thread.sleep(100);
                 if (System.currentTimeMillis() > endTime) {
                     LOGGER.info("Timed out waiting for the lock to be acquired: isAlive={}, exitCode={}",
@@ -83,7 +84,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldAllocateCoresCorrectlyUnderContention() throws IOException, InterruptedException {
+    public void shouldAllocateCoresCorrectlyUnderContention() throws InterruptedException {
         final int numberOfLockers = Math.max(2, Math.min(12, Runtime.getRuntime().availableProcessors())) / 2;
         List<Process> lockers = new ArrayList<>();
         LOGGER.info("Running test with {} locker processes", numberOfLockers);
@@ -99,7 +100,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldAllocateCoresCorrectlyUnderContentionWithFailures() throws IOException, InterruptedException {
+    public void shouldAllocateCoresCorrectlyUnderContentionWithFailures() throws InterruptedException {
         final int numberOfLockers = Math.max(2, Math.min(12, Runtime.getRuntime().availableProcessors())) / 2;
         List<Process> lockers = new ArrayList<>();
         LOGGER.info("Running test with {} locker processes", numberOfLockers);
@@ -118,7 +119,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldBeAbleToAcquireLockLeftByOtherProcess() throws IOException, InterruptedException {
+    public void shouldBeAbleToAcquireLockLeftByOtherProcess() throws InterruptedException {
         final Process process = JavaProcessBuilder.create(AffinityLockerThatDoesNotReleaseProcess.class)
                 .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
                 .withProgramArguments("last").start();
@@ -214,12 +215,12 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
             String cpuIdToLock = args[0];
 
             try (final AffinityLock affinityLock = AffinityLock.acquireLock(cpuIdToLock)) {
-                LOGGER.info("Got affinity lock " + affinityLock + " at " + LocalDateTime.now() + ", CPU=" + affinityLock.cpuId());
+                LOGGER.info("Got affinity lock {} at {}, CPU={}", affinityLock, LocalDateTime.now(), affinityLock.cpuId());
                 Thread.sleep(Integer.MAX_VALUE);
                 LOGGER.error("Woke from sleep? this should never happen");
             } catch (InterruptedException e) {
                 // expected, just end
-                LOGGER.info("Interrupted at " + LocalDateTime.now() + " lock is released");
+                LOGGER.info("Interrupted at {} lock is released", LocalDateTime.now());
             }
         }
     }
@@ -228,13 +229,13 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
      * Acquires a lock then ends
      */
     static class AffinityLockerThatDoesNotReleaseProcess {
-        private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLockerProcess.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLockerThatDoesNotReleaseProcess.class);
 
         public static void main(String[] args) {
             String cpuIdToLock = args[0];
 
             final AffinityLock affinityLock = AffinityLock.acquireLock(cpuIdToLock);
-            LOGGER.info("Got affinity lock " + affinityLock + " at " + LocalDateTime.now() + ", CPU=" + affinityLock.cpuId());
+            LOGGER.info("Got affinity lock {} at {}, CPU={}", affinityLock, LocalDateTime.now(), affinityLock.cpuId());
         }
     }
 
@@ -253,12 +254,14 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
                             final long maxValue = Long.MAX_VALUE; // a PID that never exists
                             ByteBuffer buffer = ByteBuffer.wrap((maxValue + "\n").getBytes(StandardCharsets.UTF_8));
                             while (buffer.hasRemaining()) {
+                                //noinspection ResultOfMethodCallIgnored
                                 fc.write(buffer);
                             }
                         }
                     } catch (FileAlreadyExistsException e) {
                         LOGGER.info("Failed, trying again");
                     }
+                    //noinspection BusyWait
                     Thread.sleep(ThreadLocalRandom.current().nextInt(50));
                 }
             }

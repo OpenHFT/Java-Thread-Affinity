@@ -53,7 +53,7 @@ class LockInventory {
         for (int i = 0; i < locks.length; i++) {
             AffinityLock al = locks[i];
             sb.append(i).append(": ");
-            sb.append(al.toString());
+            sb.append(al);
             sb.append('\n');
         }
         return sb.toString();
@@ -90,7 +90,7 @@ class LockInventory {
             throw e;
 
         } catch (IOException e) {
-            LOGGER.info("Error occurred acquiring lock, trying another " + e);
+            LOGGER.info("Error occurred acquiring lock, trying another {}", String.valueOf(e));
         }
         return false;
     }
@@ -127,7 +127,7 @@ class LockInventory {
     private void shrink(NavigableMap<Integer, AffinityLock[]> physicalCoreLocks) {
         for (Map.Entry<Integer, AffinityLock[]> e : physicalCoreLocks.entrySet()) {
             final AffinityLock[] locks = e.getValue();
-            for (int i=0; i<locks.length; i++) {
+            for (int i = 0; i < locks.length; i++) {
                 if (locks[i] == null) {
                     final AffinityLock[] locks2 = new AffinityLock[i];
                     System.arraycopy(locks, 0, locks2, 0, i);
@@ -215,9 +215,9 @@ class LockInventory {
 
                 final AffinityLock al = als[0];
                 try {
-                if (updateLockForCurrentThread(bind, al, true)) {
-                    return al;
-                }
+                    if (updateLockForCurrentThread(bind, al, true)) {
+                        return al;
+                    }
                 } catch (ClosedByInterruptException e) {
                     Thread.currentThread().interrupt();
                     return noLock();

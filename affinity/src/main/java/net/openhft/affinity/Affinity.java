@@ -190,11 +190,10 @@ public enum Affinity {
     public static boolean isJNAAvailable() {
         if (JNAAvailable == null) {
             int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
-            if(majorVersion < 5) {
+            if (majorVersion < 5) {
                 LOGGER.warn("Affinity library requires JNA version >= 5");
                 JNAAvailable = false;
-            }
-            else {
+            } else {
                 try {
                     Class.forName("com.sun.jna.Platform");
                     JNAAvailable = true;

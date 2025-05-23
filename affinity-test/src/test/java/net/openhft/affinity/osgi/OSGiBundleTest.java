@@ -64,7 +64,7 @@ public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     public void checkBundleState() {
         final Bundle bundle = findBundle(context, "net.openhft.affinity");
         assertNotNull(bundle);
-        assertEquals(bundle.getState(), Bundle.ACTIVE);
+        assertEquals(Bundle.ACTIVE, bundle.getState());
     }
 
     @Test
