@@ -17,7 +17,6 @@
 
 package net.openhft.affinity.osgi;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -31,7 +30,6 @@ import javax.inject.Inject;
 import static org.junit.Assert.*;
 import static org.ops4j.pax.exam.CoreOptions.*;
 
-@Ignore("TODO FIX")
 @RunWith(PaxExam.class)
 public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     @Inject
@@ -45,7 +43,7 @@ public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
                 mavenBundleAsInProject("org.slf4j", "slf4j-api"),
                 mavenBundleAsInProject("org.slf4j", "slf4j-simple").noStart(),
                 mavenBundleAsInProject("net.openhft", "affinity"),
-                workspaceBundle("affinity-test"),
+                mavenBundleAsInProject("net.openhft", "affinity-test").noStart(),
                 junitBundles(),
                 systemPackage("sun.misc"),
                 systemPackage("sun.nio.ch"),
