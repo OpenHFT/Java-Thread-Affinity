@@ -55,8 +55,8 @@ public enum LockCheck {
         return isLockFree(cpu);
     }
 
-    static boolean replacePid(int cpu, long processID) throws IOException {
-        return storePid(processID, cpu);
+    static boolean replacePid(int cpu, int cpu2, long processID) throws IOException {
+        return storePid(processID, cpu, cpu2);
     }
 
     public static boolean isProcessRunning(long pid) {
@@ -70,8 +70,8 @@ public enum LockCheck {
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
      */
-    private synchronized static boolean storePid(long processID, int cpu) throws IOException {
-        return lockChecker.obtainLock(cpu, Long.toString(processID));
+    private synchronized static boolean storePid(long processID, int cpu, int cpu2) throws IOException {
+        return lockChecker.obtainLock(cpu, cpu2, Long.toString(processID));
     }
 
     private synchronized static boolean isLockFree(int id) {
@@ -91,10 +91,10 @@ public enum LockCheck {
         return EMPTY_PID;
     }
 
-    static boolean updateCpu(int cpu) throws IOException {
+    static boolean updateCpu(int cpu, int cpu2) throws IOException {
         if (!canOSSupportOperation())
             return true;
-        return replacePid(cpu, getPID());
+        return replacePid(cpu, cpu2, getPID());
     }
 
     public static void releaseLock(int cpu) {

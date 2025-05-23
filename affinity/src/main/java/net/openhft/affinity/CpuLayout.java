@@ -49,4 +49,10 @@ public interface CpuLayout {
      * @return which thread on a core this cpu is on.
      */
     int threadId(int cpuId);
+
+    /**
+     * @param cpuId the logical processor number
+     * @return the hyperthreaded pair number or 0 if not hyperthreaded.
+     */
+    int pair(int cpuId);
 }
