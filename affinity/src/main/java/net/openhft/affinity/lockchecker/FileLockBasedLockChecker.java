@@ -242,7 +242,7 @@ public class FileLockBasedLockChecker implements LockChecker {
         final File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
         if (!tempDir.exists())
-            tempDir.mkdirs(); // should warn if it fails
+            tempDir.mkdirs();
 
         return tempDir;
     }
