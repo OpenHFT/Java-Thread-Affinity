@@ -56,6 +56,11 @@ public class LockCheckTest extends BaseAffinityTest {
     }
 
     @Test
+    public void testNegativePidOnLinux() {
+        Assert.assertFalse(LockCheck.isProcessRunning(-1));
+    }
+
+    @Test
     public void testReplace() throws IOException {
         cpu++;
         Assert.assertTrue(LockCheck.isCpuFree(cpu + 1));
