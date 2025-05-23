@@ -55,13 +55,6 @@ public class MicroJitterSampler {
         t.join();
     }
 
-    private static String asString(long timeNS) {
-        return timeNS < 1000 ? timeNS + "ns" :
-                timeNS < 1000000 ? timeNS / 1000 + "us" :
-                        timeNS < 1000000000 ? timeNS / 1000000 + "ms" :
-                                timeNS / 1000000000 + "sec";
-    }
-
     private void once() throws InterruptedException {
         if (UTIL >= 100) {
             sample(30L * 1000 * 1000 * 1000);
@@ -95,6 +88,13 @@ public class MicroJitterSampler {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static String asString(long timeNS) {
+        return timeNS < 1000 ? timeNS + "ns" :
+                timeNS < 1000000 ? timeNS / 1000 + "us" :
+                        timeNS < 1000000000 ? timeNS / 1000000 + "ms" :
+                                timeNS / 1000000000 + "sec";
     }
 
     void reset() {

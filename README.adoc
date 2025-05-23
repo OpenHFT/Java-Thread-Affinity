@@ -370,17 +370,3 @@ try (AffinityLock lock = AffinityLock.acquireLock("0")) { // prints a warning
     assertFalse(lock.bound);
 }
 ----
-
-== Deploying the OSGi Bundle
-
-The ``affinity-test`` module is packaged as an OSGi ``bundle``. Build it with
-
-[source,bash]
-----
-mvn -pl affinity-test clean package
-----
-
-The resulting JAR can be deployed to your OSGi runtime (e.g. Apache Felix or
-Equinox) by copying it into the framework's ``bundle`` directory or by using the
-``install`` and ``start`` commands. For a reference example, see
-``affinity-test/src/test/java/net/openhft/affinity/osgi/OSGiBundleTest.java``.
