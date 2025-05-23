@@ -78,6 +78,9 @@ public enum LockCheck {
     }
 
     public static int getProcessForCpu(int core) throws IOException {
+        if (!canOSSupportOperation())
+            return EMPTY_PID;
+
         String meta = lockChecker.getMetaInfo(core);
 
         if (meta != null && !meta.isEmpty()) {
