@@ -336,6 +336,11 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void testNegativeCpuId() {
+        AffinityLock.acquireLock(-1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
         AffinityLock.acquireLock(new int[]{123456});
     }
