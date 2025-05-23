@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.BitSet;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.hamcrest.CoreMatchers.is;
@@ -317,6 +318,16 @@ public class AffinityLockTest extends BaseAffinityTest {
         try (AffinityLock lock = AffinityLock.acquireLock("0")) {
             assertFalse(lock.bound);
         }
+    }
+
+    @Test
+    public void acquireLockWithoutBindingDoesNotChangeAffinity() {
+        BitSet before = (BitSet) Affinity.getAffinity().clone();
+        try (AffinityLock lock = AffinityLock.acquireLock(false)) {
+            assertFalse(lock.isBound());
+            assertEquals(before, Affinity.getAffinity());
+        }
+        assertEquals(before, Affinity.getAffinity());
     }
 
     @Test(expected = IllegalArgumentException.class)
