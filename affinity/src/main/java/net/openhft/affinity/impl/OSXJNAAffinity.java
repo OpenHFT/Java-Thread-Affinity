@@ -24,7 +24,6 @@ import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
 import java.util.BitSet;
 
 /**
@@ -55,8 +54,7 @@ public enum OSXJNAAffinity implements IAffinity {
 
     @Override
     public int getProcessId() {
-        final String name = ManagementFactory.getRuntimeMXBean().getName();
-        return Integer.parseInt(name.split("@")[0]);
+        return Utilities.currentProcessId();
     }
 
     @Override
