@@ -69,6 +69,7 @@ public class AffinityLock implements Closeable {
      * Logical ID of the CPU to which this lock belongs to.
      */
     private final int cpuId;
+    private final int cpuId2;
     /**
      * CPU to which this lock belongs to is of general use.
      */
@@ -88,9 +89,10 @@ public class AffinityLock implements Closeable {
     Throwable boundHere;
     private boolean resetAffinity = true;
 
-    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+    AffinityLock(int cpuId, int cpuId2, boolean base, boolean reservable, LockInventory lockInventory) {
         this.lockInventory = lockInventory;
         this.cpuId = cpuId;
+        this.cpuId2 = cpuId2;
         this.base = base;
         this.reservable = reservable;
     }
@@ -133,7 +135,7 @@ public class AffinityLock implements Closeable {
         int end = reservedAffinity.length();
         for (int i = 0; i < longs.length; i++) {
             int begin = Math.max(0, end - 16);
-            longs[i] = Long.parseLong(reservedAffinity.substring(begin, end), 16);
+            longs[i] = Long.parseUnsignedLong(reservedAffinity.substring(begin, end), 16);
             end = begin;
         }
         return BitSet.valueOf(longs);
@@ -183,11 +185,11 @@ public class AffinityLock implements Closeable {
      * for defining your thread layout centrally and passing the handle via dependency injection.
      *
      * @param cpuId the CPU id to bind to
-     * @return A handle for an affinity lock.
+     * @return A handle for an affinity lock, or no lock if no available CPU in the array
      */
     public static AffinityLock acquireLock(int cpuId) {
         if (cpuId < 0 || cpuId >= PROCESSORS) {
-            throw new IllegalArgumentException("cpuId must be between 0 and " + (PROCESSORS - 1) + ": " + cpuId);
+            return LOCK_INVENTORY.noLock();
         }
         return acquireLock(true, cpuId, AffinityStrategies.ANY);
     }
@@ -204,7 +206,8 @@ public class AffinityLock implements Closeable {
     public static AffinityLock acquireLock(int[] cpus) {
         for (int cpu : cpus) {
             if (cpu < 0 || cpu >= PROCESSORS) {
-                throw new IllegalArgumentException("cpuId must be between 0 and " + (PROCESSORS - 1) + ": " + cpu);
+                LOGGER.warn("cpuId {} is out of range", cpu);
+                continue;
             }
             AffinityLock lock = tryAcquireLock(true, cpu);
             if (lock != null) {
@@ -265,7 +268,7 @@ public class AffinityLock implements Closeable {
 
         } else if (desc.startsWith("csv:")) {
             String content = desc.substring(4);
-            int[] cpus = Arrays.asList(content.split(",")).stream()
+            int[] cpus = Arrays.stream(content.split(","))
                     .map(String::trim)
                     .mapToInt(Integer::parseInt).toArray();
 
@@ -467,6 +470,10 @@ public class AffinityLock implements Closeable {
      */
     public int cpuId() {
         return cpuId;
+    }
+
+    public int cpuId2() {
+        return cpuId2;
     }
 
     /**

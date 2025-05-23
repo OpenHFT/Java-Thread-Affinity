@@ -26,7 +26,7 @@ public interface LockChecker {
 
     boolean isLockFree(int id);
 
-    boolean obtainLock(int id, String metaInfo) throws IOException;
+    boolean obtainLock(int id, int id2, String metaInfo) throws IOException;
 
     boolean releaseLock(int id);
 

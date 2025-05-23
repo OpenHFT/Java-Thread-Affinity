@@ -98,14 +98,25 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     @Override
-    public synchronized boolean obtainLock(int id, String metaInfo) throws IOException {
+    public synchronized boolean obtainLock(int id, int id2, String metaInfo) throws IOException {
         int attempt = 0;
         while (attempt < MAX_LOCK_RETRIES) {
             try {
                 LockReference lockReference = tryAcquireLockOnFile(id, metaInfo);
                 if (lockReference != null) {
-                    locks[id] = lockReference;
-                    return true;
+                    if (id2 <= 0) {
+                        // no second lock to acquire, return success
+                        locks[id] = lockReference;
+                        return true;
+                    }
+                    LockReference lockReference2 = tryAcquireLockOnFile(id2, metaInfo);
+                    if (lockReference2 != null) {
+                        locks[id] = lockReference;
+                        locks[id2] = lockReference2;
+                        return true;
+                    } else {
+                        releaseLock(id);
+                    }
                 }
                 return false;
             } catch (ConcurrentLockFileDeletionException e) {
@@ -163,6 +174,7 @@ public class FileLockBasedLockChecker implements LockChecker {
         byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
         ByteBuffer buffer = ByteBuffer.wrap(content);
         while (buffer.hasRemaining()) {
+            //noinspection ResultOfMethodCallIgnored
             fc.write(buffer);
         }
     }
