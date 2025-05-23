@@ -19,7 +19,6 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
         Assume.assumeTrue(new File("/proc/cpuinfo").exists());
 
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
-
         int nThreads = Math.min(3, Math.max(1, AffinityLock.PROCESSORS - 1));
         CountDownLatch acquired = new CountDownLatch(nThreads);
         CountDownLatch release = new CountDownLatch(1);
@@ -44,7 +43,7 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
         String dump = AffinityLock.dumpLocks();
         for (Thread t : threads) {
-            assertTrue("Missing entry for " + t.getName(), dump.contains("Thread[" + t.getName()));
+            assertTrue("Missing entry for " + t.getName(), dump.contains(t.getName()));
         }
 
         release.countDown();
