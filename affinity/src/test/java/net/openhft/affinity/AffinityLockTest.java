@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
@@ -300,16 +301,54 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testTooHighCpuId() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(123456)) {
-            assertNotNull(ignored);
+    public void acquireLockWithoutBindingDoesNotChangeAffinity() {
+        BitSet before = (BitSet) Affinity.getAffinity().clone();
+        try (AffinityLock lock = AffinityLock.acquireLock(false)) {
+            assertFalse(lock.isBound());
+            assertEquals(before, Affinity.getAffinity());
         }
+        assertEquals(before, Affinity.getAffinity());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
+    public void testTooHighCpuId() {
+        AffinityLock.acquireLock(123456);
+        }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNegativeCpuId() {
+        AffinityLock.acquireLock(-1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testTooHighCpuId2() {
-        try (AffinityLock ignored = AffinityLock.acquireLock(new int[] {123456})) {
-            assertNotNull(ignored);
+        AffinityLock.acquireLock(new int[]{123456});
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+
+        final AffinityLock lock = AffinityLock.acquireLock(false);
+        Thread t = new Thread(() -> {
+            lock.bind();
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+                // ignored
+            }
+        });
+        t.start();
+
+        while (!lock.isBound()) {
+            Thread.sleep(10);
+        }
+
+        try {
+            lock.bind();
+        } finally {
+            t.join();
+            lock.release();
         }
     }
 
