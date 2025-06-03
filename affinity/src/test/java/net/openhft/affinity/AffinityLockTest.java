@@ -19,6 +19,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.chronicle.testframework.Waiters;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -363,10 +364,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         });
         t.start();
 
-        while (!lock.isBound()) {
-            //noinspection BusyWait
-            Thread.sleep(10);
-        }
+        Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
 
         try {
             lock.bind();
