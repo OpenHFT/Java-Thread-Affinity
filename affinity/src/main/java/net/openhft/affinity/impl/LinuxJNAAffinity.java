@@ -52,7 +52,7 @@ public enum LinuxJNAAffinity implements IAffinity {
             loaded = true;
         } catch (NoClassDefFoundError | UnsatisfiedLinkError e) {
             if (IS_LINUX)
-                LOGGER.warn("Unable to load jna library {}", e);
+                LOGGER.warn("Unable to load jna library", e);
         }
         LOADED = loaded;
     }

@@ -53,7 +53,7 @@ class LockInventory {
         for (int i = 0; i < locks.length; i++) {
             AffinityLock al = locks[i];
             sb.append(i).append(": ");
-            sb.append(al.toString());
+            sb.append(al);
             sb.append('\n');
         }
         return sb.toString();
@@ -82,7 +82,7 @@ class LockInventory {
      */
     private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) throws ClosedByInterruptException {
         try {
-            if (LockCheck.updateCpu(al.cpuId())) {
+            if (LockCheck.updateCpu(al.cpuId(), wholeCore ? al.cpuId2() : 0)) {
                 al.assignCurrentThread(bind, wholeCore);
                 return true;
             }
@@ -90,7 +90,7 @@ class LockInventory {
             throw e;
 
         } catch (IOException e) {
-            LOGGER.info("Error occurred acquiring lock, trying another " + e);
+            LOGGER.info("Error occurred acquiring lock, trying another {}", String.valueOf(e));
         }
         return false;
     }
@@ -108,7 +108,9 @@ class LockInventory {
             final boolean base = AffinityLock.BASE_AFFINITY.get(i);
             final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
             LOGGER.trace("cpu {} base={} reservable= {}", i, base, reservable);
-            AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);
+            assert logicalCoreLocks != null;
+            @SuppressWarnings("resource")
+            AffinityLock lock = logicalCoreLocks[i] = newLock(i, cpuLayout.pair(i), base, reservable);
 
             int layoutId = lock.cpuId();
             int physicalCore = toPhysicalCore(layoutId);
@@ -127,7 +129,7 @@ class LockInventory {
     private void shrink(NavigableMap<Integer, AffinityLock[]> physicalCoreLocks) {
         for (Map.Entry<Integer, AffinityLock[]> e : physicalCoreLocks.entrySet()) {
             final AffinityLock[] locks = e.getValue();
-            for (int i=0; i<locks.length; i++) {
+            for (int i = 0; i < locks.length; i++) {
                 if (locks[i] == null) {
                     final AffinityLock[] locks2 = new AffinityLock[i];
                     System.arraycopy(locks, 0, locks2, 0, i);
@@ -215,9 +217,9 @@ class LockInventory {
 
                 final AffinityLock al = als[0];
                 try {
-                if (updateLockForCurrentThread(bind, al, true)) {
-                    return al;
-                }
+                    if (updateLockForCurrentThread(bind, al, true)) {
+                        return al;
+                    }
                 } catch (ClosedByInterruptException e) {
                     Thread.currentThread().interrupt();
                     return noLock();
@@ -277,8 +279,8 @@ class LockInventory {
         return dumpLocks(logicalCoreLocks);
     }
 
-    protected AffinityLock newLock(int cpuId, boolean base, boolean reservable) {
-        return new AffinityLock(cpuId, base, reservable, this);
+    protected AffinityLock newLock(int cpuId, int cpuId2, boolean base, boolean reservable) {
+        return new AffinityLock(cpuId, cpuId2, base, reservable, this);
     }
 
     private void reset(CpuLayout cpuLayout) {
@@ -301,6 +303,6 @@ class LockInventory {
     }
 
     public AffinityLock noLock() {
-        return newLock(AffinityLock.ANY_CPU, false, false);
+        return newLock(AffinityLock.ANY_CPU, 0, false, false);
     }
 }

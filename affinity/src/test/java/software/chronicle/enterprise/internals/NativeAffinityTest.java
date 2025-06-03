@@ -25,8 +25,7 @@ import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author peter.lawrey
@@ -52,10 +51,7 @@ public class NativeAffinityTest {
     @Test
     public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty",
-                !affinity.isEmpty()
-        );
+        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
         final int allCoresMask = (1 << CORES) - 1;
         assertTrue(
                 "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
@@ -79,8 +75,7 @@ public class NativeAffinityTest {
             return;
         }
         final IAffinity impl = NativeAffinity.INSTANCE;
-        final int cores = CORES;
-        for (int core = 0; core < cores; core++) {
+        for (int core = 0; core < CORES; core++) {
             final BitSet mask = new BitSet();
             mask.set(core, true);
             getAffinityReturnsValuePreviouslySet(impl, mask);

@@ -53,13 +53,11 @@ public class AffinityThreadFactory implements ThreadFactory {
     public synchronized Thread newThread(@NotNull final Runnable r) {
         String name2 = id <= 1 ? name : (name + '-' + id);
         id++;
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try (AffinityLock ignored = acquireLockBasedOnLast()) {
-                    assert ignored != null;
-                    r.run();
-                }
+        Thread t = new Thread(() -> {
+            try (AffinityLock ignored = acquireLockBasedOnLast()) {
+                //noinspection ConstantValue
+                assert ignored != null;
+                r.run();
             }
         }, name2);
         t.setDaemon(daemon);

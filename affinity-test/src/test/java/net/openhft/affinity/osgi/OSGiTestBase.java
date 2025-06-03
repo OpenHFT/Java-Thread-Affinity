@@ -29,7 +29,7 @@ public class OSGiTestBase {
 
     public static Option workspaceBundle(String projectName) {
         String baseDir = System.getProperty("main.basedir");
-        String bundleDir = null;
+        String bundleDir;
 
         bundleDir = String.format("%s/%s/target/classes", baseDir, projectName);
         if (new File(bundleDir).exists()) {

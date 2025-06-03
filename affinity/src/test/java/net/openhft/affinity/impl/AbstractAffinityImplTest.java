@@ -23,8 +23,7 @@ import org.junit.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author cheremin
@@ -49,10 +48,7 @@ public abstract class AbstractAffinityImplTest {
     @Test
     public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty",
-                !affinity.isEmpty()
-        );
+        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
         final long allCoresMask = (1L << CORES) - 1;
         assertTrue(
                 "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
