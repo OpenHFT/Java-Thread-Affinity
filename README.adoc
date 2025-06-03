@@ -5,7 +5,7 @@ image::docs/images/Thread-Affinity_line.png[width=20%]
 == Version
 
 [#image-maven]
-[caption="", link=https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity]
+[caption="",link=https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity]
 image::https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg[]
 image:https://javadoc.io/badge2/net.openhft/affinity/javadoc.svg[link="https://www.javadoc.io/doc/net.openhft/affinity/latest/index.html"]
 
@@ -14,22 +14,20 @@ Lets you bind a thread to a given core, this can improve performance (this libra
 
 OpenHFT Java Thread Affinity library
 
-See https://github.com/OpenHFT/Java-Thread-Affinity/tree/master/affinity/src/test/java[affinity/src/test/java] 
+See https://github.com/OpenHFT/Java-Thread-Affinity/tree/master/affinity/src/test/java[affinity/src/test/java]
 for working examples of how to use this library.
 
 === Supported operating systems
 
-The library detects the running platform in `Affinity.java` and selects an
-implementation for that OS. Features differ between systems:
+The library detects the running platform in `Affinity.java` and selects an implementation for that OS.
+Features differ between systems:
 
-* *Linux* - full affinity control via JNA. The implementation can get and set
-  thread affinity, query the current CPU, and obtain process and thread IDs.
-* *Windows* - thread affinity is managed through the kernel API. Process and
-  thread IDs are available, while `getCpu()` returns `-1`.
-* *macOS* - provides process and thread IDs but does not modify affinity and
-  reports the CPU id as `-1`.
-* *Solaris* - mirrors the macOS implementation: only process and thread IDs are
-  returned with no affinity or CPU querying support.
+* *Linux* - full affinity control via JNA.
+The implementation can get and set thread affinity, query the current CPU, and obtain process and thread IDs.
+* *Windows* - thread affinity is managed through the kernel API.
+Process and thread IDs are available, while `getCpu()` returns `-1`.
+* *macOS* - provides process and thread IDs but does not modify affinity and reports the CPU id as `-1`.
+* *Solaris* - mirrors the macOS implementation: only process and thread IDs are returned with no affinity or CPU querying support.
 
 === Changes
 
@@ -39,19 +37,15 @@ implementation for that OS. Features differ between systems:
 
 === Dependencies
 
-Java-Thread-Affinity will try to use https://github.com/java-native-access/jna[JNA]
-to provide access to native thread-handling functions. JNA should be installed on
-your system to get the most from this library.
+Java-Thread-Affinity will try to use link:https://github.com/java-native-access/jna[JNA]
+to provide access to native thread-handling functions.
+JNA should be installed on your system to get the most from this library.
 
 === JNA version
 
-Java-Thread-Affinity currently depends on JNA version 4.4.0, which in turn
-depends on a version of GLIBC >= 2.14. If your operating system is an old one,
-with a version of GLIBC released before 2011, this library will not be able to 
-invoke native functions.
+Java-Thread-Affinity currently depends on JNA version 4.4.0, which in turn depends on a version of GLIBC >= 2.14. If your operating system is an old one, with a version of GLIBC released before 2011, this library will not be able to invoke native functions.
 
-To work around this problem, fork the repository, and override the `<version>` tag
-for the artifacts `jna` and `jna-platform` in the project's `pom` file.
+To work around this problem, fork the repository, and override the `<version>` tag for the artifacts `jna` and `jna-platform` in the project's `pom` file.
 
 === Installing JNA on Ubuntu
 
@@ -68,17 +62,18 @@ for the artifacts `jna` and `jna-platform` in the project's `pom` file.
 Or download jna.jar and jna-platform.jar from the JNA project and add them to your classpath.
 
 === How does CPU allocation work?
-The library will read your `/proc/cpuinfo` if you have one or provide one and it will determine your CPU layout.  If you don't have one it will assume every CPU is on one CPU socket.
 
-The library looks for isolated CPUs determined by looking at the CPUs you are not running on by default. 
+The library will read your `/proc/cpuinfo` if you have one or provide one and it will determine your CPU layout.
+If you don't have one it will assume every CPU is on one CPU socket.
+
+The library looks for isolated CPUs determined by looking at the CPUs you are not running on by default.
 i.e. if you have 16 CPUs but 8 of them are not available for general use (as determined by the affinity of the process on startup) it will start assigning to those CPUs.
 
 Note: if you have more than one process using this library you need to specify which CPUs the process can use otherwise it will assign the same CPUs to both processes.
 
-To control which CPUs a process can use, add `-Daffinity.reserved={cpu-mask-in-hex}`
-to the command line of the process. The mask is a hexadecimal bit mask without
-the `0x` prefix where bit `0` represents CPU `0`, bit `1` represents CPU `1` and
-so on. Multiple CPUs can be specified by setting more than one bit.
+To control which CPUs a process can use, add `-Daffinity.reserved={cpu-mask-in-hex}` to the command line of the process.
+The mask is a hexadecimal bit mask without the `0x` prefix where bit `0` represents CPU `0`, bit `1` represents CPU `1` and so on.
+Multiple CPUs can be specified by setting more than one bit.
 
 For example:
 
@@ -86,8 +81,7 @@ For example:
 * `-Daffinity.reserved=6` reserves CPUs `1` and `2`.
 * `-Daffinity.reserved=10` reserves CPUs `1` and `3` (hexadecimal `a`).
 
-Use an appropriate mask when starting each process to avoid reserving the same
-cores for multiple JVMs.
+Use an appropriate mask when starting each process to avoid reserving the same cores for multiple JVMs.
 
 Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
@@ -103,13 +97,15 @@ http://vanillajava.blogspot.co.uk/2013/07/micro-jitter-busy-waiting-and-binding.
 
 Java-Thread-Affinity requires that you first isolate some CPU's.
 
-Once a CPU core is isolated, the Linux scheduler will not use the CPU core to run any user-space processes. The isolated CPUs will not participate in load balancing, and will not have tasks running on them unless explicitly assigned.
+Once a CPU core is isolated, the Linux scheduler will not use the CPU core to run any user-space processes.
+The isolated CPUs will not participate in load balancing, and will not have tasks running on them unless explicitly assigned.
 
 To isolate the 1st and 3rd CPU cores (CPU numbers start from 0) on your system, add the following to the kernel command line during boot:
 
 isolcpus=1,3
 
 Using GRUB
+
 [source]
 ----
 sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="isolcpus=1,3 /' /etc/default/grub
@@ -118,6 +114,7 @@ sudo reboot
 ----
 
 Using systemd-boot
+
 [source]
 ----
 sudo sed -i 's/^options \(.*\)/options \1 isolcpus=1,3/' /boot/loader/entries/*.conf
@@ -127,10 +124,12 @@ sudo reboot
 == Using AffinityLock
 
 === Acquiring a CPU lock for a thread
+
 You can acquire a lock for a CPU in the following way:
 
 In Java 6
-[source, java]
+
+[source,java]
 ----
 AffinityLock al = AffinityLock.acquireLock();
 try {
@@ -141,25 +140,33 @@ try {
 ----
 
 In Java 7 or 8
-[source, java]
+
+[source,java]
 ----
 try (AffinityLock al = AffinityLock.acquireLock()) {
     // do some work while locked to a CPU.
 }
 ----
+
 You have further options such as
 
 === Acquiring a CORE lock for a thread
-You can reserve a whole core.  If you have hyper-threading enabled, this will use one CPU and leave it's twin CPU unused.
-[source, java]
+
+You can reserve a whole core.
+If you have hyper-threading enabled, this will use one CPU and leave it's twin CPU unused.
+
+[source,java]
 ----
 try (AffinityLock al = AffinityLock.acquireCore()) {
     // do some work while locked to a CPU.
 }
 ----
+
 === Controlling layout
+
 You can chose a layout relative to an existing lock.
-[source, java]
+
+[source,java]
 ----
 try (final AffinityLock al = AffinityLock.acquireLock()) {
     System.out.println("Main locked");
@@ -175,9 +182,11 @@ try (final AffinityLock al = AffinityLock.acquireLock()) {
     t.start();
 }
 ----    
+
 In this example, the library will prefer a free CPU on the same Socket as the first thread, otherwise it will pick any free CPU.
 
 === Affinity strategies
+
 The `AffinityStrategies` enum defines hints for selecting a CPU relative to an existing lock.
 
 [options="header",cols="1,3"]
@@ -192,33 +201,45 @@ The `AffinityStrategies` enum defines hints for selecting a CPU relative to an e
 |===
 
 === Getting the thread id
+
 You can get the current thread id using
-[source, java]
+
+[source,java]
 ----
 
 int threadId = AffinitySupport.getThreadId();
 ----
+
 === Determining which CPU you are running on
+
 You can get the current CPU being used by
-[source, java]
+
+[source,java]
 ----
 
 int cpuId = AffinitySupport.getCpu();
 ----
+
 === Controlling the affinity more directly
+
 The affinity of the process on start up is
-[source, java]
+
+[source,java]
 ----
 
 long baseAffinity = AffinityLock.BASE_AFFINITY;
 ----   
+
 The available CPU for reservation is
-[source, java]
+
+[source,java]
 ----
 long reservedAffinity = AffinityLock.RESERVED_AFFINITY;
 ----    
+
 If you want to get/set the affinity directly you can do
-[source, java]
+
+[source,java]
 ----
 long currentAffinity = AffinitySupport.getAffinity();
 AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
@@ -227,8 +248,8 @@ AffinitySupport.setAffinity(1L << 5); // lock to CPU 5.
 === Understanding dumpLocks() output
 
 Several examples print the current CPU assignments using `AffinityLock.dumpLocks()`.
-Each line of the output begins with the zero based CPU id followed by the status
-of that CPU. Example output might look like:
+Each line of the output begins with the zero based CPU id followed by the status of that CPU.
+Example output might look like:
 
 [source]
 ----
@@ -239,35 +260,32 @@ of that CPU. Example output might look like:
 ----
 
 The number on each line is the logical CPU index as recognised by the library.
-The text after the colon describes whether that CPU is free, reserved or already
-bound to a thread. Use these indices when calling `AffinityLock.acquireLock(n)`
+The text after the colon describes whether that CPU is free, reserved or already bound to a thread.
+Use these indices when calling `AffinityLock.acquireLock(n)`
 or when constructing explicit affinity masks.
 
 === Lock file directory
 
-AffinityLock stores a small lock file for each CPU. These files are placed in
-the directory specified by the `java.io.tmpdir` system property, which by
-default points to your system's temporary directory (usually `/tmp` on Linux).
+AffinityLock stores a small lock file for each CPU.
+These files are placed in the directory specified by the `java.io.tmpdir` system property, which by default points to your system's temporary directory (usually `/tmp` on Linux).
 
-If you want to keep the lock files elsewhere, set this property before using any
-affinity APIs:
+If you want to keep the lock files elsewhere, set this property before using any affinity APIs:
 
-[source, bash]
+[source,bash]
 ----
 java -Djava.io.tmpdir=/path/to/dir ...
 ----
 
 or in code
 
-[source, java]
+[source,java]
 ----
 System.setProperty("java.io.tmpdir", "/path/to/dir");
 ----
 
 === Debugging affinity state
 
-For a detailed of view of the current affinity state (as seen by the library),
-execute the following script on Linux systems:
+For a detailed of view of the current affinity state (as seen by the library), execute the following script on Linux systems:
 
 [source]
 ----
@@ -289,11 +307,10 @@ $ for i in "$(ls cpu-*)";
 
 == Using AffinityThreadFactory
 
-`AffinityThreadFactory` binds each thread it creates according to a set of
-`AffinityStrategy` rules.  This allows executors to automatically run tasks on
-cores selected by the library.
+`AffinityThreadFactory` binds each thread it creates according to a set of `AffinityStrategy` rules.
+This allows executors to automatically run tasks on cores selected by the library.
 
-[source, java]
+[source,java]
 ----
 ExecutorService es = Executors.newFixedThreadPool(4,
         new AffinityThreadFactory("worker",
@@ -315,12 +332,15 @@ For an article on how much difference affinity can make and how to use it http:/
 == Questions and Answers
 
 === Question: How to lock a specific cpuId
-I am currently working on a project related to deadlock detection in multithreaded programs in java. We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
-Being a beginner, I have little knowledge and thus need your assistance. We need to know how to run threads on specified cpu number and then switch threads when one is waiting. 
+
+I am currently working on a project related to deadlock detection in multithreaded programs in java.
+We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+Being a beginner, I have little knowledge and thus need your assistance.
+We need to know how to run threads on specified cpu number and then switch threads when one is waiting.
 
 === Answer
 
-[source, java]
+[source,java]
 ----
 // lock a cpuId
 try (AffinityLock lock = AffinityLock.acquireLock(n)) {
