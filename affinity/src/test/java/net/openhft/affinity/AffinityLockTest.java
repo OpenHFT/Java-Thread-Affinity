@@ -19,6 +19,7 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
+import net.openhft.chronicle.testframework.Waiters;
 import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -334,19 +335,17 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void testTooHighCpuId() {
-        AffinityLock lock = AffinityLock.acquireLock(123456);
-        assertFalse(lock.isBound());
+        assertFalse(AffinityLock.acquireLock(123456).isBound());
     }
 
     @Test
     public void testNegativeCpuId() {
-        AffinityLock lock = AffinityLock.acquireLock(-1);
-        assertFalse(lock.isBound());
+        assertFalse(AffinityLock.acquireLock(-1).isBound());
     }
 
     @Test
     public void testTooHighCpuId2() {
-        AffinityLock lock = AffinityLock.acquireLock(new int[]{-1, 123456});
+        AffinityLock lock = AffinityLock.acquireLock(new int[]{123456});
         assertFalse(lock.isBound());
     }
 
@@ -365,10 +364,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         });
         t.start();
 
-        while (!lock.isBound()) {
-            //noinspection BusyWait
-            Thread.sleep(10);
-        }
+        Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
 
         try {
             lock.bind();
