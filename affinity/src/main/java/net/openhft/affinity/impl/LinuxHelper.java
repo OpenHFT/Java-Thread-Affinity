@@ -66,9 +66,9 @@ public class LinuxHelper {
         return cpuset;
     }
 
-	public static void sched_setaffinity(final BitSet affinity) {
-		sched_setaffinity(0, affinity);
-	}
+    public static void sched_setaffinity(final BitSet affinity) {
+        sched_setaffinity(0, affinity);
+    }
 
     public static void sched_setaffinity(final int pid, final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
