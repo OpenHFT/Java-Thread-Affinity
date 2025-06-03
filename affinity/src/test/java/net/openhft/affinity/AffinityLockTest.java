@@ -332,19 +332,22 @@ public class AffinityLockTest extends BaseAffinityTest {
         assertEquals(before, Affinity.getAffinity());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testTooHighCpuId() {
-        AffinityLock.acquireLock(123456);
-        }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testNegativeCpuId() {
-        AffinityLock.acquireLock(-1);
+        AffinityLock lock = AffinityLock.acquireLock(123456);
+        assertFalse(lock.isBound());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
+    public void testNegativeCpuId() {
+        AffinityLock lock = AffinityLock.acquireLock(-1);
+        assertFalse(lock.isBound());
+    }
+
+    @Test
     public void testTooHighCpuId2() {
-        AffinityLock.acquireLock(new int[]{123456});
+        AffinityLock lock = AffinityLock.acquireLock(new int[]{-1, 123456});
+        assertFalse(lock.isBound());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -363,6 +366,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         t.start();
 
         while (!lock.isBound()) {
+            //noinspection BusyWait
             Thread.sleep(10);
         }
 
