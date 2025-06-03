@@ -69,6 +69,7 @@ public class AffinityLock implements Closeable {
      * Logical ID of the CPU to which this lock belongs to.
      */
     private final int cpuId;
+    private final int cpuId2;
     /**
      * CPU to which this lock belongs to is of general use.
      */
@@ -88,9 +89,10 @@ public class AffinityLock implements Closeable {
     Throwable boundHere;
     private boolean resetAffinity = true;
 
-    AffinityLock(int cpuId, boolean base, boolean reservable, LockInventory lockInventory) {
+    AffinityLock(int cpuId, int cpuId2, boolean base, boolean reservable, LockInventory lockInventory) {
         this.lockInventory = lockInventory;
         this.cpuId = cpuId;
+        this.cpuId2 = cpuId2;
         this.base = base;
         this.reservable = reservable;
     }
@@ -133,7 +135,7 @@ public class AffinityLock implements Closeable {
         int end = reservedAffinity.length();
         for (int i = 0; i < longs.length; i++) {
             int begin = Math.max(0, end - 16);
-            longs[i] = Long.parseLong(reservedAffinity.substring(begin, end), 16);
+            longs[i] = Long.parseUnsignedLong(reservedAffinity.substring(begin, end), 16);
             end = begin;
         }
         return BitSet.valueOf(longs);
@@ -183,7 +185,7 @@ public class AffinityLock implements Closeable {
      * for defining your thread layout centrally and passing the handle via dependency injection.
      *
      * @param cpuId the CPU id to bind to
-     * @return A handle for an affinity lock.
+     * @return A handle for an affinity lock, or no lock if no available CPU in the array
      */
     public static AffinityLock acquireLock(int cpuId) {
         if (isInvalidCpuId(cpuId))
@@ -472,6 +474,10 @@ public class AffinityLock implements Closeable {
      */
     public int cpuId() {
         return cpuId;
+    }
+
+    public int cpuId2() {
+        return cpuId2;
     }
 
     /**

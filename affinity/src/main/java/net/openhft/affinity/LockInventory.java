@@ -82,7 +82,7 @@ class LockInventory {
      */
     private static boolean updateLockForCurrentThread(final boolean bind, final AffinityLock al, final boolean wholeCore) throws ClosedByInterruptException {
         try {
-            if (LockCheck.updateCpu(al.cpuId())) {
+            if (LockCheck.updateCpu(al.cpuId(), wholeCore ? al.cpuId2() : 0)) {
                 al.assignCurrentThread(bind, wholeCore);
                 return true;
             }
@@ -108,7 +108,9 @@ class LockInventory {
             final boolean base = AffinityLock.BASE_AFFINITY.get(i);
             final boolean reservable = AffinityLock.RESERVED_AFFINITY.get(i);
             LOGGER.trace("cpu {} base={} reservable= {}", i, base, reservable);
-            AffinityLock lock = logicalCoreLocks[i] = newLock(i, base, reservable);
+            assert logicalCoreLocks != null;
+            @SuppressWarnings("resource")
+            AffinityLock lock = logicalCoreLocks[i] = newLock(i, cpuLayout.pair(i), base, reservable);
 
             int layoutId = lock.cpuId();
             int physicalCore = toPhysicalCore(layoutId);
@@ -277,8 +279,8 @@ class LockInventory {
         return dumpLocks(logicalCoreLocks);
     }
 
-    protected AffinityLock newLock(int cpuId, boolean base, boolean reservable) {
-        return new AffinityLock(cpuId, base, reservable, this);
+    protected AffinityLock newLock(int cpuId, int cpuId2, boolean base, boolean reservable) {
+        return new AffinityLock(cpuId, cpuId2, base, reservable, this);
     }
 
     private void reset(CpuLayout cpuLayout) {
@@ -301,6 +303,6 @@ class LockInventory {
     }
 
     public AffinityLock noLock() {
-        return newLock(AffinityLock.ANY_CPU, false, false);
+        return newLock(AffinityLock.ANY_CPU, 0, false, false);
     }
 }
