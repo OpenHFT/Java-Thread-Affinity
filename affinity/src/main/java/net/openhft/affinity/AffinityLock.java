@@ -201,12 +201,6 @@ public class AffinityLock implements Closeable {
         return false;
     }
 
-    private static void checkCpuId(int cpuId) {
-        if (cpuId < 0 || cpuId >= PROCESSORS) {
-            LOGGER.warn("cpuId must be between 0 and {}: {}", PROCESSORS - 1, cpuId);
-        }
-    }
-
     /**
      * Assign a cpu which can be bound to the current thread or another thread
      * Caller passes in an explicit set of preferred CPUs
