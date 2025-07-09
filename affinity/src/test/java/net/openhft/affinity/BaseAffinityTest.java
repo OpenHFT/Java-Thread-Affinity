@@ -21,6 +21,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import static org.junit.Assert.assertEquals;
+
 public class BaseAffinityTest {
 
     @Rule
@@ -40,5 +42,10 @@ public class BaseAffinityTest {
             LockCheck.releaseLock(i);
         }
         System.setProperty("java.io.tmpdir", originalTmpDir);
+    }
+
+    @After
+    public void baseAffinity() {
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
 }
