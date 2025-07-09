@@ -17,6 +17,7 @@
 
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
 import org.junit.After;
 import org.junit.Test;
@@ -29,7 +30,7 @@ import static org.junit.Assert.*;
  * @author cheremin
  * @since 29.12.11,  20:25
  */
-public abstract class AbstractAffinityImplTest {
+public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
 
     protected static final int CORES = Runtime.getRuntime().availableProcessors();
     protected static final BitSet CORES_MASK = new BitSet(CORES);

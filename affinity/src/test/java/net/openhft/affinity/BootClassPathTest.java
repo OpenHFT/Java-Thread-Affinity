@@ -20,7 +20,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 
-public class BootClassPathTest {
+public class BootClassPathTest extends BaseAffinityTest {
     @Test
     public void shouldDetectClassesOnClassPath() {
         assertTrue(BootClassPath.INSTANCE.has("java.lang.Thread"));

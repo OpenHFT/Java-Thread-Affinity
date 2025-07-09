@@ -16,13 +16,14 @@
 
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.BaseAffinityTest;
 import org.junit.Test;
 
 import java.util.BitSet;
 
 import static org.junit.Assert.assertEquals;
 
-public class UtilitiesTest {
+public class UtilitiesTest extends BaseAffinityTest {
 
     private static String hex(BitSet set, int... bits) {
         set.clear();

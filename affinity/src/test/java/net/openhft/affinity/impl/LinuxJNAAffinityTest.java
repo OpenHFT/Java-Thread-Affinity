@@ -17,6 +17,7 @@
 
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.BaseAffinityTest;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -28,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 /*
  * Created by Peter Lawrey on 23/03/16.
  */
-public class LinuxJNAAffinityTest {
+public class LinuxJNAAffinityTest extends BaseAffinityTest {
     @BeforeClass
     public static void checkJniLibraryPresent() {
         Assume.assumeTrue(LinuxJNAAffinity.LOADED);
