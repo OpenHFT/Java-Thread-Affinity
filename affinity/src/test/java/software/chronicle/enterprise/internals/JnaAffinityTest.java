@@ -17,6 +17,7 @@
 
 package software.chronicle.enterprise.internals;
 
+import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
 import net.openhft.affinity.impl.LinuxJNAAffinity;
 import net.openhft.affinity.impl.Utilities;
@@ -27,13 +28,12 @@ import org.junit.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author peter.lawrey
  */
-public class JnaAffinityTest {
+public class JnaAffinityTest extends BaseAffinityTest {
     protected static final int CORES = Runtime.getRuntime().availableProcessors();
     protected static final BitSet CORES_MASK = new BitSet(CORES);
 
@@ -54,10 +54,7 @@ public class JnaAffinityTest {
     @Test
     public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty",
-                !affinity.isEmpty()
-        );
+        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
         final int allCoresMask = (1 << CORES) - 1;
         assertTrue(
                 "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
@@ -80,8 +77,7 @@ public class JnaAffinityTest {
             return;
         }
         final IAffinity impl = LinuxJNAAffinity.INSTANCE;
-        final int cores = CORES;
-        for (int core = 0; core < cores; core++) {
+        for (int core = 0; core < CORES; core++) {
             final BitSet mask = new BitSet();
             mask.set(core, true);
             getAffinityReturnsValuePreviouslySet(impl, mask);

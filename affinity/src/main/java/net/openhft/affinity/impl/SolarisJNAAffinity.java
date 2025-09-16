@@ -24,7 +24,6 @@ import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
 import java.util.BitSet;
 
 /**
@@ -45,7 +44,7 @@ public enum SolarisJNAAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final BitSet affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNIa nd JNA libraries and not loaded", Utilities.toHexString(affinity));
+        LOGGER.trace("unable to set mask to {} as the JNI and JNA libraries not loaded", Utilities.toHexString(affinity));
     }
 
     @Override
@@ -55,8 +54,7 @@ public enum SolarisJNAAffinity implements IAffinity {
 
     @Override
     public int getProcessId() {
-        final String name = ManagementFactory.getRuntimeMXBean().getName();
-        return Integer.parseInt(name.split("@")[0]);
+        return Utilities.currentProcessId();
     }
 
     @Override

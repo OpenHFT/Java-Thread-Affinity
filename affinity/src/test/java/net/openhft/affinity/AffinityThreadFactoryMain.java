@@ -37,16 +37,14 @@ public final class AffinityThreadFactoryMain {
 
     public static void main(String... args) throws InterruptedException {
         for (int i = 0; i < 12; i++)
-            ES.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws InterruptedException {
-                    Thread.sleep(100);
-                    return null;
-                }
+            ES.submit((Callable<Void>) () -> {
+                Thread.sleep(100);
+                return null;
             });
         Thread.sleep(200);
         System.out.println("\nThe assignment of CPUs is\n" + AffinityLock.dumpLocks());
         ES.shutdown();
+        //noinspection ResultOfMethodCallIgnored
         ES.awaitTermination(1, TimeUnit.SECONDS);
     }
 }

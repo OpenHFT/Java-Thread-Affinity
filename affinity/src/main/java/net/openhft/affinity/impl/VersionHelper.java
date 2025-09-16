@@ -30,7 +30,7 @@ public class VersionHelper {
     }
 
     public VersionHelper(String ver) {
-        if (ver != null && (ver = ver.trim()).length() > 0) {
+        if (ver != null && !(ver = ver.trim()).isEmpty()) {
             final String[] parts = ver.split("\\.");
             major = parts.length > 0 ? Integer.parseInt(parts[0]) : 0;
             minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
@@ -46,7 +46,7 @@ public class VersionHelper {
     }
 
     public boolean equals(Object o) {
-        if (o != null && (o instanceof VersionHelper)) {
+        if (o instanceof VersionHelper) {
             VersionHelper ver = (VersionHelper) o;
             return this.major == ver.major
                     && this.minor == ver.minor
