@@ -17,6 +17,7 @@
 
 package software.chronicle.enterprise.internals;
 
+import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
 import net.openhft.affinity.impl.LinuxJNAAffinity;
 import net.openhft.affinity.impl.Utilities;
@@ -30,7 +31,7 @@ import static org.junit.Assert.*;
 /**
  * @author peter.lawrey
  */
-public class NativeAffinityTest {
+public class NativeAffinityTest extends BaseAffinityTest {
     protected static final int CORES = Runtime.getRuntime().availableProcessors();
     protected static final BitSet CORES_MASK = new BitSet(CORES);
 

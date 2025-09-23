@@ -17,10 +17,11 @@
 
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.BaseAffinityTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class VersionHelperTest {
+public class VersionHelperTest extends BaseAffinityTest {
 
     @Test
     public void isSameOrNewerTest() {

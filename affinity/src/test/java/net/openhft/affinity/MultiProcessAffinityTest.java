@@ -155,6 +155,11 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         private final int iterations;
         private final String cpuIdToLock;
 
+        public RepeatedAffinityLocker(String cpuIdToLock, int iterations) {
+            this.iterations = iterations;
+            this.cpuIdToLock = cpuIdToLock;
+        }
+
         public static void main(String[] args) throws InterruptedException, ExecutionException {
             String cpuIdToLock = args[0];
             int iterations = Integer.parseInt(args[1]);
@@ -172,11 +177,6 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
             if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
                 throw new IllegalStateException("Executor service didn't shut down");
             }
-        }
-
-        public RepeatedAffinityLocker(String cpuIdToLock, int iterations) {
-            this.iterations = iterations;
-            this.cpuIdToLock = cpuIdToLock;
         }
 
         @Override

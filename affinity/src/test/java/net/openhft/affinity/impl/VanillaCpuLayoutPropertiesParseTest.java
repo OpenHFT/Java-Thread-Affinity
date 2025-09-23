@@ -1,12 +1,13 @@
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.BaseAffinityTest;
 import org.junit.Test;
 
 import java.io.InputStream;
 
 import static org.junit.Assert.assertEquals;
 
-public class VanillaCpuLayoutPropertiesParseTest {
+public class VanillaCpuLayoutPropertiesParseTest extends BaseAffinityTest {
 
     @Test
     public void testCountsI7() throws Exception {

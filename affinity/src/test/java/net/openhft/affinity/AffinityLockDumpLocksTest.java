@@ -14,6 +14,10 @@ import static org.junit.Assert.assertTrue;
 
 public class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
+    static void supressUnusedWarning(AutoCloseable c) {
+        // do nothing
+    }
+
     @Test
     public void dumpLocksListsThreadsHoldingLocks() throws Exception {
         Assume.assumeTrue(new File("/proc/cpuinfo").exists());
@@ -50,9 +54,5 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
         for (Thread t : threads) {
             t.join();
         }
-    }
-
-    static void supressUnusedWarning(AutoCloseable c) {
-        // do nothing
     }
 }

@@ -16,6 +16,7 @@
 
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.BaseAffinityTest;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -26,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Tests for {@link VanillaCpuLayout#pair(int)} using sample cpuinfo files.
  */
-public class VanillaCpuLayoutPairTest {
+public class VanillaCpuLayoutPairTest extends BaseAffinityTest {
 
     @Test
     public void testPairForI7() throws IOException {

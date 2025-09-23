@@ -45,6 +45,15 @@ import static org.junit.Assume.assumeTrue;
 public class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
+    /**
+     * In Java 21 the toString contents of Thread changed to include an ID. This breaks the tests here in Java 21.
+     * Strip out the thread ID here so that existing tests continue to pass.
+     */
+    private static String dumpLocks(AffinityLock[] locks) {
+        String value = LockInventory.dumpLocks(locks);
+        return value.replaceAll("#[0-9]+(,)?", "");
+    }
+
     @Test
     public void dumpLocksI7() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
@@ -371,14 +380,5 @@ public class AffinityLockTest extends BaseAffinityTest {
             t.join();
             lock.release();
         }
-    }
-
-    /**
-     * In Java 21 the toString contents of Thread changed to include an ID. This breaks the tests here in Java 21.
-     * Strip out the thread ID here so that existing tests continue to pass.
-     */
-    private static String dumpLocks(AffinityLock[] locks) {
-        String value = LockInventory.dumpLocks(locks);
-        return value.replaceAll("#[0-9]+(,)?", "");
     }
 }

@@ -21,12 +21,12 @@
     <parent>
         <groupId>net.openhft</groupId>
         <artifactId>java-parent-pom</artifactId>
-        <version>1.27ea0</version>
+        <version>1.27ea1</version>
         <relativePath />
     </parent>
 
     <artifactId>Java-Thread-Affinity</artifactId>
-    <version>3.27ea1-SNAPSHOT</version>
+    <version>3.27ea2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity Parent</name>

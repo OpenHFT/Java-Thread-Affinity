@@ -21,6 +21,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 
+import java.util.BitSet;
+
+import static org.junit.Assert.assertEquals;
+
 public class BaseAffinityTest {
 
     @Rule
@@ -40,5 +44,12 @@ public class BaseAffinityTest {
             LockCheck.releaseLock(i);
         }
         System.setProperty("java.io.tmpdir", originalTmpDir);
+    }
+
+    @After
+    public void baseAffinity() {
+        BitSet affinity = Affinity.getAffinity();
+        Affinity.resetToBaseAffinity();
+        assertEquals(AffinityLock.BASE_AFFINITY, affinity);
     }
 }

@@ -18,6 +18,7 @@
 package net.openhft.ticker.impl;
 
 import net.openhft.affinity.Affinity;
+import net.openhft.affinity.BaseAffinityTest;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -26,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 /*
  * Created by Peter Lawrey on 13/07/15.
  */
-public class JNIClockTest {
+public class JNIClockTest extends BaseAffinityTest {
 
     @Test
     @Ignore("TODO Fix")
