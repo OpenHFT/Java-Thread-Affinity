@@ -1,14 +1,11 @@
 = Requirements Document: Java Thread Affinity
-Author: Gemini AI
-Date: 23 May 2025
-Version: 1.0
-:toc: left
-:toclevels: 3
-:sectnums:
+:toc:
 
 == 1. Introduction
 
-This document outlines the requirements for the *Java Thread Affinity* library. The primary purpose of this library is to provide Java applications with the capability to control Central Processing Unit (CPU) affinity for their threads. This allows developers to bind specific threads to designated CPU cores, which can lead to performance improvements, especially in latency-sensitive applications, by reducing context switching and improving cache utilisation.
+This document outlines the requirements for the *Java Thread Affinity* library.
+The primary purpose of this library is to provide Java applications with the capability to control Central Processing Unit (CPU) affinity for their threads.
+This allows developers to bind specific threads to designated CPU cores, which can lead to performance improvements, especially in latency-sensitive applications, by reducing context switching and improving cache utilisation.
 
 The library aims to offer a cross-platform API, with the most comprehensive support for Linux systems, leveraging Java Native Access (JNA) and, where applicable, Java Native Interface (JNI) for low-level system interactions.
 
@@ -26,23 +23,25 @@ The scope of the Java Thread Affinity project includes:
 
 == 3. Definitions, Acronyms, and Abbreviations
 
-* *CPU*: Central Processing Unit
-* *JNA*: Java Native Access
-* *JNI*: Java Native Interface
-* *OS*: Operating System
-* *PID*: Process Identifier
-* *OSGi*: Open Service Gateway initiative
-* *POM*: Project Object Model (Maven)
-* *API*: Application Programming Interface
+CPU :: Central Processing Unit
+JNA :: Java Native Access
+JNI :: Java Native Interface
+OS :: Operating System
+PID :: Process Identifier
+OSGi :: Open Service Gateway initiative
+POM :: Project Object Model (Maven)
+API :: Application Programming Interface
 
 == 4. References
 
-* Project Repository: https://github.com/OpenHFT/Java-Thread-Affinity
-* JNA: https://github.com/java-native-access/jna
+* Project Repository: link:https://github.com/OpenHFT/Java-Thread-Affinity[]
+* JNA: link:https://github.com/java-native-access/jna[]
 
 == 5. Project Overview
 
-The *Java Thread Affinity* library enables fine-grained control over which CPU cores Java threads execute on. This is particularly beneficial for high-performance computing and low-latency applications where minimising jitter and maximising cache efficiency is critical. The library abstracts OS-specific details, providing a unified Java API.
+The *Java Thread Affinity* library enables fine-grained control over which CPU cores Java threads execute on.
+This is particularly beneficial for high-performance computing and low-latency applications where minimising jitter and maximising cache efficiency is critical.
+The library abstracts OS-specific details, providing a unified Java API.
 
 === 5.1. Purpose
 
@@ -127,8 +126,10 @@ The *Java Thread Affinity* library enables fine-grained control over which CPU c
 * *FR9.1*: The system _shall_ provide tailored implementations of `IAffinity` for different operating systems:
 ** *Linux*: Full affinity control, CPU ID, Process ID, Thread ID via JNA (`LinuxJNAAffinity`, `PosixJNAAffinity`) or JNI (`NativeAffinity`).
 ** *Windows*: Thread affinity control, Process ID, Thread ID via JNA (`WindowsJNAAffinity`). `getCpu()` returns -1.
-** *macOS*: Process ID, Thread ID via JNA (`OSXJNAAffinity`). No affinity modification; `getCpu()` returns -1.
-** *Solaris*: Process ID, Thread ID via JNA (`SolarisJNAAffinity`). No affinity modification; `getCpu()` returns -1.
+** *macOS*: Process ID, Thread ID via JNA (`OSXJNAAffinity`).
+No affinity modification; `getCpu()` returns -1.
+** *Solaris*: Process ID, Thread ID via JNA (`SolarisJNAAffinity`).
+No affinity modification; `getCpu()` returns -1.
 * *FR9.2*: A `NullAffinity` implementation _shall_ be used as a fallback if no suitable native implementation can be loaded or for unsupported OS.
 
 === 6.6. Affinity Thread Factory (net.openhft.affinity.AffinityThreadFactory)
@@ -166,10 +167,14 @@ The *Java Thread Affinity* library enables fine-grained control over which CPU c
 ** *Partial Support*: Windows (affinity setting, PID/TID, no `getCpu()`).
 ** *Limited Support*: macOS, Solaris (PID/TID only, no affinity setting or `getCpu()`).
 * *NFR2. Dependencies*:
-** *JNA*: `net.java.dev.jna:jna`, `net.java.dev.jna:jna-platform`. Version 5.x or higher is recommended for full functionality. The project currently uses version 4.4.0 (as per README, though POMs might show updates).
+** *JNA*: `net.java.dev.jna:jna`, `net.java.dev.jna:jna-platform`.
+Version 5.x or higher is recommended for full functionality.
+The project currently uses version 4.4.0 (as per README, though POMs might show updates).
 ** *SLF4J API*: `org.slf4j:slf4j-api` for logging.
 ** *JetBrains Annotations*: `org.jetbrains:annotations` for code quality.
-* *NFR3. Performance*: The library _should_ introduce minimal overhead. Native calls _should_ be efficient. The primary goal is to enable performance improvements in the client application.
+* *NFR3. Performance*: The library _should_ introduce minimal overhead.
+Native calls _should_ be efficient.
+The primary goal is to enable performance improvements in the client application.
 * *NFR4. Licensing*: The project _shall_ be licensed under the Apache License, Version 2.0.
 * *NFR5. Build System*: The project _shall_ use Apache Maven for building and dependency management.
 * *NFR6. Language*:
@@ -192,7 +197,8 @@ The *Java Thread Affinity* library enables fine-grained control over which CPU c
 
 === 8.1. High-Level Architecture
 
-The Java Thread Affinity library is a Java-based system that interfaces with the underlying operating system through JNA (primarily) and JNI (for specific `libCEInternals.so` functionalities). It abstracts OS-specific system calls related to thread affinity, CPU information, and timing.
+The Java Thread Affinity library is a Java-based system that interfaces with the underlying operating system through JNA (primarily) and JNI (for specific `libCEInternals.so` functionalities).
+It abstracts OS-specific system calls related to thread affinity, CPU information, and timing.
 
 === 8.2. Key Components
 
@@ -241,7 +247,8 @@ The library can utilise an optional native shared library, `libCEInternals.so`, 
 ** `Java_net_openhft_ticker_impl_JNIClock_rdtsc0`
 * *Platform Specifics*:
 ** *Linux*: Uses `sched_getaffinity`, `sched_setaffinity`, `sched_getcpu`, `getpid`, `syscall(SYS_gettid)`.
-** *macOS*: (Separate C file `software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c`) Uses `pthread_mach_thread_np`, `thread_policy_get`, `thread_policy_set`. Note: JNA implementations are generally preferred on macOS.
+** *macOS*: (Separate C file `software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c`) Uses `pthread_mach_thread_np`, `thread_policy_get`, `thread_policy_set`.
+Note: JNA implementations are generally preferred on macOS.
 * *Loading*: The `NativeAffinity.java` class attempts to load `System.loadLibrary("CEInternals")`.
 
 == 10. API Overview
