@@ -67,12 +67,12 @@ public class AffinityLockTest extends BaseAffinityTest {
                 new AffinityLock(6, 2, false, true, lockInventory),
                 new AffinityLock(7, 3, false, true, lockInventory),
         };
-        locks[2].assignedThread = new Thread(new InterrupedThread(), "logger");
+        locks[2].assignedThread = new Thread(new InterruptedThread(), "logger");
         locks[2].assignedThread.start();
-        locks[3].assignedThread = new Thread(new InterrupedThread(), "engine");
+        locks[3].assignedThread = new Thread(new InterruptedThread(), "engine");
         locks[3].assignedThread.start();
-        locks[6].assignedThread = new Thread(new InterrupedThread(), "main");
-        locks[7].assignedThread = new Thread(new InterrupedThread(), "tcp");
+        locks[6].assignedThread = new Thread(new InterruptedThread(), "main");
+        locks[7].assignedThread = new Thread(new InterruptedThread(), "tcp");
         locks[7].assignedThread.start();
         final String actual = dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
@@ -100,9 +100,9 @@ public class AffinityLockTest extends BaseAffinityTest {
                 new AffinityLock(2, 0, true, false, lockInventory),
                 new AffinityLock(3, 1, false, true, lockInventory),
         };
-        locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
+        locks[1].assignedThread = new Thread(new InterruptedThread(), "engine");
         locks[1].assignedThread.start();
-        locks[3].assignedThread = new Thread(new InterrupedThread(), "main");
+        locks[3].assignedThread = new Thread(new InterruptedThread(), "main");
 
         final String actual = dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
@@ -121,7 +121,7 @@ public class AffinityLockTest extends BaseAffinityTest {
                 new AffinityLock(0, 0, true, false, lockInventory),
                 new AffinityLock(1, 0, false, true, lockInventory),
         };
-        locks[1].assignedThread = new Thread(new InterrupedThread(), "engine");
+        locks[1].assignedThread = new Thread(new InterruptedThread(), "engine");
         locks[1].assignedThread.start();
 
         final String actual = dumpLocks(locks);

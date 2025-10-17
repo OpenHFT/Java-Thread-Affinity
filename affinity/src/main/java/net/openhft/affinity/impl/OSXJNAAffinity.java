@@ -44,7 +44,7 @@ public enum OSXJNAAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final BitSet affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNI and JNA libraries not loaded", Utilities.toHexString(affinity));
+        LOGGER.trace("unable to set mask to {} as the JNI and JNA libraries are not loaded", Utilities.toHexString(affinity));
     }
 
     @Override
