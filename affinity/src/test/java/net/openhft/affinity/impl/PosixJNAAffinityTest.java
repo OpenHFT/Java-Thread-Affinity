@@ -19,12 +19,10 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.IAffinity;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
 /**
