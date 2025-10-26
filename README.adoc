@@ -1,4 +1,5 @@
 = Thread Affinity
+:sectnums:
 
 image::docs/images/Thread-Affinity_line.png[width=20%]
 
