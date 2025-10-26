@@ -33,7 +33,7 @@ import java.util.BitSet;
  * sched_setaffinity(3)/sched_getaffinity(3) from 'c' library. Applicable for most
  * linux/unix platforms
  * <p>
- * TODO Support assignment to core 64 and above
+ * Supports thread affinity assignment across any CPU index addressable by the host kernel.
  *
  * @author peter.lawrey
  * @author BegemoT
@@ -74,9 +74,7 @@ public enum PosixJNAAffinity implements IAffinity {
     public BitSet getAffinity() {
         final CLibrary lib = CLibrary.INSTANCE;
         final int procs = Runtime.getRuntime().availableProcessors();
-
-        final int cpuSetSizeInLongs = (procs + 63) / 64;
-        final int cpuSetSizeInBytes = cpuSetSizeInLongs * 8;
+        final int cpuSetSizeInBytes = CpuSetUtil.requiredBytesForLogicalProcessors(procs);
         final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
         final PointerByReference cpuset = new PointerByReference(cpusetArray);
         try {
@@ -85,7 +83,9 @@ public enum PosixJNAAffinity implements IAffinity {
                 throw new IllegalStateException("sched_getaffinity((" + cpuSetSizeInBytes + ") , &(" + cpusetArray + ") ) return " + ret);
             }
             ByteBuffer buff = cpusetArray.getByteBuffer(0, cpuSetSizeInBytes);
-            return BitSet.valueOf(buff.array());
+            byte[] bytes = new byte[cpuSetSizeInBytes];
+            buff.get(bytes);
+            return CpuSetUtil.readMask(bytes);
         } catch (LastErrorException e) {
             if (e.getErrorCode() != 22) {
                 throw new IllegalStateException("sched_getaffinity((" + cpuSetSizeInBytes + ") , &(" + cpusetArray + ") ) errorNo=" + e.getErrorCode(), e);
@@ -115,8 +115,9 @@ public enum PosixJNAAffinity implements IAffinity {
         }
 
         final CLibrary lib = CLibrary.INSTANCE;
-        byte[] buff = affinity.toByteArray();
-        final int cpuSetSizeInBytes = buff.length;
+        final int cpuSetSizeInBytes = CpuSetUtil.requiredBytesForMask(affinity, procs);
+        byte[] buff = new byte[cpuSetSizeInBytes];
+        CpuSetUtil.writeMask(affinity, buff);
         final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
         try {
             cpusetArray.write(0, buff, 0, buff.length);
