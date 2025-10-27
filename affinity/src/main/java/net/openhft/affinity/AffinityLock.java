@@ -153,7 +153,7 @@ public class AffinityLock implements Closeable {
     static class Warnings {
         static void warmNoReservedCPUs() {
             if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
-                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
+                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", PROCESSORS - 1);
             }
         }
     }

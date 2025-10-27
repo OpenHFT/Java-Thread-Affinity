@@ -18,7 +18,9 @@
 package net.openhft.affinity.impl;
 
 import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
 /*
@@ -40,26 +42,26 @@ public final class Utilities {
      */
     public static String toHexString(final BitSet set) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PrintWriter writer = new PrintWriter(out);
-        final long[] longs = set.toLongArray();
-        for (long aLong : longs) {
-            writer.write(Long.toHexString(aLong));
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+            final long[] longs = set.toLongArray();
+            for (long aLong : longs) {
+                writer.write(Long.toHexString(aLong));
+            }
+            writer.flush();
         }
-        writer.flush();
-
-        return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
     public static String toBinaryString(BitSet set) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        PrintWriter writer = new PrintWriter(out);
-        final long[] longs = set.toLongArray();
-        for (long aLong : longs) {
-            writer.write(Long.toBinaryString(aLong));
+        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))) {
+            final long[] longs = set.toLongArray();
+            for (long aLong : longs) {
+                writer.write(Long.toBinaryString(aLong));
+            }
+            writer.flush();
         }
-        writer.flush();
-
-        return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+        return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
     public static boolean is64Bit() {

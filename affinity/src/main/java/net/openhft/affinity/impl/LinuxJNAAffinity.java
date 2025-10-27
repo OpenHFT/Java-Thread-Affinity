@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.BitSet;
+import java.util.Locale;
 
 public enum LinuxJNAAffinity implements IAffinity {
     INSTANCE;
@@ -33,7 +34,7 @@ public enum LinuxJNAAffinity implements IAffinity {
     private static final int SYS_gettid = Platform.isPPC() ? 207 : Platform.is64Bit() ? 186 : 224;
     private static final Object[] NO_ARGS = {};
 
-    private static final String OS = System.getProperty("os.name").toLowerCase();
+    private static final String OS = System.getProperty("os.name").toLowerCase(Locale.ROOT);
     private static final boolean IS_LINUX = OS.startsWith("linux");
 
     static {

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
@@ -67,9 +68,9 @@ public class FileLockBasedLockChecker implements LockChecker {
 
         // check if another process has the lock
         File lockFile = toFile(id);
-        try (final FileChannel channel = FileChannel.open(lockFile.toPath(), READ)) {
+        try (FileChannel channel = FileChannel.open(lockFile.toPath(), READ)) {
             // if we can acquire a shared lock, nobody has an exclusive lock
-            try (final FileLock fileLock = channel.tryLock(0, Long.MAX_VALUE, true)) {
+            try (FileLock fileLock = channel.tryLock(0, Long.MAX_VALUE, true)) {
                 if (fileLock != null && fileLock.isValid()) {
                     if (!lockFile.delete()) { // try and clean up the orphaned lock file
                         LOGGER.debug("Couldn't delete orphaned lock file {}", lockFile);
@@ -171,7 +172,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     private void writeMetaInfoToFile(FileChannel fc, String metaInfo) throws IOException {
-        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
+        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes(StandardCharsets.UTF_8);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         while (buffer.hasRemaining()) {
             //noinspection ResultOfMethodCallIgnored
@@ -224,7 +225,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     private String readMetaInfoFromLockFileChannel(File lockFile, FileChannel lockFileChannel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(64);
         int len = lockFileChannel.read(buffer, 0);
-        String content = len < 1 ? "" : new String(buffer.array(), 0, len);
+        String content = len < 1 ? "" : new String(buffer.array(), 0, len, StandardCharsets.UTF_8);
         if (content.isEmpty()) {
             LOGGER.warn("Empty lock file {}", lockFile.getAbsolutePath());
             return null;
@@ -241,8 +242,9 @@ public class FileLockBasedLockChecker implements LockChecker {
     private File tmpDir() {
         final File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
-        if (!tempDir.exists())
-            tempDir.mkdirs();
+        if (!tempDir.exists() && !tempDir.mkdirs()) {
+            LOGGER.warn("Could not create temporary directory {}", tempDir);
+        }
 
         return tempDir;
     }

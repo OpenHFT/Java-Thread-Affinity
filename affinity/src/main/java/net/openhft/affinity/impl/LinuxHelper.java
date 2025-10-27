@@ -20,13 +20,17 @@ package net.openhft.affinity.impl;
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
 public class LinuxHelper {
+    private static final Logger LOGGER = LoggerFactory.getLogger(LinuxHelper.class);
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
     private static final VersionHelper VERSION_2_6 = new VersionHelper(2, 6, 0);
@@ -41,7 +45,7 @@ public class LinuxHelper {
                 ver = new VersionHelper(uname.getRealeaseVersion());
             }
         } catch (Throwable e) {
-            //Jvm.warn().on(getClass(), "Failed to determine Linux version: " + e);
+            LOGGER.debug("Failed to determine Linux version", e);
         }
 
         version = ver;
@@ -236,43 +240,41 @@ public class LinuxHelper {
         }
 
         public String getSysname() {
-            return new String(sysname, 0, length(sysname));
+            return new String(sysname, 0, length(sysname), StandardCharsets.UTF_8);
         }
 
         @SuppressWarnings("unused")
         public String getNodename() {
-            return new String(nodename, 0, length(nodename));
+            return new String(nodename, 0, length(nodename), StandardCharsets.UTF_8);
         }
 
         public String getRelease() {
-            return new String(release, 0, length(release));
+            return new String(release, 0, length(release), StandardCharsets.UTF_8);
         }
 
         public String getRealeaseVersion() {
             final String release = getRelease();
             final int releaseLen = release.length();
-            int len = 0;
-            for (; len < releaseLen; len++) {
+            for (int len = 0; len < releaseLen; len++) {
                 final char c = release.charAt(len);
-                if (Character.isDigit(c) || c == '.') {
-                    continue;
+                if (!Character.isDigit(c) && c != '.') {
+                    return release.substring(0, len);
                 }
-                break;
             }
-            return release.substring(0, len);
+            return release;
         }
 
         public String getVersion() {
-            return new String(version, 0, length(version));
+            return new String(version, 0, length(version), StandardCharsets.UTF_8);
         }
 
         public String getMachine() {
-            return new String(machine, 0, length(machine));
+            return new String(machine, 0, length(machine), StandardCharsets.UTF_8);
         }
 
         @SuppressWarnings("UnusedDeclaration")
         public String getDomainname() {
-            return new String(domainname, 0, length(domainname));
+            return new String(domainname, 0, length(domainname), StandardCharsets.UTF_8);
         }
 
         @Override

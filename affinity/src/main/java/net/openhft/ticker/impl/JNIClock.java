@@ -69,12 +69,14 @@ public enum JNIClock implements ITicker {
     private static void estimateFrequency(int factor) {
         final long start = System.nanoTime();
         long now;
-        while (System.nanoTime() == start) {
+        while (System.nanoTime() == start) { //NOPMD
+            // busy-wait until the nanosecond clock advances
         }
 
         long end = start + factor * 1000000L;
         final long start0 = rdtsc0();
-        while ((now = System.nanoTime()) < end) {
+        while ((now = System.nanoTime()) < end) { //NOPMD
+            // busy-wait to sample over the requested interval
         }
         long end0 = rdtsc0();
         end = now;

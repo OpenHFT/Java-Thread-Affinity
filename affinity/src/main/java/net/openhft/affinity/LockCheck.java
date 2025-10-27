@@ -87,7 +87,7 @@ public enum LockCheck {
             try {
                 return Integer.parseInt(meta);
             } catch (NumberFormatException e) {
-                //nothing
+                LOGGER.debug("Invalid PID metadata: {}", meta, e);
             }
         }
         return EMPTY_PID;

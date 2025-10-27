@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Suppress legacy initialisation patterns that require larger refactors -->
+  <Match>
+    <Class name="net.openhft.affinity.impl.PosixJNAAffinity"/>
+    <Bug pattern="IC_INIT_CIRCULARITY"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.impl.VanillaCpuLayout"/>
+    <Bug pattern="MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.impl.VersionHelper"/>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.lockchecker.FileLockBasedLockChecker"/>
+    <Bug pattern="MS_EXPOSE_REP,SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.lockchecker.LockReference"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="software.chronicle.enterprise.internals.impl.NativeAffinity"/>
+    <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.impl.LinuxHelper$utsname"/>
+    <Bug pattern="NM_CLASS_NAMING_CONVENTION"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.Affinity"/>
+    <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED,LI_LAZY_INIT_STATIC,MS_EXPOSE_REP,REC_CATCH_EXCEPTION"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.AffinityLock"/>
+    <Bug pattern="ASE_ASSERTION_WITH_SIDE_EFFECT,DM_CONVERT_CASE"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.BootClassPath$1"/>
+    <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.BootClassPath$2"/>
+    <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.LockCheck"/>
+    <Bug pattern="DM_CONVERT_CASE"/>
+  </Match>
+  <Match>
+    <Class name="net.openhft.affinity.LockInventory"/>
+    <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+  </Match>
+</FindBugsFilter>

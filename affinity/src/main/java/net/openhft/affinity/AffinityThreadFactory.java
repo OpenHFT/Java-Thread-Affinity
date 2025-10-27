@@ -51,7 +51,7 @@ public class AffinityThreadFactory implements ThreadFactory {
     @NotNull
     @Override
     public synchronized Thread newThread(@NotNull final Runnable r) {
-        String name2 = id <= 1 ? name : (name + '-' + id);
+        String name2 = id <= 1 ? name : name + '-' + id;
         id++;
         Thread t = new Thread(() -> {
             try (AffinityLock ignored = acquireLockBasedOnLast()) {

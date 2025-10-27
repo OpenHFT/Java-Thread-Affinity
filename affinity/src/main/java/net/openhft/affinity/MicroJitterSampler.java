@@ -40,8 +40,9 @@ public class MicroJitterSampler {
     private static void pause() throws InterruptedException {
         if (BUSYWAIT) {
             long now = System.nanoTime();
-            //noinspection StatementWithEmptyBody
-            while (System.nanoTime() - now < 1_000_000) ;
+            while (System.nanoTime() - now < 1_000_000) { //NOPMD
+                // busy-wait to keep the core hot
+            }
         } else {
             Thread.sleep(1);
         }
@@ -69,7 +70,7 @@ public class MicroJitterSampler {
     }
 
     public void run() {
-        try (final AffinityLock lock = AffinityLock.acquireLock(CPU)) {
+        try (AffinityLock lock = AffinityLock.acquireLock(CPU)) {
             assert lock != null;
             boolean first = true;
             System.out.println("Warming up...");
