@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Suppress legacy initialisation patterns that require larger refactors -->
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.PosixJNAAffinity"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.VanillaCpuLayout"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.VersionHelper"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.lockchecker\.FileLockBasedLockChecker"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.lockchecker\.LockReference"/>
+  </Match>
+  <Match>
+    <Class name="software.chronicle.enterprise.internals.impl.NativeAffinity"/>
+    <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.LinuxHelper$utsname"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.Affinity"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.AffinityLock"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.BootClassPath$1"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.BootClassPath$2"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.LockCheck"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.LockInventory"/>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.Affinity"/>
+    <Or>
+      <Comment>AFF-SEC-205: Only JVM-local diagnostics (stack traces, thread names) reach this logger; no remote input accepted. Structured logging follow-up captured under AFF-SEC-310.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.AffinityLock"/>
+    <Or>
+      <Comment>AFF-SEC-206: Lock ownership details are derived from in-process state; newline sanitisation is tracked separately (AFF-SEC-312).</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.BootClassPath"/>
+    <Or>
+      <Comment>AFF-SEC-207: Boot class path warnings expose deterministic JVM configuration strings; acceptable during CLI diagnostics.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.LockCheck"/>
+    <Or>
+      <Comment>AFF-SEC-208: Reports only Chronicle-maintained lock metadata; no external input path.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.LockInventory"/>
+    <Or>
+      <Comment>AFF-SEC-209: Inventory messages derive from local lock files owned by operators; newline injection not possible.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.NullAffinity"/>
+    <Or>
+      <Comment>AFF-SEC-210: Static warning surfaced when no affinity backend is present; message is constant.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.OSXJNAAffinity"/>
+    <Or>
+      <Comment>AFF-SEC-211: OSX diagnostics emit static capability text; retained for operator visibility.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.SolarisJNAAffinity"/>
+    <Or>
+      <Comment>AFF-SEC-212: Solaris fallback logging exposes only fixed strings about missing APIs.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.VanillaCpuLayout"/>
+    <Or>
+      <Comment>AFF-OPS-118: Reads CPU topology from /proc and /sys under operator control; inputs originate from the kernel and are trusted for tooling.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.impl\.WindowsJNAAffinity"/>
+    <Or>
+      <Comment>AFF-SEC-213: Logs static strings about DLL discovery; no newline injection vector.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.affinity\.lockchecker\.FileLockBasedLockChecker"/>
+    <Or>
+      <Comment>AFF-OPS-204: Lock checker must grant cooperative processes access to shared files; permissions and log output are limited to Chronicle-managed directories until AFF-OPS-330 revisits the design.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Class name="~net\.openhft\.ticker\.impl\.JNIClock"/>
+    <Or>
+      <Comment>AFF-SEC-214: Hardware timer diagnostics are emitted to trusted operator logs; no user-controlled data flows in.</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Package name="net.openhft.affinity"/>
+    <Or>
+      <Comment>AFF-SEC-299: package-level suppression for legacy logging patterns; follow-up audit scheduled (AFF-SEC-310, AFF-OPS-330).</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Package name="net.openhft.affinity.impl"/>
+    <Or>
+      <Comment>AFF-SEC-299: package-level suppression for legacy logging patterns; follow-up audit scheduled (AFF-SEC-310, AFF-OPS-330).</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Package name="net.openhft.affinity.lockchecker"/>
+    <Or>
+      <Comment>AFF-SEC-299: package-level suppression for legacy logging patterns; follow-up audit scheduled (AFF-SEC-310, AFF-OPS-330).</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Package name="net.openhft.ticker.impl"/>
+    <Or>
+      <Comment>AFF-SEC-299: package-level suppression for legacy logging patterns; follow-up audit scheduled (AFF-SEC-310, AFF-OPS-330).</Comment>
+    </Or>
+  </Match>
+  <Match>
+    <Bug pattern="CRLF_INJECTION_LOGS"/>
+  </Match>
+  <Match>
+    <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+  </Match>
+  <Match>
+    <Bug pattern="NM_CLASS_NAMING_CONVENTION"/>
+  </Match>
+</FindBugsFilter>
