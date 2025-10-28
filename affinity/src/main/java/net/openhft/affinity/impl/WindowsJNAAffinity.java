@@ -23,6 +23,7 @@ import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.LongByReference;
 import net.openhft.affinity.IAffinity;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +43,46 @@ public enum WindowsJNAAffinity implements IAffinity {
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsJNAAffinity.class);
     private static final ThreadLocal<BitSet> currentAffinity = new ThreadLocal<>();
+    private static final String STUB_PROPERTY = "chronicle.affinity.stub.windows";
+    private static final boolean USE_STUB = Boolean.getBoolean(STUB_PROPERTY);
+
+    private static final class LibraryContainer {
+        final CLibrary library;
+        final boolean stub;
+
+        LibraryContainer() {
+            if (USE_STUB) {
+                library = new StubWindowsCLibrary();
+                stub = true;
+                return;
+            }
+            CLibrary lib;
+            boolean isStub = false;
+            try {
+                lib = Native.load("kernel32", CLibrary.class);
+            } catch (UnsatisfiedLinkError e) {
+                LOGGER.warn("Unable to load jna library", e);
+                lib = new StubWindowsCLibrary();
+                isStub = true;
+            }
+            library = lib;
+            stub = isStub;
+        }
+    }
+
+    private static final LibraryContainer LIBRARY_CONTAINER = new LibraryContainer();
+    private static final CLibrary LIBRARY = LIBRARY_CONTAINER.library;
+    private static final boolean LIBRARY_IS_STUB = LIBRARY_CONTAINER.stub;
 
     static {
         boolean loaded = false;
-        try {
-            INSTANCE.getAffinity();
-            loaded = true;
-        } catch (UnsatisfiedLinkError e) {
-            LOGGER.warn("Unable to load jna library", e);
+        if (!LIBRARY_IS_STUB) {
+            try {
+                INSTANCE.getAffinity();
+                loaded = true;
+            } catch (UnsatisfiedLinkError e) {
+                LOGGER.warn("Unable to load jna library", e);
+            }
         }
         LOADED = loaded;
     }
@@ -67,7 +100,7 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final BitSet affinity) {
-        final CLibrary lib = CLibrary.INSTANCE;
+        final CLibrary lib = LIBRARY;
 
         WinDef.DWORD aff;
         long[] longs = affinity.toLongArray();
@@ -98,7 +131,7 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Nullable
     private BitSet getAffinity0() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        final CLibrary lib = LIBRARY;
         final LongByReference cpuset1 = new LongByReference(0);
         final LongByReference cpuset2 = new LongByReference(0);
         try {
@@ -124,7 +157,7 @@ public enum WindowsJNAAffinity implements IAffinity {
     }
 
     public int getTid() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        final CLibrary lib = LIBRARY;
 
         try {
             return lib.GetCurrentThread();
@@ -140,14 +173,30 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Override
     public int getProcessId() {
-        return Kernel32.INSTANCE.GetCurrentProcessId();
+        if (LIBRARY_IS_STUB) {
+            return 1;
+        }
+        try {
+            return Kernel32.INSTANCE.GetCurrentProcessId();
+        } catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
+            return 1;
+        }
     }
 
     @Override
     public int getThreadId() {
+        if (LIBRARY_IS_STUB) {
+            return 1;
+        }
         Integer tid = THREAD_ID.get();
-        if (tid == null)
-            THREAD_ID.set(tid = Kernel32.INSTANCE.GetCurrentThreadId());
+        if (tid == null) {
+            try {
+                tid = Kernel32.INSTANCE.GetCurrentThreadId();
+            } catch (UnsatisfiedLinkError | NoClassDefFoundError e) {
+                tid = 1;
+            }
+            THREAD_ID.set(tid);
+        }
         return tid;
     }
 
@@ -155,12 +204,36 @@ public enum WindowsJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     private interface CLibrary extends Library {
-        CLibrary INSTANCE = Native.load("kernel32", CLibrary.class);
-
         int GetProcessAffinityMask(final WinNT.HANDLE pid, final PointerType lpProcessAffinityMask, final PointerType lpSystemAffinityMask) throws LastErrorException;
 
         void SetThreadAffinityMask(final WinNT.HANDLE pid, final WinDef.DWORD lpProcessAffinityMask) throws LastErrorException;
 
         int GetCurrentThread() throws LastErrorException;
+    }
+
+    @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Method names must mirror WinAPI signatures for JNA compatibility")
+    private static final class StubWindowsCLibrary implements CLibrary {
+        private long mask = 1L;
+
+        @Override
+        public int GetProcessAffinityMask(WinNT.HANDLE pid, PointerType lpProcessAffinityMask, PointerType lpSystemAffinityMask) {
+            if (lpProcessAffinityMask != null && lpProcessAffinityMask.getPointer() != null) {
+                lpProcessAffinityMask.getPointer().setLong(0, mask);
+            }
+            if (lpSystemAffinityMask != null && lpSystemAffinityMask.getPointer() != null) {
+                lpSystemAffinityMask.getPointer().setLong(0, mask);
+            }
+            return 1;
+        }
+
+        @Override
+        public void SetThreadAffinityMask(WinNT.HANDLE pid, WinDef.DWORD lpProcessAffinityMask) {
+            mask = lpProcessAffinityMask.longValue();
+        }
+
+        @Override
+        public int GetCurrentThread() {
+            return 1;
+        }
     }
 }

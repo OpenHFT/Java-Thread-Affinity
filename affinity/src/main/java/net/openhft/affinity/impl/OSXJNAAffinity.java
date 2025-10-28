@@ -36,6 +36,9 @@ public enum OSXJNAAffinity implements IAffinity {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(OSXJNAAffinity.class);
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
+    private static final String STUB_PROPERTY = "chronicle.affinity.stub.osx";
+    private static final boolean USE_STUB = Boolean.getBoolean(STUB_PROPERTY);
+    private static final CLibrary LIBRARY = loadLibrary();
 
     @Override
     public BitSet getAffinity() {
@@ -61,7 +64,7 @@ public enum OSXJNAAffinity implements IAffinity {
     public int getThreadId() {
         Integer tid = THREAD_ID.get();
         if (tid == null) {
-            tid = CLibrary.INSTANCE.pthread_self();
+            tid = LIBRARY.pthread_self();
             //The tid assumed to be an unsigned 24 bit, see net.openhft.lang.Jvm.getMaxPid()
             tid = tid & 0xFFFFFF;
             THREAD_ID.set(tid);
@@ -70,8 +73,13 @@ public enum OSXJNAAffinity implements IAffinity {
     }
 
     interface CLibrary extends Library {
-        CLibrary INSTANCE = Native.load("libpthread.dylib", CLibrary.class);
-
         int pthread_self() throws LastErrorException;
+    }
+
+    private static CLibrary loadLibrary() {
+        if (USE_STUB) {
+            return () -> 0x123456;
+        }
+        return Native.load("libpthread.dylib", CLibrary.class);
     }
 }

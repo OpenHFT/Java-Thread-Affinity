@@ -34,18 +34,34 @@ public class LinuxHelper {
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
     private static final VersionHelper VERSION_2_6 = new VersionHelper(2, 6, 0);
+    private static final String STUB_PROPERTY = "chronicle.affinity.stub.linux";
+    private static final boolean USE_STUB = Boolean.getBoolean(STUB_PROPERTY);
+    private static final BitSet STUB_AFFINITY = new BitSet();
+    private static volatile int STUB_CPU = 0;
+    private static volatile int STUB_PID = 4242;
+    private static final ThreadLocal<Integer> STUB_THREAD_ID = ThreadLocal.withInitial(() -> 3000);
 
     private static final VersionHelper version;
 
     static {
+        if (USE_STUB && STUB_AFFINITY.isEmpty()) {
+            STUB_AFFINITY.set(0);
+        }
+    }
+
+    private static final CLibrary LIBRARY = loadLibrary();
+
+    static {
         final utsname uname = new utsname();
-        VersionHelper ver = UNKNOWN;
-        try {
-            if (CLibrary.INSTANCE.uname(uname) == 0) {
-                ver = new VersionHelper(uname.getRealeaseVersion());
+        VersionHelper ver = USE_STUB ? VERSION_2_6 : UNKNOWN;
+        if (!USE_STUB) {
+            try {
+                if (LIBRARY.uname(uname) == 0) {
+                    ver = new VersionHelper(uname.getRealeaseVersion());
+                }
+            } catch (Throwable e) {
+                LOGGER.debug("Failed to determine Linux version", e);
             }
-        } catch (Throwable e) {
-            LOGGER.debug("Failed to determine Linux version", e);
         }
 
         version = ver;
@@ -54,7 +70,15 @@ public class LinuxHelper {
     public static
     @NotNull
     cpu_set_t sched_getaffinity() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            cpu_set_t cpuset = new cpu_set_t();
+            long[] longs = STUB_AFFINITY.toLongArray();
+            for (int i = 0; i < longs.length && i < cpuset.__bits.length; i++) {
+                cpuset.__bits[i].setValue(longs[i]);
+            }
+            return cpuset;
+        }
+        final CLibrary lib = LIBRARY;
         final cpu_set_t cpuset = new cpu_set_t();
         final int size = version.isSameOrNewer(VERSION_2_6) ? cpu_set_t.SIZE_OF_CPU_SET_T : NativeLong.SIZE;
 
@@ -75,7 +99,14 @@ public class LinuxHelper {
     }
 
     public static void sched_setaffinity(final int pid, final BitSet affinity) {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            STUB_AFFINITY.clear();
+            STUB_AFFINITY.or(affinity);
+            int next = affinity.nextSetBit(0);
+            STUB_CPU = next >= 0 ? next : 0;
+            return;
+        }
+        final CLibrary lib = LIBRARY;
         final cpu_set_t cpuset = new cpu_set_t();
         final int size = version.isSameOrNewer(VERSION_2_6) ? cpu_set_t.SIZE_OF_CPU_SET_T : NativeLong.SIZE;
         final long[] bits = affinity.toLongArray();
@@ -99,7 +130,10 @@ public class LinuxHelper {
     }
 
     public static int sched_getcpu() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            return STUB_CPU;
+        }
+        final CLibrary lib = LIBRARY;
         try {
             final int ret = lib.sched_getcpu();
             if (ret < 0) {
@@ -136,7 +170,10 @@ public class LinuxHelper {
     }
 
     public static int getpid() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            return STUB_PID;
+        }
+        final CLibrary lib = LIBRARY;
         try {
             final int ret = lib.getpid();
             if (ret < 0) {
@@ -149,7 +186,10 @@ public class LinuxHelper {
     }
 
     public static int syscall(int number, Object... args) {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            return STUB_THREAD_ID.get();
+        }
+        final CLibrary lib = LIBRARY;
         try {
             final int ret = lib.syscall(number, args);
             if (ret < 0) {
@@ -162,8 +202,6 @@ public class LinuxHelper {
     }
 
     interface CLibrary extends Library {
-        CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
-
         int sched_setaffinity(final int pid,
                               final int cpusetsize,
                               final cpu_set_t cpuset) throws LastErrorException;
@@ -179,6 +217,34 @@ public class LinuxHelper {
         int uname(final utsname name) throws LastErrorException;
 
         int syscall(int number, Object... args) throws LastErrorException;
+    }
+
+    private static CLibrary loadLibrary() {
+        if (USE_STUB) {
+            return null;
+        }
+        return Native.load(LIBRARY_NAME, CLibrary.class);
+    }
+
+    static boolean usingStub() {
+        return USE_STUB;
+    }
+
+    static void setStubCpu(int cpu) {
+        if (USE_STUB) {
+            STUB_CPU = cpu;
+        }
+    }
+
+    static void setStubAffinity(BitSet affinity) {
+        if (USE_STUB) {
+            STUB_AFFINITY.clear();
+            STUB_AFFINITY.or(affinity);
+        }
+    }
+
+    static int stubThreadId() {
+        return STUB_THREAD_ID.get();
     }
 
     /**

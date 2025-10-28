@@ -46,24 +46,42 @@ public enum PosixJNAAffinity implements IAffinity {
     private static final int PROCESS_ID;
     private static final int SYS_gettid = Utilities.is64Bit() ? 186 : 224;
     private static final Object[] NO_ARGS = {};
+    private static final String STUB_PROPERTY = "chronicle.affinity.stub.posix";
+    private static final boolean USE_STUB = Boolean.getBoolean(STUB_PROPERTY);
+    private static final BitSet STUB_AFFINITY = new BitSet();
+    private static volatile int STUB_CPU = 0;
+    private static final ThreadLocal<Integer> STUB_THREAD_ID = ThreadLocal.withInitial(() -> 2000);
+    private static final CLibrary LIBRARY = loadLibrary();
 
     static {
         int processId;
-        try {
-            processId = CLibrary.INSTANCE.getpid();
-        } catch (Exception ignored) {
-            processId = -1;
+        if (USE_STUB) {
+            processId = 1;
+        } else {
+            try {
+                processId = LIBRARY.getpid();
+            } catch (Exception ignored) {
+                processId = -1;
+            }
         }
         PROCESS_ID = processId;
     }
 
     static {
-        boolean loaded = false;
-        try {
-            INSTANCE.getAffinity();
-            loaded = true;
-        } catch (UnsatisfiedLinkError e) {
-            LOGGER.warn("Unable to load jna library", e);
+        if (USE_STUB && STUB_AFFINITY.isEmpty()) {
+            STUB_AFFINITY.set(0);
+        }
+    }
+
+    static {
+        boolean loaded = USE_STUB;
+        if (!USE_STUB) {
+            try {
+                INSTANCE.getAffinity();
+                loaded = true;
+            } catch (UnsatisfiedLinkError e) {
+                LOGGER.warn("Unable to load jna library", e);
+            }
         }
         LOADED = loaded;
     }
@@ -72,7 +90,10 @@ public enum PosixJNAAffinity implements IAffinity {
 
     @Override
     public BitSet getAffinity() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            return (BitSet) STUB_AFFINITY.clone();
+        }
+        final CLibrary lib = LIBRARY;
         final int procs = Runtime.getRuntime().availableProcessors();
         final int cpuSetSizeInBytes = CpuSetUtil.requiredBytesForLogicalProcessors(procs);
         final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
@@ -109,12 +130,19 @@ public enum PosixJNAAffinity implements IAffinity {
 
     @Override
     public void setAffinity(final BitSet affinity) {
-        int procs = Runtime.getRuntime().availableProcessors();
         if (affinity.isEmpty()) {
             throw new IllegalArgumentException("Cannot set zero affinity");
         }
+        if (USE_STUB) {
+            STUB_AFFINITY.clear();
+            STUB_AFFINITY.or(affinity);
+            int nextSetBit = affinity.nextSetBit(0);
+            STUB_CPU = nextSetBit >= 0 ? nextSetBit : 0;
+            return;
+        }
+        int procs = Runtime.getRuntime().availableProcessors();
 
-        final CLibrary lib = CLibrary.INSTANCE;
+        final CLibrary lib = LIBRARY;
         final int cpuSetSizeInBytes = CpuSetUtil.requiredBytesForMask(affinity, procs);
         byte[] buff = new byte[cpuSetSizeInBytes];
         CpuSetUtil.writeMask(affinity, buff);
@@ -148,7 +176,10 @@ public enum PosixJNAAffinity implements IAffinity {
 
     @Override
     public int getCpu() {
-        final CLibrary lib = CLibrary.INSTANCE;
+        if (USE_STUB) {
+            return STUB_CPU;
+        }
+        final CLibrary lib = LIBRARY;
         try {
             final int ret = lib.sched_getcpu();
             if (ret < 0)
@@ -179,10 +210,13 @@ public enum PosixJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
+        if (USE_STUB) {
+            return STUB_THREAD_ID.get();
+        }
         if (Utilities.ISLINUX) {
             Integer tid = THREAD_ID.get();
             if (tid == null)
-                THREAD_ID.set(tid = CLibrary.INSTANCE.syscall(SYS_gettid, NO_ARGS));
+                THREAD_ID.set(tid = LIBRARY.syscall(SYS_gettid, NO_ARGS));
             return tid;
         }
         return -1;
@@ -192,8 +226,6 @@ public enum PosixJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     interface CLibrary extends Library {
-        CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
-
         int sched_setaffinity(final int pid,
                               final int cpusetsize,
                               final PointerType cpuset) throws LastErrorException;
@@ -211,5 +243,47 @@ public enum PosixJNAAffinity implements IAffinity {
         int getpid() throws LastErrorException;
 
         int syscall(int number, Object... args) throws LastErrorException;
+    }
+
+    private static CLibrary loadLibrary() {
+        if (USE_STUB) {
+            return new StubPosixCLibrary();
+        }
+        return Native.load(LIBRARY_NAME, CLibrary.class);
+    }
+
+    private static final class StubPosixCLibrary implements CLibrary {
+        @Override
+        public int sched_setaffinity(int pid, int cpusetsize, PointerType cpuset) {
+            return 0;
+        }
+
+        @Override
+        public int sched_getaffinity(int pid, int cpusetsize, PointerType cpuset) {
+            return 0;
+        }
+
+        @Override
+        public int sched_getcpu() {
+            return STUB_CPU;
+        }
+
+        @Override
+        public int getcpu(IntByReference cpu, IntByReference node, PointerType tcache) {
+            if (cpu != null) {
+                cpu.setValue(STUB_CPU);
+            }
+            return 0;
+        }
+
+        @Override
+        public int getpid() {
+            return 1;
+        }
+
+        @Override
+        public int syscall(int number, Object... args) {
+            return STUB_THREAD_ID.get();
+        }
     }
 }
