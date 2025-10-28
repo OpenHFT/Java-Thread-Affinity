@@ -83,7 +83,7 @@ public class MicroJitterSamplerTest {
         TOTAL_TIME_FIELD.setLong(sampler, 3_600_000_000_000L); // 1 hour in ns
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8)) {
+        try (PrintStream ps = new PrintStream(baos, true, StandardCharsets.UTF_8.name())) {
             sampler.print(ps);
         }
 
