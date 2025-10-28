@@ -36,8 +36,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <checkstyle.version>3.6.0</checkstyle.version>
-        <puppycrawl.version>10.26.1</puppycrawl.version>
-        <spotbugs.version>4.9.8.1</spotbugs.version>
+        <puppycrawl.version>8.45.1</puppycrawl.version>
+        <spotbugs.version>4.8.6.6</spotbugs.version>
         <findsecbugs.version>1.14.0</findsecbugs.version>
         <maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
