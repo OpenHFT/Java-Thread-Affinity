@@ -17,7 +17,6 @@
 package net.openhft.affinity.impl;
 
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.BitSet;
@@ -28,35 +27,41 @@ import static org.junit.Assert.assertTrue;
 
 public class LinuxJNAAffinityStubTest {
 
-    @BeforeClass
-    public static void enableStub() {
-        System.setProperty("chronicle.affinity.stub.linux", "true");
-    }
-
     @Test
     public void stubbedHelperProvidesDeterministicValues() {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         Assume.assumeFalse("Skip stub when running on native Linux", osName.contains("linux"));
 
-        BitSet initial = new BitSet();
-        initial.set(2);
-        LinuxHelper.setStubAffinity(initial);
-        LinuxHelper.setStubCpu(2);
+        String previous = System.getProperty("chronicle.affinity.stub.linux");
+        try {
+            System.setProperty("chronicle.affinity.stub.linux", "true");
 
-        BitSet observed = LinuxJNAAffinity.INSTANCE.getAffinity();
-        assertTrue("Affinity should reflect stub mask", observed.get(2));
-        assertTrue("Linux affinity stub reports loaded", LinuxJNAAffinity.LOADED);
-        assertTrue("Process id should be positive", LinuxJNAAffinity.INSTANCE.getProcessId() > 0);
+            BitSet initial = new BitSet();
+            initial.set(2);
+            LinuxHelper.setStubAffinity(initial);
+            LinuxHelper.setStubCpu(2);
 
-        BitSet update = new BitSet();
-        update.set(5);
-        LinuxJNAAffinity.INSTANCE.setAffinity(update);
+            BitSet observed = LinuxJNAAffinity.INSTANCE.getAffinity();
+            assertTrue("Affinity should reflect stub mask", observed.get(2));
+            assertTrue("Linux affinity stub reports loaded", LinuxJNAAffinity.LOADED);
+            assertTrue("Process id should be positive", LinuxJNAAffinity.INSTANCE.getProcessId() > 0);
 
-        BitSet updated = LinuxJNAAffinity.INSTANCE.getAffinity();
-        assertTrue("Updated affinity should reflect new cpu", updated.get(5));
-        assertEquals("Stub CPU should follow latest assignment", 5, LinuxJNAAffinity.INSTANCE.getCpu());
+            BitSet update = new BitSet();
+            update.set(5);
+            LinuxJNAAffinity.INSTANCE.setAffinity(update);
 
-        int tid = LinuxJNAAffinity.INSTANCE.getThreadId();
-        assertEquals("Thread id should be stable for stubbed helper", tid, LinuxJNAAffinity.INSTANCE.getThreadId());
+            BitSet updated = LinuxJNAAffinity.INSTANCE.getAffinity();
+            assertTrue("Updated affinity should reflect new cpu", updated.get(5));
+            assertEquals("Stub CPU should follow latest assignment", 5, LinuxJNAAffinity.INSTANCE.getCpu());
+
+            int tid = LinuxJNAAffinity.INSTANCE.getThreadId();
+            assertEquals("Thread id should be stable for stubbed helper", tid, LinuxJNAAffinity.INSTANCE.getThreadId());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("chronicle.affinity.stub.linux");
+            } else {
+                System.setProperty("chronicle.affinity.stub.linux", previous);
+            }
+        }
     }
 }

@@ -17,7 +17,6 @@
 package net.openhft.affinity.impl;
 
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.BitSet;
@@ -28,20 +27,26 @@ import static org.junit.Assert.assertFalse;
 
 public class OSXJNAAffinityStubTest {
 
-    @BeforeClass
-    public static void enableStub() {
-        System.setProperty("chronicle.affinity.stub.osx", "true");
-    }
-
     @Test
     public void stubReturnsMaskedThreadId() {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         Assume.assumeFalse("Stub should not override native macOS library", osName.contains("mac"));
 
-        BitSet affinity = OSXJNAAffinity.INSTANCE.getAffinity();
-        assertFalse("Affinity should be empty on macOS stub", affinity.get(0));
+        String previous = System.getProperty("chronicle.affinity.stub.osx");
+        try {
+            System.setProperty("chronicle.affinity.stub.osx", "true");
 
-        int tid = OSXJNAAffinity.INSTANCE.getThreadId();
-        assertEquals("Stubbed pthread id should match configured constant", 0x123456, tid);
+            BitSet affinity = OSXJNAAffinity.INSTANCE.getAffinity();
+            assertFalse("Affinity should be empty on macOS stub", affinity.get(0));
+
+            int tid = OSXJNAAffinity.INSTANCE.getThreadId();
+            assertEquals("Stubbed pthread id should match configured constant", 0x123456, tid);
+        } finally {
+            if (previous == null) {
+                System.clearProperty("chronicle.affinity.stub.osx");
+            } else {
+                System.setProperty("chronicle.affinity.stub.osx", previous);
+            }
+        }
     }
 }

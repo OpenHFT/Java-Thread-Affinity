@@ -17,7 +17,6 @@
 package net.openhft.affinity.impl;
 
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.BitSet;
@@ -28,28 +27,34 @@ import static org.junit.Assert.assertTrue;
 
 public class PosixJNAAffinityStubTest {
 
-    @BeforeClass
-    public static void enableStub() {
-        System.setProperty("chronicle.affinity.stub.posix", "true");
-    }
-
     @Test
     public void stubTracksAffinityAndCpu() {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         Assume.assumeFalse("Use stub only when native POSIX calls are unavailable", osName.contains("linux"));
 
-        BitSet mask = new BitSet();
-        mask.set(1);
-        mask.set(4);
-        PosixJNAAffinity.INSTANCE.setAffinity(mask);
+        String previous = System.getProperty("chronicle.affinity.stub.posix");
+        try {
+            System.setProperty("chronicle.affinity.stub.posix", "true");
 
-        BitSet actual = PosixJNAAffinity.INSTANCE.getAffinity();
-        assertEquals("Stub should echo assigned affinity mask", mask, actual);
-        assertEquals("Stub CPU should follow lowest set bit", 1, PosixJNAAffinity.INSTANCE.getCpu());
-        assertTrue("Process id should be positive", PosixJNAAffinity.INSTANCE.getProcessId() > 0);
-        assertTrue("Stub reports loaded state", PosixJNAAffinity.LOADED);
+            BitSet mask = new BitSet();
+            mask.set(1);
+            mask.set(4);
+            PosixJNAAffinity.INSTANCE.setAffinity(mask);
 
-        int tid = PosixJNAAffinity.INSTANCE.getThreadId();
-        assertEquals("Thread id should be stable across calls", tid, PosixJNAAffinity.INSTANCE.getThreadId());
+            BitSet actual = PosixJNAAffinity.INSTANCE.getAffinity();
+            assertEquals("Stub should echo assigned affinity mask", mask, actual);
+            assertEquals("Stub CPU should follow lowest set bit", 1, PosixJNAAffinity.INSTANCE.getCpu());
+            assertTrue("Process id should be positive", PosixJNAAffinity.INSTANCE.getProcessId() > 0);
+            assertTrue("Stub reports loaded state", PosixJNAAffinity.LOADED);
+
+            int tid = PosixJNAAffinity.INSTANCE.getThreadId();
+            assertEquals("Thread id should be stable across calls", tid, PosixJNAAffinity.INSTANCE.getThreadId());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("chronicle.affinity.stub.posix");
+            } else {
+                System.setProperty("chronicle.affinity.stub.posix", previous);
+            }
+        }
     }
 }

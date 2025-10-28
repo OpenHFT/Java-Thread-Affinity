@@ -17,7 +17,6 @@
 package net.openhft.affinity.impl;
 
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.BitSet;
@@ -29,27 +28,32 @@ import static org.junit.Assert.assertTrue;
 
 public class WindowsJNAAffinityStubTest {
 
-    @BeforeClass
-    public static void enableStub() {
-        System.setProperty("chronicle.affinity.stub.windows", "true");
-    }
-
     @Test
     public void stubProvidesDeterministicAffinity() {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         Assume.assumeFalse("Stub test should not run on native Windows", osName.contains("win"));
 
-        BitSet mask = new BitSet();
-        mask.set(3);
-        WindowsJNAAffinity.INSTANCE.setAffinity(mask);
+        String previous = System.getProperty("chronicle.affinity.stub.windows");
+        try {
+            System.setProperty("chronicle.affinity.stub.windows", "true");
 
-        BitSet actual = WindowsJNAAffinity.INSTANCE.getAffinity();
-        assertTrue("Stub should reflect affinity mask", actual.get(3));
-        assertTrue("Process id should be positive", WindowsJNAAffinity.INSTANCE.getProcessId() > 0);
-        assertFalse("Stubbed implementation should report as not loaded", WindowsJNAAffinity.LOADED);
+            BitSet mask = new BitSet();
+            mask.set(3);
+            WindowsJNAAffinity.INSTANCE.setAffinity(mask);
 
-        int threadId = WindowsJNAAffinity.INSTANCE.getThreadId();
-        assertEquals("Thread id should be stable for same thread", threadId, WindowsJNAAffinity.INSTANCE.getThreadId());
+            BitSet actual = WindowsJNAAffinity.INSTANCE.getAffinity();
+            assertTrue("Stub should reflect affinity mask", actual.get(3));
+            assertTrue("Process id should be positive", WindowsJNAAffinity.INSTANCE.getProcessId() > 0);
+            assertFalse("Stubbed implementation should report as not loaded", WindowsJNAAffinity.LOADED);
 
+            int threadId = WindowsJNAAffinity.INSTANCE.getThreadId();
+            assertEquals("Thread id should be stable for same thread", threadId, WindowsJNAAffinity.INSTANCE.getThreadId());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("chronicle.affinity.stub.windows");
+            } else {
+                System.setProperty("chronicle.affinity.stub.windows", previous);
+            }
+        }
     }
 }

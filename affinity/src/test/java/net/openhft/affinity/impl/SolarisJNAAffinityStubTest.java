@@ -17,7 +17,6 @@
 package net.openhft.affinity.impl;
 
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Locale;
@@ -27,20 +26,26 @@ import static org.junit.Assert.assertTrue;
 
 public class SolarisJNAAffinityStubTest {
 
-    @BeforeClass
-    public static void enableStub() {
-        System.setProperty("chronicle.affinity.stub.solaris", "true");
-    }
-
     @Test
     public void stubReturnsConsistentThreadId() {
         String osName = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         Assume.assumeFalse("Do not override native Solaris library", osName.contains("sunos"));
 
-        assertTrue("Affinity remains empty for Solaris stub", SolarisJNAAffinity.INSTANCE.getAffinity().isEmpty());
+        String previous = System.getProperty("chronicle.affinity.stub.solaris");
+        try {
+            System.setProperty("chronicle.affinity.stub.solaris", "true");
 
-        int tid = SolarisJNAAffinity.INSTANCE.getThreadId();
-        assertEquals("Stubbed pthread id should match configured constant", 0x654321, tid);
-        assertEquals("Thread id should be cached per thread", tid, SolarisJNAAffinity.INSTANCE.getThreadId());
+            assertTrue("Affinity remains empty for Solaris stub", SolarisJNAAffinity.INSTANCE.getAffinity().isEmpty());
+
+            int tid = SolarisJNAAffinity.INSTANCE.getThreadId();
+            assertEquals("Stubbed pthread id should match configured constant", 0x654321, tid);
+            assertEquals("Thread id should be cached per thread", tid, SolarisJNAAffinity.INSTANCE.getThreadId());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("chronicle.affinity.stub.solaris");
+            } else {
+                System.setProperty("chronicle.affinity.stub.solaris", previous);
+            }
+        }
     }
 }
