@@ -181,7 +181,7 @@ try (final AffinityLock al = AffinityLock.acquireLock()) {
     });
     t.start();
 }
-----    
+----
 
 In this example, the library will prefer a free CPU on the same Socket as the first thread, otherwise it will pick any free CPU.
 
@@ -225,14 +225,14 @@ The affinity of the process on start up is
 [source,java]
 ----
 long baseAffinity = AffinityLock.BASE_AFFINITY;
-----   
+----
 
 The available CPU for reservation is
 
 [source,java]
 ----
 long reservedAffinity = AffinityLock.RESERVED_AFFINITY;
-----    
+----
 
 If you want to get/set the affinity directly you can do
 
@@ -331,7 +331,8 @@ For an article on how much difference affinity can make and how to use it http:/
 === Question: How to lock a specific cpuId
 
 I am currently working on a project related to deadlock detection in multithreaded programs in java.
-We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+We are trying to run threads on different processors and thus came across your github posts regarding the same.
+https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
 Being a beginner, I have little knowledge and thus need your assistance.
 We need to know how to run threads on specified cpu number and then switch threads when one is waiting.
 

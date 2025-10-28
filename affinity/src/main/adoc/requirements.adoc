@@ -1,4 +1,5 @@
 = Requirements Document: Java Thread Affinity
+:pp: ++
 :toc:
 :sectnums:
 
@@ -151,15 +152,15 @@ No affinity modification; `getCpu()` returns -1.
 * *FR11.4*: The system _shall_ store meta-information (e.g., PID of the locking process) within the lock file and allow its retrieval.
 ** `LockChecker.getMetaInfo(int id)`
 
-=== Native Code Compilation (C/C++)
+=== Native Code Compilation (C/C{pp})
 
-* *FR12.1*: The system _shall_ include C/C++ source code for native functions required for affinity and timer operations on Linux and macOS.
-    ** `software_chronicle_enterprise_internals_impl_NativeAffinity.cpp` (Linux)
-    ** `software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c` (macOS)
-    ** `net_openhft_ticker_impl_JNIClock.cpp` (for `rdtsc`)
-* *FR12.2*: A Makefile _shall_ be provided to compile the native C/C++ code into a shared library (`libCEInternals.so`).
+* *FR12.1*: The system _shall_ include C/C{pp} source code for native functions required for affinity and timer operations on Linux and macOS.
+** `software_chronicle_enterprise_internals_impl_NativeAffinity.cpp` (Linux)
+** `software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c` (macOS)
+** `net_openhft_ticker_impl_JNIClock.cpp` (for `rdtsc`)
+* *FR12.2*: A Makefile _shall_ be provided to compile the native C/C{pp} code into a shared library (`libCEInternals.so`).
 * *FR12.3*: The Java code _shall_ load this native library if available.
-** `software.chronicle.enterprise.internals.impl.NativeAffinity.loadAffinityNativeLibrary()`
+*** `software.chronicle.enterprise.internals.impl.NativeAffinity.loadAffinityNativeLibrary()`
 
 == Non-Functional Requirements
 
@@ -180,7 +181,7 @@ The primary goal is to enable performance improvements in the client application
 * *NFR5. Build System*: The project _shall_ use Apache Maven for building and dependency management.
 * *NFR6. Language*:
 ** Core library _shall_ be implemented in Java (1.8+ as per POM).
-** Native components _shall_ be implemented in C/C++.
+** Native components _shall_ be implemented in C/C{pp}.
 * *NFR7. Usability*:
 ** The API _should_ be clear and relatively simple to use.
 ** Javadoc _shall_ be provided for public APIs.
@@ -218,7 +219,7 @@ It abstracts OS-specific system calls related to thread affinity, CPU informatio
 ** `SystemClock`: Uses `System.nanoTime()`.
 * *`net.openhft.affinity.lockchecker.LockChecker`*: Interface for inter-process lock management.
 ** `FileLockBasedLockChecker`: Implementation using file system locks.
-* *Native Code (`src/main/c`)*: C/C++ sources for `libCEInternals.so` providing functions like `getAffinity0`, `setAffinity0` (Linux JNI), `rdtsc0`.
+* *Native Code (`src/main/c`)*: C/C{pp} sources for `libCEInternals.so` providing functions like `getAffinity0`, `setAffinity0` (Linux JNI), `rdtsc0`.
 
 === Maven Modules
 
