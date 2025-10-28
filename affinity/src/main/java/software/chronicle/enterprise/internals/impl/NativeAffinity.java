@@ -40,6 +40,7 @@ public enum NativeAffinity implements IAffinity {
 
     private native static int getThreadId0();
 
+    @SuppressWarnings("unused")
     private native static long rdtsc0();
 
     private static boolean loadAffinityNativeLibrary() {

@@ -139,7 +139,7 @@ enum BootClassPath {
         return dirResources;
     }
 
-    public final boolean has(String binaryClassName) {
+    public boolean has(String binaryClassName) {
         final String resourceClassName = binaryClassName.replace('.', '/').concat(".class");
         return bootClassPathResources.contains(resourceClassName);
     }

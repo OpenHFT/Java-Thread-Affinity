@@ -287,7 +287,7 @@ public class LinuxHelper {
     public static class cpu_set_t extends Structure {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
-        static final int SIZE_OF_CPU_SET_T = (__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE;
+        static final int SIZE_OF_CPU_SET_T = __CPU_SETSIZE / __NCPUBITS * NativeLong.SIZE;
         static List<String> FIELD_ORDER = Collections.singletonList("__bits");
         public NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
 

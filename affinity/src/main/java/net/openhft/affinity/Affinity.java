@@ -18,6 +18,7 @@
 package net.openhft.affinity;
 
 import com.sun.jna.Native;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.openhft.affinity.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import java.util.BitSet;
  *
  * @author peter.lawrey
  */
+@SuppressFBWarnings(value = {"CRLF_INJECTION_LOGS", "INFORMATION_EXPOSURE_THROUGH_AN_ERROR_MESSAGE"}, justification = "AFF-SEC-205: logging only exposes JVM-local diagnostics for operators")
 public enum Affinity {
     ; // none
     static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
@@ -176,12 +178,12 @@ public enum Affinity {
 
     public static void setThreadId() {
         try {
-            int threadId = Affinity.getThreadId();
+            int threadId = getThreadId();
             final Field tid = Thread.class.getDeclaredField("tid");
             tid.setAccessible(true);
             final Thread thread = Thread.currentThread();
             tid.setLong(thread, threadId);
-            Affinity.LOGGER.info("Set {} to thread id {}", thread.getName(), threadId);
+            LOGGER.info("Set {} to thread id {}", thread.getName(), threadId);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -222,6 +224,6 @@ public enum Affinity {
     }
 
     public static void resetToBaseAffinity() {
-        Affinity.setAffinity(AffinityLock.BASE_AFFINITY);
+        setAffinity(AffinityLock.BASE_AFFINITY);
     }
 }
