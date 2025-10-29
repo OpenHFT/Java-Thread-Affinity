@@ -22,7 +22,6 @@ import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.ptr.LongByReference;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.openhft.affinity.IAffinity;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -211,7 +210,6 @@ public enum WindowsJNAAffinity implements IAffinity {
         int GetCurrentThread() throws LastErrorException;
     }
 
-    @SuppressFBWarnings(value = "NM_METHOD_NAMING_CONVENTION", justification = "Method names must mirror WinAPI signatures for JNA compatibility")
     private static final class StubWindowsCLibrary implements CLibrary {
         private long mask = 1L;
 
