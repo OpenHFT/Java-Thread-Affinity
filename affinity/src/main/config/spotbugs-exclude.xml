@@ -114,6 +114,10 @@
         </Or>
     </Match>
     <Match>
+        <Class name="net.openhft.affinity.impl.WindowsJNAAffinity$StubWindowsCLibrary"/>
+        <Bug pattern="NM_METHOD_NAMING_CONVENTION"/>
+    </Match>
+    <Match>
         <Class name="~net\.openhft\.affinity\.lockchecker\.FileLockBasedLockChecker"/>
         <Or>
             <Comment>AFF-OPS-204: Lock checker must grant cooperative processes access to shared files; permissions and
