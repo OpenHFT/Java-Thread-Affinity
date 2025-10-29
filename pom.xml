@@ -35,6 +35,7 @@
 
     <modules>
         <module>affinity</module>
+        <module>affinity-posix-test-support</module>
         <module>affinity-test</module>
     </modules>
 
