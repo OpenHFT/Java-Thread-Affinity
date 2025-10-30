@@ -219,7 +219,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <configLocation>net/openhft/quality/checkstyle/checkstyle.xml</configLocation>
+                            <configLocation>src/main/config/checkstyle.xml</configLocation>
                             <consoleOutput>true</consoleOutput>
                             <failOnViolation>true</failOnViolation>
                             <violationSeverity>warning</violationSeverity>
