@@ -1,3 +1,7 @@
+//
+// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+//
+
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.VanillaCpuLayout;
@@ -14,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 
 public class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
-    static void supressUnusedWarning(AutoCloseable c) {
+    private static void supressUnusedWarning(AutoCloseable c) {
         // do nothing
     }
 

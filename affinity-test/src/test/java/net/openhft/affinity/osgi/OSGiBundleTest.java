@@ -1,3 +1,7 @@
+//
+// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+//
+
 /*
  * Copyright 2016-2025 chronicle.software
  *
@@ -35,6 +39,7 @@ import static org.ops4j.pax.exam.CoreOptions.*;
 @RunWith(PaxExam.class)
 public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     @Inject
+    private
     BundleContext context;
 
     @Configuration

@@ -1,3 +1,7 @@
+//
+// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+//
+
 /*
  * Copyright 2016-2025 chronicle.software
  *
@@ -155,7 +159,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         private final int iterations;
         private final String cpuIdToLock;
 
-        public RepeatedAffinityLocker(String cpuIdToLock, int iterations) {
+        RepeatedAffinityLocker(String cpuIdToLock, int iterations) {
             this.iterations = iterations;
             this.cpuIdToLock = cpuIdToLock;
         }
@@ -268,7 +272,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         }
 
         @NotNull
-        protected static File toFile(int id) {
+        static File toFile(int id) {
             return new TestFileLockBasedLockChecker().doToFile(id);
         }
     }
