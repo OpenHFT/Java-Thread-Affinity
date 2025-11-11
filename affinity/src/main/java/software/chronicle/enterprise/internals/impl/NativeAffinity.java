@@ -1,6 +1,6 @@
-//
-// Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
-//
+/*
+ * Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+ */
 package software.chronicle.enterprise.internals.impl;
 
 import net.openhft.affinity.IAffinity;
@@ -28,6 +28,7 @@ public enum NativeAffinity implements IAffinity {
 
     private native static long rdtsc0();
 
+    @SuppressWarnings("restricted")
     private static boolean loadAffinityNativeLibrary() {
         try {
             System.loadLibrary("CEInternals");
