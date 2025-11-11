@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 public class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
-    static void supressUnusedWarning(AutoCloseable c) {
+    private static void supressUnusedWarning(AutoCloseable c) {
         // do nothing
     }
 

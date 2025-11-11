@@ -11,9 +11,9 @@ import org.osgi.framework.BundleContext;
 
 import java.io.File;
 
-public class OSGiTestBase {
+class OSGiTestBase {
 
-    public static Option workspaceBundle(String projectName) {
+    static Option workspaceBundle(String projectName) {
         String baseDir = System.getProperty("main.basedir");
         String bundleDir;
 
@@ -30,11 +30,11 @@ public class OSGiTestBase {
         return null;
     }
 
-    public static MavenArtifactProvisionOption mavenBundleAsInProject(final String groupId, final String artifactId) {
+    static MavenArtifactProvisionOption mavenBundleAsInProject(final String groupId, final String artifactId) {
         return CoreOptions.mavenBundle().groupId(groupId).artifactId(artifactId).versionAsInProject();
     }
 
-    public static Bundle findBundle(BundleContext context, String symbolicName) {
+    static Bundle findBundle(BundleContext context, String symbolicName) {
         Bundle[] bundles = context.getBundles();
         for (Bundle bundle : bundles) {
             if (bundle != null) {

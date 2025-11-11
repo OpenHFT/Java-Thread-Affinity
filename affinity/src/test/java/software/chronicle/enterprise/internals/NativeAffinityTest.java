@@ -18,8 +18,8 @@ import static org.junit.Assert.*;
  * @author peter.lawrey
  */
 public class NativeAffinityTest extends BaseAffinityTest {
-    protected static final int CORES = Runtime.getRuntime().availableProcessors();
-    protected static final BitSet CORES_MASK = new BitSet(CORES);
+    private static final int CORES = Runtime.getRuntime().availableProcessors();
+    private static final BitSet CORES_MASK = new BitSet(CORES);
 
     static {
         CORES_MASK.set(0, CORES, true);
@@ -116,7 +116,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
         getImpl().setAffinity(CORES_MASK);
     }
 
-    public IAffinity getImpl() {
+    private IAffinity getImpl() {
         return NativeAffinity.INSTANCE;
     }
 }

@@ -21,7 +21,7 @@ import static org.ops4j.pax.exam.CoreOptions.*;
 @RunWith(PaxExam.class)
 public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     @Inject
-    BundleContext context;
+    private BundleContext context;
 
     @Configuration
     public Option[] config() {

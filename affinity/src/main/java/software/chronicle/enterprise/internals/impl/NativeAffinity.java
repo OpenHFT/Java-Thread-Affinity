@@ -28,6 +28,7 @@ public enum NativeAffinity implements IAffinity {
 
     private native static long rdtsc0();
 
+    @SuppressWarnings("restricted")
     private static boolean loadAffinityNativeLibrary() {
         try {
             System.loadLibrary("CEInternals");

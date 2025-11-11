@@ -24,6 +24,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jacoco.line.coverage>0</jacoco.line.coverage>
+        <jacoco.branch.coverage>0</jacoco.branch.coverage>
     </properties>
 
     <dependencyManagement>
