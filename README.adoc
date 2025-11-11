@@ -90,7 +90,7 @@ https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
 
 https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/How-it-works
 
-http://vanillajava.blogspot.co.uk/2013/07/micro-jitter-busy-waiting-and-binding.html
+https://vanillajava.blogspot.com/2013/07/micro-jitter-busy-waiting-and-binding.html
 
 === isolcpus
 
