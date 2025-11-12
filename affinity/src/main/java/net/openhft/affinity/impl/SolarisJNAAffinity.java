@@ -55,9 +55,11 @@ public enum SolarisJNAAffinity implements IAffinity {
         return tid;
     }
 
+    // CHECKSTYLE:OFF: MethodName
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load("c", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
     }
+    // CHECKSTYLE:ON: MethodName
 }

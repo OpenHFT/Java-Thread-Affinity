@@ -140,6 +140,7 @@ public enum WindowsJNAAffinity implements IAffinity {
     /**
      * @author BegemoT
      */
+    // CHECKSTYLE:OFF: MethodName
     private interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load("kernel32", CLibrary.class);
 
@@ -149,4 +150,5 @@ public enum WindowsJNAAffinity implements IAffinity {
 
         int GetCurrentThread() throws LastErrorException;
     }
+    // CHECKSTYLE:ON: MethodName
 }

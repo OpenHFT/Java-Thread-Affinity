@@ -55,9 +55,11 @@ public enum OSXJNAAffinity implements IAffinity {
         return tid;
     }
 
+    // CHECKSTYLE:OFF: MethodName
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load("libpthread.dylib", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
     }
+    // CHECKSTYLE:ON: MethodName
 }
