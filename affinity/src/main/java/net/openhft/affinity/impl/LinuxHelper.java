@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class LinuxHelper {
+    // CHECKSTYLE:OFF: MethodName
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
     private static final VersionHelper VERSION_2_6 = new VersionHelper(2, 6, 0);
@@ -143,6 +144,7 @@ public class LinuxHelper {
         }
     }
 
+    // CHECKSTYLE:OFF: MethodName
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
 
@@ -162,10 +164,12 @@ public class LinuxHelper {
 
         int syscall(int number, Object... args) throws LastErrorException;
     }
+    // CHECKSTYLE:ON: MethodName
 
     /**
      * Structure describing the system and machine.
      */
+    // CHECKSTYLE:OFF: TypeName
     public static class utsname extends Structure {
         public static final int _UTSNAME_LENGTH = 65;
 
@@ -267,7 +271,11 @@ public class LinuxHelper {
                     " " + getVersion() + " " + getMachine();
         }
     }
+    // CHECKSTYLE:ON: TypeName
 
+    // CHECKSTYLE:OFF: TypeName
+    // CHECKSTYLE:OFF: MemberName
+    // CHECKSTYLE:OFF: MethodName
     public static class cpu_set_t extends Structure {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
@@ -318,4 +326,8 @@ public class LinuxHelper {
             return FIELD_ORDER;
         }
     }
+    // CHECKSTYLE:ON: MethodName
+    // CHECKSTYLE:ON: MemberName
+    // CHECKSTYLE:ON: TypeName
+    // CHECKSTYLE:ON: MethodName
 }

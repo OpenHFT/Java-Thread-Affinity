@@ -9,10 +9,10 @@ public class VersionHelper {
     private final int minor;
     private final int release;
 
-    public VersionHelper(int major_, int minor_, int release_) {
-        major = major_;
-        minor = minor_;
-        release = release_;
+    public VersionHelper(int major, int minor, int release) {
+        this.major = major;
+        this.minor = minor;
+        this.release = release;
     }
 
     public VersionHelper(String ver) {

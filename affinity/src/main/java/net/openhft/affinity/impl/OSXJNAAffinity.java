@@ -21,7 +21,7 @@ import java.util.BitSet;
 public enum OSXJNAAffinity implements IAffinity {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(OSXJNAAffinity.class);
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
+    private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
     @Override
     public BitSet getAffinity() {
@@ -45,19 +45,21 @@ public enum OSXJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        Integer tid = THREAD_ID.get();
+        Integer tid = threadId.get();
         if (tid == null) {
             tid = CLibrary.INSTANCE.pthread_self();
             //The tid assumed to be an unsigned 24 bit, see net.openhft.lang.Jvm.getMaxPid()
             tid = tid & 0xFFFFFF;
-            THREAD_ID.set(tid);
+            threadId.set(tid);
         }
         return tid;
     }
 
+    // CHECKSTYLE:OFF: MethodName
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load("libpthread.dylib", CLibrary.class);
 
         int pthread_self() throws LastErrorException;
     }
+    // CHECKSTYLE:ON: MethodName
 }

@@ -27,6 +27,7 @@ public enum LinuxJNAAffinity implements IAffinity {
         try {
             pid = LinuxHelper.getpid();
         } catch (NoClassDefFoundError | Exception ignored) {
+            // best effort: leave pid as -1 if native helper is unavailable
         }
         PROCESS_ID = pid;
     }
@@ -43,7 +44,7 @@ public enum LinuxJNAAffinity implements IAffinity {
         LOADED = loaded;
     }
 
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
+    private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
     @Override
     public BitSet getAffinity() {
@@ -75,9 +76,9 @@ public enum LinuxJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        Integer tid = THREAD_ID.get();
+        Integer tid = threadId.get();
         if (tid == null)
-            THREAD_ID.set(tid = LinuxHelper.syscall(SYS_gettid, NO_ARGS));
+            threadId.set(tid = LinuxHelper.syscall(SYS_gettid, NO_ARGS));
         return tid;
     }
 }

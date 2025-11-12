@@ -54,7 +54,7 @@ public enum PosixJNAAffinity implements IAffinity {
         LOADED = loaded;
     }
 
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
+    private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
     @Override
     public BitSet getAffinity() {
@@ -165,9 +165,9 @@ public enum PosixJNAAffinity implements IAffinity {
     @Override
     public int getThreadId() {
         if (Utilities.ISLINUX) {
-            Integer tid = THREAD_ID.get();
+            Integer tid = threadId.get();
             if (tid == null)
-                THREAD_ID.set(tid = CLibrary.INSTANCE.syscall(SYS_gettid, NO_ARGS));
+                threadId.set(tid = CLibrary.INSTANCE.syscall(SYS_gettid, NO_ARGS));
             return tid;
         }
         return -1;
@@ -177,6 +177,7 @@ public enum PosixJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     interface CLibrary extends Library {
+        // CHECKSTYLE:OFF: MethodName
         CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
 
         int sched_setaffinity(final int pid,
@@ -197,4 +198,5 @@ public enum PosixJNAAffinity implements IAffinity {
 
         int syscall(int number, Object... args) throws LastErrorException;
     }
+    // CHECKSTYLE:ON: MethodName
 }
