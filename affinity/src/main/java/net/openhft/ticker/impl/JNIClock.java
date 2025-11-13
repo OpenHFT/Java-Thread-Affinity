@@ -3,7 +3,6 @@
  */
 package net.openhft.ticker.impl;
 
-import net.openhft.chronicle.core.Jvm;
 import net.openhft.ticker.ITicker;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
@@ -57,13 +56,13 @@ public enum JNIClock implements ITicker {
         final long start = System.nanoTime();
         long now;
         while (System.nanoTime() == start) {
-            Jvm.safepoint();
+            rdtsc0();
         }
 
         long end = start + factor * 1000000L;
         final long start0 = rdtsc0();
         while ((now = System.nanoTime()) < end) {
-            Jvm.safepoint();
+            rdtsc0();
         }
         long end0 = rdtsc0();
         end = now;

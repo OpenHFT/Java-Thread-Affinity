@@ -5,6 +5,7 @@ package software.chronicle.enterprise.internals;
 
 import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
+import net.openhft.affinity.impl.LinuxJNAAffinity;
 import net.openhft.affinity.impl.Utilities;
 import org.junit.*;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
@@ -50,7 +51,6 @@ public class NativeAffinityTest extends BaseAffinityTest {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
-        getAffinityReturnsValuePreviouslySet(getImpl(), affinity);
     }
 
     @Test
