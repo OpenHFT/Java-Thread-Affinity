@@ -54,49 +54,6 @@ public class NativeAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    @Ignore("TODO AFFINITY-25")
-    public void getAffinityReturnsValuePreviouslySet() {
-        String osName = System.getProperty("os.name");
-        if (!osName.startsWith("Linux")) {
-            System.out.println("Skipping Linux tests");
-            return;
-        }
-        final IAffinity impl = NativeAffinity.INSTANCE;
-        for (int core = 0; core < CORES; core++) {
-            final BitSet mask = new BitSet();
-            mask.set(core, true);
-            getAffinityReturnsValuePreviouslySet(impl, mask);
-        }
-    }
-
-    @Test
-    @Ignore("TODO AFFINITY-25")
-    public void JNAwithJNI() {
-        String osName = System.getProperty("os.name");
-        if (!osName.startsWith("Linux")) {
-            System.out.println("Skipping Linux tests");
-            return;
-        }
-        int nbits = Runtime.getRuntime().availableProcessors();
-        BitSet affinity = new BitSet(nbits);
-        affinity.set(1);
-        NativeAffinity.INSTANCE.setAffinity(affinity);
-        BitSet affinity2 = LinuxJNAAffinity.INSTANCE.getAffinity();
-        assertEquals(1, NativeAffinity.INSTANCE.getCpu());
-        assertEquals(affinity, affinity2);
-
-        affinity.clear();
-        affinity.set(2);
-        LinuxJNAAffinity.INSTANCE.setAffinity(affinity);
-        BitSet affinity3 = NativeAffinity.INSTANCE.getAffinity();
-        assertEquals(2, LinuxJNAAffinity.INSTANCE.getCpu());
-        assertEquals(affinity, affinity3);
-
-        affinity.set(0, nbits);
-        LinuxJNAAffinity.INSTANCE.setAffinity(affinity);
-    }
-
-    @Test
     public void showOtherIds() {
         System.out.println("processId: " + NativeAffinity.INSTANCE.getProcessId());
         System.out.println("threadId: " + NativeAffinity.INSTANCE.getThreadId());

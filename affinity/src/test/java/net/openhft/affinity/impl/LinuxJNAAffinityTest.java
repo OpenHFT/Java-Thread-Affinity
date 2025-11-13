@@ -22,7 +22,7 @@ public class LinuxJNAAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void LinuxJNA() {
+    public void linuxJna() {
         int nbits = Runtime.getRuntime().availableProcessors();
         BitSet affinity0 = LinuxJNAAffinity.INSTANCE.getAffinity();
         System.out.println(affinity0);
