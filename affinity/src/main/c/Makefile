@@ -31,6 +31,7 @@ JAVA_LIB := $(JAVA_HOME)/jre/lib
 JVM_SHARED_LIBS := -L"$(JAVA_LIB)/amd64/server" -L"$(JAVA_LIB)/i386/server"  -L"$(JAVA_LIB)/amd64/jrockit" -L"$(JAVA_LIB)/i386/jrockit" -L"$(JAVA_LIB)/ppc64le/server" -L"$(JAVA_LIB)/ppc64le/jrockit" -L"$(JAVA_HOME)/lib/server"
 
 CXX=g++
+CXXFLAGS ?= -O3 -Wall -fstack-protector-strong -D_FORTIFY_SOURCE=2
 INCLUDES := -I"$(JAVA_HOME)/include" -I"$(JAVA_HOME)/include/$(JNI_OS)" -I"$(WORKING_DIR)"
 
 # classpath for javah
@@ -45,7 +46,7 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(JNI_SOURCES)
-	$(CXX) -O3 -Wall -shared -fPIC $(JVM_SHARED_LIBS) $(LRT) $(INCLUDES) $(JNI_SOURCES) -o $(TARGET)
+	$(CXX) $(CXXFLAGS) -shared -fPIC $(JVM_SHARED_LIBS) $(LRT) $(INCLUDES) $(JNI_SOURCES) -o $(TARGET)
 
 clean:
 	rm $(TARGET)

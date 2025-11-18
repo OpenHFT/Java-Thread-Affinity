@@ -1,0 +1,96 @@
+= ADR-0001: Native integration strategy for Java-Thread-Affinity
+:toc: left
+:toclevels: 3
+:source-highlighter: rouge
+
+== Status
+
+Accepted
+
+== Context
+
+Java-Thread-Affinity exposes a public API in `Java-Thread-Affinity/affinity/src/main/java/net/openhft/affinity/Affinity.java:1` that allows callers to query and control CPU affinity across multiple operating systems.
+
+Two mechanisms are available for low level integration:
+
+* JNA based implementations:
+** `WindowsJNAAffinity`, `LinuxJNAAffinity`, `PosixJNAAffinity`, `OSXJNAAffinity`, `SolarisJNAAffinity`.
+* JNI based implementations:
+** `software.chronicle.enterprise.internals.impl.NativeAffinity` for affinity control.
+** `net.openhft.ticker.impl.JNIClock` for a low latency, high resolution timer using native code.
+
+The static initialiser in `Affinity` currently selects only JNA based implementations. The lines that would select the JNI based `NativeAffinity` on Linux are commented out:
+
+* `Affinity.java:37` to `Affinity.java:40` contain a commented block that checks `NativeAffinity.LOADED` and would choose `NativeAffinity.INSTANCE`.
+* The active code path checks JNA support instead and selects `LinuxJNAAffinity.INSTANCE` on Linux.
+
+Historical commits (for example `ad46a29` with message `AFFINITY-26 Add a faster JNI timer and performance tune a number of key benchmarks.`) show that this split between a JNA based public path and JNI based specialised helpers has been present since the introduction of `Affinity`.
+
+== Decision
+
+* Keep JNA as the default mechanism for affinity control on all supported platforms, as selected by `Affinity.AFFINITY_IMPL`.
+* Keep the JNI based `NativeAffinity` implementation available for potential advanced use, but do not enable it by default in `Affinity`.
+* Continue to use JNI for `JNIClock` as the default high resolution timer where the native library can be loaded, with a fallback to `SystemClock` when it cannot.
+* Ensure that the JNI implementations follow safe patterns:
+** Throw Java exceptions via JNI rather than C++ exceptions.
+** Validate arguments where appropriate.
+** Rely on JNA implementations for the majority of affinity operations in production.
+
+== Rationale
+
+* JNA offers simpler deployment and cross platform support:
+** No custom native library packaging or `java.library.path` manipulation is required.
+** Users can rely on JNA to load platform specific libraries using established conventions.
+* The JNI based `NativeAffinity` implementation historically used C++ exceptions and had other safety issues. In addition, it requires a dedicated native library and loader configuration.
+* By keeping the JNI implementation disabled in `Affinity`, core affinity operations use the more conservative and battle tested JNA path, while still allowing the project to evolve JNI code for specialised timing and experimentation.
+* `JNIClock` provides a measurable benefit for timing sensitive workloads by accessing hardware counters directly. It is integrated in a way that:
+** Tries to load the native library.
+** Falls back to a pure Java `SystemClock` implementation if loading fails.
+
+== Consequences
+
+=== Positive
+
+* The public API uses a single, consistent affinity implementation per platform, based on JNA.
+* JNI code paths are isolated and can be audited and tested separately without impacting the default behaviour of `Affinity`.
+* The risk of JVM crashes from JNI misuse is reduced, because production affinity operations do not depend on `NativeAffinity`.
+* The native timer (`JNIClock`) is available where supported, with a safe fallback path when not.
+
+=== Negative
+
+* The dormant JNI based affinity implementation adds maintenance overhead:
+** Developers must keep it in sync with platform changes even though it is not enabled by default.
+** Tests need to ensure it still compiles and behaves correctly if temporarily activated.
+* Users who want to force the JNI implementation must bypass the default selection logic in `Affinity`, which is not officially supported.
+
+== Implementation notes
+
+* The JNA first strategy is implemented in `Java-Thread-Affinity/affinity/src/main/java/net/openhft/affinity/Affinity.java:1`:
+** Windows, Linux, macOS, Solaris and generic Posix each have `isXxxJNAAffinityUsable` checks that gate selection of the corresponding JNA based implementations.
+** If no JNA implementation is usable for the current platform, `Affinity` falls back to `NullAffinity.INSTANCE`.
+* The JNI based affinity implementation is in:
+** `Java-Thread-Affinity/affinity/src/main/c/software_chronicle_enterprise_internals_impl_NativeAffinity.cpp:1` (Linux).
+** `Java-Thread-Affinity/affinity/src/main/c/software_chronicle_enterprise_internals_impl_NativeAffinity_MacOSX.c:1` (macOS).
+* Recent changes harden the JNI code:
+** C++ exceptions have been removed in favour of throwing Java `UnsupportedOperationException` or `RuntimeException` via JNI calls such as `FindClass` and `ThrowNew`.
+** `sched_setaffinity` errors are now detected and reported back to Java instead of failing silently, and affinity byte arrays are safely copied into `cpu_set_t` with bounds checks.
+** The macOS implementation now uses `snprintf` with a fixed buffer size when formatting error messages, avoiding potential buffer overflows.
+** JNI methods now include explicit checks for unsupported platforms and return sentinel values (for example `-1` or `~0L`) in addition to throwing `UnsupportedOperationException`, making behaviour clearer when called outside Linux/macOS.
+* `JNIClock` and its native implementation are located in:
+** Java: `Java-Thread-Affinity/affinity/src/main/java/net/openhft/ticker/impl/JNIClock.java:1`.
+** Native: `Java-Thread-Affinity/affinity/src/main/c/net_openhft_ticker_impl_JNIClock.cpp:1`.
+  These provide a high resolution `rdtsc` based clock with appropriate fallbacks.
+
+*Build and installation notes:*
+
+* The native affinity library (`libCEInternals.so` or platform equivalent) is built via:
+** `mvn -f Java-Thread-Affinity/pom.xml -pl affinity -am -Pmake-c verify` on supported Linux toolchains, or
+** `make` in `Java-Thread-Affinity/affinity/src/main/c` when the build environment is configured manually.
+* The resulting library is packaged into the affinity bundle and can also be installed into a directory listed on `java.library.path` for manual deployments.
+* On systems without the native library, `NativeAffinity.LOADED` and `JNIClock.LOADED` will be `false` and the code will transparently fall back to JNA implementations (for affinity) or `SystemClock` (for timing). Tests such as `AffinityJnaUnavailableSimulationTest` also verify that when JNA is not available at all, the system degrades to `NullAffinity`.
+
+== Future work
+
+* If future profiling shows that JNI based affinity control offers a clear advantage over JNA on specific platforms, consider introducing an opt in configuration that enables `NativeAffinity` for those environments while keeping JNA as the default.
+* Expand tests that exercise both JNA and JNI based paths for affinity and timing, to ensure semantic consistency where both are available.
+* Document platform support and deployment instructions for the native libraries, including how to build and install them on supported systems, and how the JNA/JNI strategy (see ADR `ARCH-NATIVE-01` in `ARCH_TODO.md`) applies to this module.

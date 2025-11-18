@@ -13,8 +13,21 @@
   #include <unistd.h>
   #include <string.h>
 #endif
-#include <stdexcept>
 #include "software_chronicle_enterprise_internals_impl_NativeAffinity.h"
+
+static void throwUnsupportedOperation(JNIEnv *env, const char *message) {
+    jclass exClass = env->FindClass("java/lang/UnsupportedOperationException");
+    if (exClass != NULL) {
+        env->ThrowNew(exClass, message);
+    }
+}
+
+static void throwRuntimeException(JNIEnv *env, const char *message) {
+    jclass exClass = env->FindClass("java/lang/RuntimeException");
+    if (exClass != NULL) {
+        env->ThrowNew(exClass, message);
+    }
+}
 
 /*
  * Class:     software_chronicle_enterprise_internals_impl_NativeAffinity
@@ -37,14 +50,17 @@ JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_N
         return NULL;
     }
 
-    jbyteArray ret = env->NewByteArray(size);
-    jbyte* bytes = env->GetByteArrayElements(ret, 0);
-    memcpy(bytes, &mask, size);
-    env->SetByteArrayRegion(ret, 0, size, bytes);
+    jbyteArray ret = env->NewByteArray((jsize) size);
+    if (ret == NULL) {
+        // OutOfMemoryError already pending
+        return NULL;
+    }
+    env->SetByteArrayRegion(ret, 0, (jsize) size, (const jbyte *) &mask);
 
     return ret;
 #else
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.getAffinity0 is only supported on Linux");
+    return NULL;
 #endif
 }
 
@@ -61,12 +77,18 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
     const size_t size = sizeof(mask);
     CPU_ZERO(&mask);
 
-    jbyte* bytes = env->GetByteArrayElements(affinity, 0);
-    memcpy(&mask, bytes, size);
+    jsize length = env->GetArrayLength(affinity);
+    if (length > 0) {
+        jsize copyLength = length < (jsize) size ? length : (jsize) size;
+        env->GetByteArrayRegion(affinity, 0, copyLength, (jbyte *) &mask);
+    }
 
-    sched_setaffinity(0, size, &mask);
+    int res = sched_setaffinity(0, size, &mask);
+    if (res != 0) {
+        throwRuntimeException(env, "sched_setaffinity failed");
+    }
 #else
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.setAffinity0 is only supported on Linux");
 #endif
 }
 
@@ -78,7 +100,8 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getProcessId0
   (JNIEnv *env, jclass c) {
 #ifndef __linux__
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.getProcessId0 is only supported on Linux");
+    return (jint) -1;
 #else
       
   return (jint) getpid();
@@ -93,7 +116,8 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getThreadId0
   (JNIEnv *env, jclass c) {
 #ifndef __linux__
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.getThreadId0 is only supported on Linux");
+    return (jint) -1;
 #else
       
     return (jint) (pid_t) syscall (SYS_gettid);
@@ -108,10 +132,10 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getCpu0
   (JNIEnv *env, jclass c) {
 #ifndef __linux__
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.getCpu0 is only supported on Linux");
+    return (jint) -1;
 #else
       
   return (jint) sched_getcpu();
 #endif
 }
-

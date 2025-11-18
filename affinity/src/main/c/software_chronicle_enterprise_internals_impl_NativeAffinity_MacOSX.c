@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <mach/thread_policy.h>
 #include <pthread.h>
+#include <stdio.h>
 #include "software_chronicle_enterprise_internals_impl_NativeAffinity.h"
 
 /*
@@ -48,8 +49,10 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
          THREAD_AFFINITY_POLICY_COUNT);    
     if (rc != KERN_SUCCESS) {
         jclass ex = (*env)->FindClass(env, "java/lang/RuntimeException");
-        char msg[100];
-        sprintf(msg, "Bad return value from thread_policy_set: %d", rc);
-        (*env)->ThrowNew(env, ex, msg);
+        if (ex != NULL) {
+            char msg[100];
+            snprintf(msg, sizeof(msg), "Bad return value from thread_policy_set: %d", rc);
+            (*env)->ThrowNew(env, ex, msg);
+        }
     }
 }
