@@ -15,18 +15,40 @@
 #endif
 #include "software_chronicle_enterprise_internals_impl_NativeAffinity.h"
 
+#ifndef __linux__
 static void throwUnsupportedOperation(JNIEnv *env, const char *message) {
     jclass exClass = env->FindClass("java/lang/UnsupportedOperationException");
-    if (exClass != NULL) {
-        env->ThrowNew(exClass, message);
+    if (exClass == NULL) {
+        return; // Class not found, exception already pending
+    }
+    env->ThrowNew(exClass, message);
+    if (env->ExceptionCheck()) {
+        return; // Exception already pending
     }
 }
+#endif
 
 static void throwRuntimeException(JNIEnv *env, const char *message) {
     jclass exClass = env->FindClass("java/lang/RuntimeException");
-    if (exClass != NULL) {
-        env->ThrowNew(exClass, message);
+    if (exClass == NULL) {
+        return; // Class not found, exception already pending
     }
+    env->ThrowNew(exClass, message);
+    if (env->ExceptionCheck()) {
+        return; // Exception already pending
+    }
+}
+
+/*
+ * Class:     software_chronicle_enterprise_internals_impl_NativeAffinity
+ * Method:    getVersion0
+ * Signature: ()Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getVersion0
+  (JNIEnv *env, jclass c)
+{
+    (void)c;
+    return env->NewStringUTF(PROJECT_VERSION);
 }
 
 /*
@@ -37,6 +59,7 @@ static void throwRuntimeException(JNIEnv *env, const char *message) {
 JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getAffinity0
   (JNIEnv *env, jclass c) 
 {
+    (void)c;
 #ifdef __linux__
     // The default size of the structure supports 1024 CPUs, should be enough
     // for now In the future we can use dynamic sets, which can support more
@@ -72,6 +95,7 @@ JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_N
 JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_setAffinity0
   (JNIEnv *env, jclass c, jbyteArray affinity)
 {
+    (void)c;
 #ifdef __linux__
     cpu_set_t mask;
     const size_t size = sizeof(mask);
@@ -99,6 +123,8 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getProcessId0
   (JNIEnv *env, jclass c) {
+    (void)env;
+    (void)c;
 #ifndef __linux__
     throwUnsupportedOperation(env, "NativeAffinity.getProcessId0 is only supported on Linux");
     return (jint) -1;
@@ -115,6 +141,8 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getThreadId0
   (JNIEnv *env, jclass c) {
+    (void)env;
+    (void)c;
 #ifndef __linux__
     throwUnsupportedOperation(env, "NativeAffinity.getThreadId0 is only supported on Linux");
     return (jint) -1;
@@ -131,6 +159,8 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getCpu0
   (JNIEnv *env, jclass c) {
+    (void)env;
+    (void)c;
 #ifndef __linux__
     throwUnsupportedOperation(env, "NativeAffinity.getCpu0 is only supported on Linux");
     return (jint) -1;
@@ -138,4 +168,10 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
       
   return (jint) sched_getcpu();
 #endif
+}
+
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
+    (void)vm;
+    (void)reserved;
+    return JNI_VERSION_1_8;
 }

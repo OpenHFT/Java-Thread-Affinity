@@ -4,17 +4,30 @@
 package software.chronicle.enterprise.internals.impl;
 
 import net.openhft.affinity.IAffinity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.BitSet;
 
 public enum NativeAffinity implements IAffinity {
     INSTANCE;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(NativeAffinity.class);
+
     public static final boolean LOADED;
+    public static final String VERSION;
 
     static {
         LOADED = loadAffinityNativeLibrary();
+        if (LOADED) {
+            VERSION = getVersion0();
+            LOGGER.info("Loaded Chronicle Affinity native library version {}", VERSION);
+        } else {
+            VERSION = "not loaded";
+        }
     }
+
+    private static native String getVersion0();
 
     private static native byte[] getAffinity0();
 
