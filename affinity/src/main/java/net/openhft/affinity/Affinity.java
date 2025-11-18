@@ -179,25 +179,25 @@ public enum Affinity {
             synchronized (Affinity.class) {
                 available = jnaAvailable;
                 if (available == null) {
-            int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
+                    int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
                     boolean result;
-            if (majorVersion < 5) {
-                LOGGER.warn("Affinity library requires JNA version >= 5");
+                    if (majorVersion < 5) {
+                        LOGGER.warn("Affinity library requires JNA version >= 5");
                         result = false;
-            } else {
-                try {
-                    Class.forName("com.sun.jna.Platform");
+                    } else {
+                        try {
+                            Class.forName("com.sun.jna.Platform");
                             result = true;
-                } catch (ClassNotFoundException ignored) {
+                        } catch (ClassNotFoundException ignored) {
                             result = false;
                         }
-                }
-                    available = result;
+                    }
+                    available = Boolean.valueOf(result);
                     jnaAvailable = available;
+                }
             }
         }
-        }
-        return available;
+        return available.booleanValue();
     }
 
     public static AffinityLock acquireLock() {

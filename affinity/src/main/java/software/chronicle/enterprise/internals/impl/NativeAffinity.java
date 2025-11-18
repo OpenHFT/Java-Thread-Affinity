@@ -28,6 +28,10 @@ public enum NativeAffinity implements IAffinity {
 
     private static native long rdtsc0();
 
+    static long rdtsc() {
+        return rdtsc0();
+    }
+
     @SuppressWarnings("restricted")
     private static boolean loadAffinityNativeLibrary() {
         try {
