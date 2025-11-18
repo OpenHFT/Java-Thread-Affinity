@@ -14,6 +14,8 @@
  */
 JNIEXPORT jlong JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getAffinity0
   (JNIEnv *env, jclass c) {
+    (void)env;
+    (void)c;
 
     thread_port_t threadport = pthread_mach_thread_np(pthread_self());
 
@@ -38,6 +40,7 @@ JNIEXPORT jlong JNICALL Java_software_chronicle_enterprise_internals_impl_Native
  */
 JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_setAffinity0
   (JNIEnv *env, jclass c, jlong affinity) {
+    (void)c;
     
     thread_port_t threadport = pthread_mach_thread_np(pthread_self());
 
@@ -49,10 +52,17 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
          THREAD_AFFINITY_POLICY_COUNT);    
     if (rc != KERN_SUCCESS) {
         jclass ex = (*env)->FindClass(env, "java/lang/RuntimeException");
-        if (ex != NULL) {
-            char msg[100];
-            snprintf(msg, sizeof(msg), "Bad return value from thread_policy_set: %d", rc);
-            (*env)->ThrowNew(env, ex, msg);
+        if (ex == NULL) {
+            return; // Class not found, exception already pending
+        }
+        if ((*env)->ExceptionCheck(env)) {
+            return; // Exception already pending
+        }
+        char msg[100];
+        snprintf(msg, sizeof(msg), "Bad return value from thread_policy_set: %d", rc);
+        (*env)->ThrowNew(env, ex, msg);
+        if ((*env)->ExceptionCheck(env)) {
+            return; // Exception already pending
         }
     }
 }

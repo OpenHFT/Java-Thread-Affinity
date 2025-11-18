@@ -127,6 +127,10 @@
                                 <configuration>
                                     <executable>make</executable>
                                     <workingDirectory>${project.basedir}/${native.source.dir}</workingDirectory>
+                                    <arguments>
+                                        <argument>VERSION=${project.version}</argument>
+                                        <argument>JAVA_HOME=${java.home}</argument>
+                                    </arguments>
                                 </configuration>
                             </execution>
                         </executions>

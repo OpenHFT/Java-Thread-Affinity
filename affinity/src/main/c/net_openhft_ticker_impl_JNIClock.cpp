@@ -73,5 +73,7 @@ inline uint64_t rdtsc() {
  */
 JNIEXPORT jlong JNICALL Java_net_openhft_ticker_impl_JNIClock_rdtsc0
    (JNIEnv *env, jclass c) {
+   (void)env;
+   (void)c;
    return (jlong) rdtsc();
 }
