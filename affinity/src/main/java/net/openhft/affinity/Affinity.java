@@ -25,7 +25,7 @@ public enum Affinity {
     static final Logger LOGGER = LoggerFactory.getLogger(Affinity.class);
     @NotNull
     private static final IAffinity AFFINITY_IMPL;
-    private static Boolean JNAAvailable;
+    private static volatile Boolean jnaAvailable;
 
     static {
         String osName = System.getProperty("os.name");
@@ -174,21 +174,30 @@ public enum Affinity {
     }
 
     public static boolean isJNAAvailable() {
-        if (JNAAvailable == null) {
-            int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
-            if (majorVersion < 5) {
-                LOGGER.warn("Affinity library requires JNA version >= 5");
-                JNAAvailable = false;
-            } else {
-                try {
-                    Class.forName("com.sun.jna.Platform");
-                    JNAAvailable = true;
-                } catch (ClassNotFoundException ignored) {
-                    JNAAvailable = false;
+        Boolean available = jnaAvailable;
+        if (available == null) {
+            synchronized (Affinity.class) {
+                available = jnaAvailable;
+                if (available == null) {
+                    int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
+                    boolean result;
+                    if (majorVersion < 5) {
+                        LOGGER.warn("Affinity library requires JNA version >= 5");
+                        result = false;
+                    } else {
+                        try {
+                            Class.forName("com.sun.jna.Platform");
+                            result = true;
+                        } catch (ClassNotFoundException ignored) {
+                            result = false;
+                        }
+                    }
+                    available = Boolean.valueOf(result);
+                    jnaAvailable = available;
                 }
             }
         }
-        return JNAAvailable;
+        return available.booleanValue();
     }
 
     public static AffinityLock acquireLock() {

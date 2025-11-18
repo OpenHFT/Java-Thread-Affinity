@@ -22,11 +22,15 @@ public final class AffinityThreadFactoryMain {
     }
 
     public static void main(String... args) throws InterruptedException {
-        for (int i = 0; i < 12; i++)
-            ES.submit((Callable<Void>) () -> {
-                Thread.sleep(100);
-                return null;
+        for (int i = 0; i < 12; i++) {
+            ES.execute(() -> {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             });
+        }
         Thread.sleep(200);
         System.out.println("\nThe assignment of CPUs is\n" + AffinityLock.dumpLocks());
         ES.shutdown();

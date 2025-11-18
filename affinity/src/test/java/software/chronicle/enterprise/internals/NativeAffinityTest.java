@@ -51,6 +51,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
+        getAffinityReturnsValuePreviouslySet(getImpl(), affinity);
     }
 
     @Test

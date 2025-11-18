@@ -18,6 +18,7 @@ import java.nio.file.OpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -42,7 +43,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     public static LockChecker getInstance() {
-        return instance;
+        return new FileLockBasedLockChecker();
     }
 
     @Override
@@ -158,7 +159,8 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     private void writeMetaInfoToFile(FileChannel fc, String metaInfo) throws IOException {
-        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
+        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date()))
+                .getBytes(StandardCharsets.UTF_8);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         while (buffer.hasRemaining()) {
             //noinspection ResultOfMethodCallIgnored
@@ -211,7 +213,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     private String readMetaInfoFromLockFileChannel(File lockFile, FileChannel lockFileChannel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(64);
         int len = lockFileChannel.read(buffer, 0);
-        String content = len < 1 ? "" : new String(buffer.array(), 0, len);
+        String content = len < 1 ? "" : new String(buffer.array(), 0, len, StandardCharsets.UTF_8);
         if (content.isEmpty()) {
             LOGGER.warn("Empty lock file {}", lockFile.getAbsolutePath());
             return null;
@@ -228,8 +230,9 @@ public class FileLockBasedLockChecker implements LockChecker {
     private File tmpDir() {
         final File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
-        if (!tempDir.exists())
-            tempDir.mkdirs();
+        if (!tempDir.exists() && !tempDir.mkdirs()) {
+            LOGGER.warn("Unable to create temp directory {}", tempDir);
+        }
 
         return tempDir;
     }

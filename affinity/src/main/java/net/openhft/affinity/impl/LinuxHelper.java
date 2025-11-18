@@ -12,6 +12,8 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
+
 public class LinuxHelper {
     // CHECKSTYLE:OFF: MethodName
     private static final String LIBRARY_NAME = "c";
@@ -21,7 +23,7 @@ public class LinuxHelper {
     private static final VersionHelper version;
 
     static {
-        final utsname uname = new utsname();
+        final Utsname uname = new Utsname();
         VersionHelper ver = UNKNOWN;
         try {
             if (CLibrary.INSTANCE.uname(uname) == 0) {
@@ -160,7 +162,7 @@ public class LinuxHelper {
 
         int sched_getcpu() throws LastErrorException;
 
-        int uname(final utsname name) throws LastErrorException;
+        int uname(final Utsname name) throws LastErrorException;
 
         int syscall(int number, Object... args) throws LastErrorException;
     }
@@ -170,7 +172,7 @@ public class LinuxHelper {
      * Structure describing the system and machine.
      */
     // CHECKSTYLE:OFF: TypeName
-    public static class utsname extends Structure {
+    public static class Utsname extends Structure {
         public static final int _UTSNAME_LENGTH = 65;
 
         static List<String> FIELD_ORDER = Arrays.asList(
@@ -226,16 +228,16 @@ public class LinuxHelper {
         }
 
         public String getSysname() {
-            return new String(sysname, 0, length(sysname));
+            return new String(sysname, 0, length(sysname), ISO_8859_1);
         }
 
         @SuppressWarnings("unused")
         public String getNodename() {
-            return new String(nodename, 0, length(nodename));
+            return new String(nodename, 0, length(nodename), ISO_8859_1);
         }
 
         public String getRelease() {
-            return new String(release, 0, length(release));
+            return new String(release, 0, length(release), ISO_8859_1);
         }
 
         public String getRealeaseVersion() {
@@ -253,16 +255,16 @@ public class LinuxHelper {
         }
 
         public String getVersion() {
-            return new String(version, 0, length(version));
+            return new String(version, 0, length(version), ISO_8859_1);
         }
 
         public String getMachine() {
-            return new String(machine, 0, length(machine));
+            return new String(machine, 0, length(machine), ISO_8859_1);
         }
 
         @SuppressWarnings("UnusedDeclaration")
         public String getDomainname() {
-            return new String(domainname, 0, length(domainname));
+            return new String(domainname, 0, length(domainname), ISO_8859_1);
         }
 
         @Override

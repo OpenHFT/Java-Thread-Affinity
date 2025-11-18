@@ -32,7 +32,7 @@ public class AffinityThreadFactoryTest extends BaseAffinityTest {
         CountDownLatch finished = new CountDownLatch(nThreads);
 
         for (int i = 0; i < nThreads; i++) {
-            es.submit(() -> {
+            es.execute(() -> {
                 cpus.add(Affinity.getCpu());
                 ready.countDown();
                 try {
