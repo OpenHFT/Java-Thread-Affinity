@@ -16,17 +16,17 @@ public enum NativeAffinity implements IAffinity {
         LOADED = loadAffinityNativeLibrary();
     }
 
-    private native static byte[] getAffinity0();
+    private static native byte[] getAffinity0();
 
-    private native static void setAffinity0(byte[] affinity);
+    private static native void setAffinity0(byte[] affinity);
 
-    private native static int getCpu0();
+    private static native int getCpu0();
 
-    private native static int getProcessId0();
+    private static native int getProcessId0();
 
-    private native static int getThreadId0();
+    private static native int getThreadId0();
 
-    private native static long rdtsc0();
+    private static native long rdtsc0();
 
     @SuppressWarnings("restricted")
     private static boolean loadAffinityNativeLibrary() {

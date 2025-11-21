@@ -60,7 +60,7 @@ enum BootClassPath {
             Files.walkFileTree(modules, new SimpleFileVisitor<Path>() {
                 @Override
                 public @NotNull FileVisitResult visitFile(final @NotNull Path file,
-                                                          final @NotNull BasicFileAttributes attrs) throws IOException {
+                                                          final @NotNull BasicFileAttributes attrs) {
                     if (file.getFileName().toString().endsWith(".class")) {
                         Path relative = modules.relativize(file);
                         if (relative.getNameCount() > 1) {

@@ -40,7 +40,7 @@ public enum WindowsJNAAffinity implements IAffinity {
         LOADED = loaded;
     }
 
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
+    private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
     @Override
     public BitSet getAffinity() {
@@ -131,9 +131,9 @@ public enum WindowsJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        Integer tid = THREAD_ID.get();
+        Integer tid = threadId.get();
         if (tid == null)
-            THREAD_ID.set(tid = Kernel32.INSTANCE.GetCurrentThreadId());
+            threadId.set(tid = Kernel32.INSTANCE.GetCurrentThreadId());
         return tid;
     }
 

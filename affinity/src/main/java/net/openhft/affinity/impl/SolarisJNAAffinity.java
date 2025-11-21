@@ -21,7 +21,7 @@ import java.util.BitSet;
 public enum SolarisJNAAffinity implements IAffinity {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(SolarisJNAAffinity.class);
-    private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
+    private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
     @Override
     public BitSet getAffinity() {
@@ -45,12 +45,12 @@ public enum SolarisJNAAffinity implements IAffinity {
 
     @Override
     public int getThreadId() {
-        Integer tid = THREAD_ID.get();
+        Integer tid = threadId.get();
         if (tid == null) {
             tid = CLibrary.INSTANCE.pthread_self();
             //The tid assumed to be an unsigned 24 bit, see net.openhft.lang.Jvm.getMaxPid()
             tid = tid & 0xFFFFFF;
-            THREAD_ID.set(tid);
+            threadId.set(tid);
         }
         return tid;
     }

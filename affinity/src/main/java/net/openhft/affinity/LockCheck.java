@@ -55,11 +55,11 @@ public enum LockCheck {
      * stores the pid in a file, named by the core, the pid is written to the file with the date
      * below
      */
-    private synchronized static boolean storePid(long processID, int cpu, int cpu2) throws IOException {
+    private static synchronized boolean storePid(long processID, int cpu, int cpu2) throws IOException {
         return lockChecker.obtainLock(cpu, cpu2, Long.toString(processID));
     }
 
-    private synchronized static boolean isLockFree(int id) {
+    private static synchronized boolean isLockFree(int id) {
         return lockChecker.isLockFree(id);
     }
 

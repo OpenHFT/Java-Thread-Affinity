@@ -56,11 +56,13 @@ public enum JNIClock implements ITicker {
         final long start = System.nanoTime();
         long now;
         while (System.nanoTime() == start) {
+            rdtsc0();
         }
 
         long end = start + factor * 1000000L;
         final long start0 = rdtsc0();
         while ((now = System.nanoTime()) < end) {
+            rdtsc0();
         }
         long end0 = rdtsc0();
         end = now;
@@ -70,7 +72,7 @@ public enum JNIClock implements ITicker {
         CPU_FREQUENCY = (end0 - start0 + 1) * 1000 / (end - start);
     }
 
-    native static long rdtsc0();
+    static native long rdtsc0();
 
     public long nanoTime() {
         return tscToNano(rdtsc0() - START);
