@@ -192,12 +192,12 @@ public enum Affinity {
                             result = false;
                         }
                     }
-                    available = Boolean.valueOf(result);
+                    available = result;
                     jnaAvailable = available;
                 }
             }
         }
-        return available.booleanValue();
+        return available;
     }
 
     public static AffinityLock acquireLock() {

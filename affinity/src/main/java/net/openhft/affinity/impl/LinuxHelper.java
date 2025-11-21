@@ -15,7 +15,6 @@ import java.util.List;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
 public class LinuxHelper {
-    // CHECKSTYLE:OFF: MethodName
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
     private static final VersionHelper VERSION_2_6 = new VersionHelper(2, 6, 0);
@@ -146,7 +145,6 @@ public class LinuxHelper {
         }
     }
 
-    // CHECKSTYLE:OFF: MethodName
     interface CLibrary extends Library {
         CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
 
@@ -166,16 +164,14 @@ public class LinuxHelper {
 
         int syscall(int number, Object... args) throws LastErrorException;
     }
-    // CHECKSTYLE:ON: MethodName
 
     /**
      * Structure describing the system and machine.
      */
-    // CHECKSTYLE:OFF: TypeName
     public static class Utsname extends Structure {
         public static final int _UTSNAME_LENGTH = 65;
 
-        static List<String> FIELD_ORDER = Arrays.asList(
+        static final List<String> FIELD_ORDER = Arrays.asList(
                 "sysname",
                 "nodename",
                 "release",
@@ -187,32 +183,32 @@ public class LinuxHelper {
         /**
          * Name of the implementation of the operating system.
          */
-        public byte[] sysname = new byte[_UTSNAME_LENGTH];
+        public final byte[] sysname = new byte[_UTSNAME_LENGTH];
 
         /**
          * Name of this node on the network.
          */
-        public byte[] nodename = new byte[_UTSNAME_LENGTH];
+        public final byte[] nodename = new byte[_UTSNAME_LENGTH];
 
         /**
          * Current release level of this implementation.
          */
-        public byte[] release = new byte[_UTSNAME_LENGTH];
+        public final byte[] release = new byte[_UTSNAME_LENGTH];
 
         /**
          * Current version level of this release.
          */
-        public byte[] version = new byte[_UTSNAME_LENGTH];
+        public final byte[] version = new byte[_UTSNAME_LENGTH];
 
         /**
          * Name of the hardware type the system is running on.
          */
-        public byte[] machine = new byte[_UTSNAME_LENGTH];
+        public final byte[] machine = new byte[_UTSNAME_LENGTH];
 
         /**
          * NIS or YP domain name
          */
-        public byte[] domainname = new byte[_UTSNAME_LENGTH];
+        public final byte[] domainname = new byte[_UTSNAME_LENGTH];
 
         static int length(final byte[] data) {
             int len = 0;
@@ -273,17 +269,13 @@ public class LinuxHelper {
                     " " + getVersion() + " " + getMachine();
         }
     }
-    // CHECKSTYLE:ON: TypeName
 
-    // CHECKSTYLE:OFF: TypeName
-    // CHECKSTYLE:OFF: MemberName
-    // CHECKSTYLE:OFF: MethodName
     public static class cpu_set_t extends Structure {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
         static final int SIZE_OF_CPU_SET_T = (__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE;
-        static List<String> FIELD_ORDER = Collections.singletonList("__bits");
-        public NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
+        static final List<String> FIELD_ORDER = Collections.singletonList("__bits");
+        public final NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
 
         public cpu_set_t() {
             for (int i = 0; i < __bits.length; i++) {
@@ -328,8 +320,4 @@ public class LinuxHelper {
             return FIELD_ORDER;
         }
     }
-    // CHECKSTYLE:ON: MethodName
-    // CHECKSTYLE:ON: MemberName
-    // CHECKSTYLE:ON: TypeName
-    // CHECKSTYLE:ON: MethodName
 }
