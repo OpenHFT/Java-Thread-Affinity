@@ -5,7 +5,6 @@ package software.chronicle.enterprise.internals;
 
 import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
-import net.openhft.affinity.impl.LinuxJNAAffinity;
 import net.openhft.affinity.impl.Utilities;
 import org.junit.*;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
@@ -51,49 +50,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
-    }
-
-    @Test
-    @Ignore("TODO AFFINITY-25")
-    public void getAffinityReturnsValuePreviouslySet() {
-        String osName = System.getProperty("os.name");
-        if (!osName.startsWith("Linux")) {
-            System.out.println("Skipping Linux tests");
-            return;
-        }
-        final IAffinity impl = NativeAffinity.INSTANCE;
-        for (int core = 0; core < CORES; core++) {
-            final BitSet mask = new BitSet();
-            mask.set(core, true);
-            getAffinityReturnsValuePreviouslySet(impl, mask);
-        }
-    }
-
-    @Test
-    @Ignore("TODO AFFINITY-25")
-    public void JNAwithJNI() {
-        String osName = System.getProperty("os.name");
-        if (!osName.startsWith("Linux")) {
-            System.out.println("Skipping Linux tests");
-            return;
-        }
-        int nbits = Runtime.getRuntime().availableProcessors();
-        BitSet affinity = new BitSet(nbits);
-        affinity.set(1);
-        NativeAffinity.INSTANCE.setAffinity(affinity);
-        BitSet affinity2 = LinuxJNAAffinity.INSTANCE.getAffinity();
-        assertEquals(1, NativeAffinity.INSTANCE.getCpu());
-        assertEquals(affinity, affinity2);
-
-        affinity.clear();
-        affinity.set(2);
-        LinuxJNAAffinity.INSTANCE.setAffinity(affinity);
-        BitSet affinity3 = NativeAffinity.INSTANCE.getAffinity();
-        assertEquals(2, LinuxJNAAffinity.INSTANCE.getCpu());
-        assertEquals(affinity, affinity3);
-
-        affinity.set(0, nbits);
-        LinuxJNAAffinity.INSTANCE.setAffinity(affinity);
+        getAffinityReturnsValuePreviouslySet(getImpl(), affinity);
     }
 
     @Test

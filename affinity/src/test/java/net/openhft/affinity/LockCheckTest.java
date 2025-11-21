@@ -10,9 +10,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 
 import static net.openhft.affinity.LockCheck.IS_LINUX;
 
@@ -69,7 +71,8 @@ public class LockCheckTest extends BaseAffinityTest {
         LockCheck.updateCpu(cpu, 0);
 
         final File file = lockChecker.doToFile(cpu);
-        try (final FileWriter writer = new FileWriter(file, false)) {
+        try (final OutputStreamWriter writer =
+                     new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8)) {
             writer.append("not a number\nnot a date");
         }
 

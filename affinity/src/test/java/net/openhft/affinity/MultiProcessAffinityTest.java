@@ -238,8 +238,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
                     try {
                         File lockFile = toFile(cpu);
                         try (final FileChannel fc = FileChannel.open(lockFile.toPath(), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
-                            final long maxValue = Long.MAX_VALUE; // a PID that never exists
-                            ByteBuffer buffer = ByteBuffer.wrap((maxValue + "\n").getBytes(StandardCharsets.UTF_8));
+                            ByteBuffer buffer = ByteBuffer.wrap((Long.MAX_VALUE + "\n").getBytes(StandardCharsets.UTF_8));
                             while (buffer.hasRemaining()) {
                                 //noinspection ResultOfMethodCallIgnored
                                 fc.write(buffer);
