@@ -12,8 +12,6 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-
 public class LinuxHelper {
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
@@ -22,7 +20,7 @@ public class LinuxHelper {
     private static final VersionHelper version;
 
     static {
-        final Utsname uname = new Utsname();
+        final utsname uname = new utsname();
         VersionHelper ver = UNKNOWN;
         try {
             if (CLibrary.INSTANCE.uname(uname) == 0) {
@@ -160,7 +158,7 @@ public class LinuxHelper {
 
         int sched_getcpu() throws LastErrorException;
 
-        int uname(final Utsname name) throws LastErrorException;
+        int uname(final utsname name) throws LastErrorException;
 
         int syscall(int number, Object... args) throws LastErrorException;
     }
@@ -168,10 +166,10 @@ public class LinuxHelper {
     /**
      * Structure describing the system and machine.
      */
-    public static class Utsname extends Structure {
+    public static class utsname extends Structure {
         public static final int _UTSNAME_LENGTH = 65;
 
-        static final List<String> FIELD_ORDER = Arrays.asList(
+        static List<String> FIELD_ORDER = Arrays.asList(
                 "sysname",
                 "nodename",
                 "release",
@@ -183,32 +181,32 @@ public class LinuxHelper {
         /**
          * Name of the implementation of the operating system.
          */
-        public final byte[] sysname = new byte[_UTSNAME_LENGTH];
+        public byte[] sysname = new byte[_UTSNAME_LENGTH];
 
         /**
          * Name of this node on the network.
          */
-        public final byte[] nodename = new byte[_UTSNAME_LENGTH];
+        public byte[] nodename = new byte[_UTSNAME_LENGTH];
 
         /**
          * Current release level of this implementation.
          */
-        public final byte[] release = new byte[_UTSNAME_LENGTH];
+        public byte[] release = new byte[_UTSNAME_LENGTH];
 
         /**
          * Current version level of this release.
          */
-        public final byte[] version = new byte[_UTSNAME_LENGTH];
+        public byte[] version = new byte[_UTSNAME_LENGTH];
 
         /**
          * Name of the hardware type the system is running on.
          */
-        public final byte[] machine = new byte[_UTSNAME_LENGTH];
+        public byte[] machine = new byte[_UTSNAME_LENGTH];
 
         /**
          * NIS or YP domain name
          */
-        public final byte[] domainname = new byte[_UTSNAME_LENGTH];
+        public byte[] domainname = new byte[_UTSNAME_LENGTH];
 
         static int length(final byte[] data) {
             int len = 0;
@@ -224,16 +222,16 @@ public class LinuxHelper {
         }
 
         public String getSysname() {
-            return new String(sysname, 0, length(sysname), ISO_8859_1);
+            return new String(sysname, 0, length(sysname));
         }
 
         @SuppressWarnings("unused")
         public String getNodename() {
-            return new String(nodename, 0, length(nodename), ISO_8859_1);
+            return new String(nodename, 0, length(nodename));
         }
 
         public String getRelease() {
-            return new String(release, 0, length(release), ISO_8859_1);
+            return new String(release, 0, length(release));
         }
 
         public String getRealeaseVersion() {
@@ -251,16 +249,16 @@ public class LinuxHelper {
         }
 
         public String getVersion() {
-            return new String(version, 0, length(version), ISO_8859_1);
+            return new String(version, 0, length(version));
         }
 
         public String getMachine() {
-            return new String(machine, 0, length(machine), ISO_8859_1);
+            return new String(machine, 0, length(machine));
         }
 
         @SuppressWarnings("UnusedDeclaration")
         public String getDomainname() {
-            return new String(domainname, 0, length(domainname), ISO_8859_1);
+            return new String(domainname, 0, length(domainname));
         }
 
         @Override
@@ -274,8 +272,8 @@ public class LinuxHelper {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
         static final int SIZE_OF_CPU_SET_T = (__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE;
-        static final List<String> FIELD_ORDER = Collections.singletonList("__bits");
-        public final NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
+        static List<String> FIELD_ORDER = Collections.singletonList("__bits");
+        public NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
 
         public cpu_set_t() {
             for (int i = 0; i < __bits.length; i++) {
