@@ -1,0 +1,103 @@
+= Decision Log: Java Thread Affinity
+Chronicle Software
+:toc:
+:sectnums:
+:lang: en-GB
+:source-highlighter: rouge
+
+This document records the significant architectural decisions made during the development of the Java Thread Affinity library.
+
+=== [AFF-DEC-001] Use of JNA as Primary Native Interface
+
+Date:: 2013-01-01 (Approximate inception)
+Context::
+* The library needs to invoke OS-specific system calls (`sched_setaffinity`, `pthread_self`, etc.) to manage thread affinity.
+* Supporting multiple operating systems (Linux, Windows, macOS, Solaris) requires different native calls.
+* Writing, compiling, and shipping JNI (C/C++) shared libraries for every target architecture and OS combination is complex and creates a high maintenance burden.
+Decision Statement::
+The library will use Java Native Access (JNA) as the primary mechanism for interacting with the Operating System. Custom JNI is reserved only for performance-critical paths (RDTSC) or where JNA is insufficient.
+Alternatives Considered::
+* [Pure JNI]:
+** *Description:* Implement all native calls in C/C++ and access them via JNI.
+** *Pros:* Slightly higher performance for native calls; no runtime dependency on JNA.
+** *Cons:* Requires compiling `.so` / `.dll` / `.dylib` for every OS/Arch combination; harder to distribute via Maven; higher crash risk.
+* [Project Panama (Foreign Linker API)]:
+** *Description:* Use modern Java foreign function APIs.
+** *Pros:* Standard part of newer JDKs; high performance.
+** *Cons:* Not available in JDK 8 (the project's baseline).
+Rationale for Decision::
+JNA provides a pure-Java way to access native libraries (`libc`, `kernel32`, `pthread`), significantly simplifying the build and distribution process. It allows the library to support Windows and macOS with minimal native code compilation overhead.
+Impact & Consequences::
+* *Positive:* The core artifact is widely compatible without complex native builds.
+* *Negative:* Users must have JNA on their classpath.
+* *Trade-off:* We accept the slight overhead of JNA dispatch for affinity calls (which happen infrequently, usually at thread start) in exchange for portability.
+Notes/Links::
+* JNA Dependency requirement.
+
+=== [AFF-DEC-002] File-Based Inter-Process Locking
+
+Date:: 2013-07-01 (Approximate)
+Context::
+* Multiple Java processes (JVMs) running on the same machine may compete for the same CPU cores.
+* We need a mechanism to coordinate CPU reservation between these independent processes.
+* The mechanism must be robust against process crashes (i.e., locks shouldn't be held forever if a JVM dies).
+Decision Statement::
+The library will use file locks (`FileChannel.lock`) located in `java.io.tmpdir` to coordinate ownership of CPU cores.
+Alternatives Considered::
+* [Shared Memory / IPC]:
+** *Description:* Use shared memory segments or named pipes.
+** *Pros:* Fast.
+** *Cons:* Complex to manage; cleanup on crash is difficult; OS-specific implementations required.
+* [Central Coordinator]:
+** *Description:* Require a separate "Daemon" process to manage resources.
+** *Pros:* Centralised control.
+** *Cons:* Single point of failure; deployment complexity.
+Rationale for Decision::
+File locks are managed by the OS kernel. If a process terminates (gracefully or crashes), the OS automatically releases the file locks held by that process. This provides robust crash recovery without complex heartbeat mechanisms. Using `java.io.tmpdir` ensures the locks are placed in a standard temporary location (`/tmp` on Linux).
+Impact & Consequences::
+* *Positive:* robust cleanup on JVM crash; simple implementation using standard Java NIO.
+* *Negative:* Requires write permissions to `java.io.tmpdir`; slightly slower than shared memory (irrelevant for startup configuration).
+Notes/Links::
+* Implementation in `FileLockBasedLockChecker`.
+
+=== [AFF-DEC-003] Text-Based CPU Layout Parsing
+
+Date:: 2013-01-01
+Context::
+* The library needs to understand the topology of the machine (Socket vs Core vs Thread) to offer strategies like "Same Socket, Different Core".
+* Java (prior to recent versions) does not expose detailed CPU topology.
+Decision Statement::
+On Linux, the library will parse `/proc/cpuinfo` textually to determine the CPU layout. On other systems, or if parsing fails, it will fallback to a flat layout assumption.
+Alternatives Considered::
+* [hwloc binding]:
+** *Description:* Bind to the `hwloc` C library.
+** *Pros:* extremely accurate and standard topology detection.
+** *Cons:* Another native dependency to manage.
+Rationale for Decision::
+`/proc/cpuinfo` is the standard interface on Linux for CPU information. Parsing it in Java avoids external native dependencies.
+Impact & Consequences::
+* *Positive:* No extra dependencies for the most common deployment target (Linux).
+* *Negative:* Parsing logic can be brittle if kernel output formats change; hyper-threading detection relies on specific text patterns.
+Notes/Links::
+* `VanillaCpuLayout` implementation.
+
+=== [AFF-DEC-004] Isolcpus Strategy for Jitter Reduction
+
+Date:: 2013-01-01
+Context::
+* The goal is to reduce jitter for critical threads.
+* Even if a thread is pinned, the OS scheduler might interrupt it for kernel tasks or other processes.
+Decision Statement::
+The library is designed to work best with the Linux `isolcpus` kernel parameter. The `AffinityLock` logic distinguishes between `BASE_AFFINITY` (general CPUs) and `RESERVED_AFFINITY` (isolated CPUs).
+Alternatives Considered::
+* [Real-time Scheduler (`SCHED_FIFO`)]:
+** *Description:* Set thread priority to real-time.
+** *Pros:* OS manages priority.
+** *Cons:* Can freeze the system if not careful; requires root privileges usually.
+Rationale for Decision::
+Isolating CPUs at the kernel boot level guarantees that the OS scheduler will not schedule general tasks on those cores. By manually binding a thread to an isolated core, we achieve the highest possible isolation from OS noise.
+Impact & Consequences::
+* *Positive:* Maximum jitter reduction.
+* *Negative:* Requires system configuration changes (GRUB update, reboot) which increases the barrier to entry for users.
+Notes/Links::
+* `isolcpus` documentation.

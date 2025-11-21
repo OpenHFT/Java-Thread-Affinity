@@ -1,0 +1,189 @@
+= Project Requirements: Java Thread Affinity
+Chronicle Software
+:toc:
+:sectnums:
+:lang: en-GB
+:source-highlighter: rouge
+
+== Introduction
+
+The *Java Thread Affinity* library provides Java applications with the capability to control Central Processing Unit (CPU) affinity for their threads. By binding specific threads to designated CPU cores, developers can reduce context switching, minimise jitter, and improve cache utilisation (L1, L2, L3), which is critical for latency-sensitive applications.
+
+The library abstracts OS-specific details (Linux, Windows, macOS, Solaris) to provide a unified Java API, leveraging JNA and JNI where appropriate.
+
+== Requirement Taxonomy
+
+This project uses the following Nine-Box taxonomy for requirement classification:
+
+* **FN**: Functional user-visible behaviour
+* **NF-P**: Non-functional - Performance
+* **NF-S**: Non-functional - Security
+* **NF-O**: Non-functional - Operability
+* **TEST**: Test / QA obligations
+* **DOC**: Documentation obligations
+* **OPS**: Operational / DevOps concerns
+* **UX**: Operator or end-user experience
+* **RISK**: Compliance / risk controls
+
+== Functional Requirements (FN)
+
+=== Core Affinity Operations
+
+[AFF-FN-001]
+.Set Thread Affinity
+The system must allow the calling thread to bind itself to a specific CPU core or a set of cores (BitSet).
+* `Affinity.setAffinity(BitSet affinity)`
+* `Affinity.setAffinity(int cpu)`
+
+[AFF-FN-002]
+.Get Thread Affinity
+The system must provide a mechanism to retrieve the current affinity mask of the executing thread (`Affinity.getAffinity()`).
+
+[AFF-FN-003]
+.Identify Current CPU
+The system must provide the logical ID of the CPU core on which the current thread is executing (`Affinity.getCpu()`).
+
+[AFF-FN-004]
+.Process and Thread Identity
+The system must provide access to the native Process ID (PID) and native Thread ID (TID) via `IAffinity`. It must also allow updating `Thread.tid` via reflection if available.
+
+=== Lock Management
+
+[AFF-FN-005]
+.Acquire CPU Lock
+The system must provide an `AffinityLock` mechanism to acquire an exclusive lock on an available CPU core. It must support acquiring by:
+* Implicit selection (`acquireLock()`)
+* Specific CPU ID (`acquireLock(int cpuId)`)
+* Binding preference (`acquireLock(boolean bind)`)
+* String description (`acquireLock(String desc)`), supporting values like "last", "last-N", "any", "none", and "csv:1,2,3".
+
+[AFF-FN-006]
+.Acquire Core Lock
+The system must allow threads to reserve an entire physical core via `AffinityLock.acquireCore()`. This implicitly reserves all logical threads (hyper-threads) associated with that physical core.
+
+[AFF-FN-007]
+.Locking Strategies
+The system must support allocation strategies for acquiring new locks relative to existing ones. Supported strategies in `AffinityStrategies` must include:
+* `ANY`
+* `SAME_CORE`
+* `SAME_SOCKET`
+* `DIFFERENT_CORE`
+* `DIFFERENT_SOCKET`
+
+[AFF-FN-008]
+.Thread Factory
+The system must provide an `AffinityThreadFactory` that automatically assigns affinity to newly created threads based on the specified `AffinityStrategy` rules. If no strategy is provided, `ANY` shall be the default.
+
+=== Hardware Topology
+
+[AFF-FN-009]
+.Topology Detection
+On Linux systems, the library must attempt to automatically detect the CPU layout (sockets, cores per socket, threads per core) by parsing `/proc/cpuinfo`.
+
+[AFF-FN-010]
+.Layout Querying
+The system must allow applications to query the topology:
+* Total logical CPUs
+* Socket, Core, and Thread ID mappings
+* Hyper-threaded pairs (`pair(int)`)
+
+=== Timing
+
+[AFF-FN-011]
+.High Resolution Ticker
+The system must provide a high-resolution time source via `Ticker`.
+* If native JNI components (`libCEInternals.so`) are loaded, it shall use `rdtsc` (Read Time-Stamp Counter) via `JNIClock`.
+* If JNI is unavailable, it shall fall back to `System.nanoTime()` via `SystemClock`.
+* It must provide conversion methods for ticks to nanoseconds and microseconds.
+
+=== Inter-Process Coordination
+
+[AFF-FN-012]
+.Lock Checking
+The system must provide a mechanism (`LockChecker`) to check if a specific CPU core is free or locked by another process. This must use file-based locks in `java.io.tmpdir`.
+
+[AFF-FN-013]
+.Lock Metadata
+The lock files must store meta-information, specifically the PID of the locking process, to allow other processes to identify the owner.
+
+== Non-Functional Requirements - Performance (NF-P)
+
+[AFF-NF-P-001]
+.Minimal Overhead
+The library must introduce minimal overhead to the application. Native calls (JNA/JNI) must be efficient, ensuring that the benefits of affinity (cache locality) outweigh the cost of setting it.
+
+[AFF-NF-P-002]
+.Native Compilation
+To maximise performance on Linux and macOS, the system must include C/C++ source code for `libCEInternals.so` and a Makefile to compile it. The Java code must attempt to load this library if available.
+
+== Non-Functional Requirements - Operability (NF-O)
+
+[AFF-NF-O-001]
+.Platform Support
+The system must support the following operating systems with varying capabilities:
+* **Linux**: Full support (Affinity, PID/TID, CPU ID, RDTSC).
+* **Windows**: Partial support (Affinity, PID/TID). `getCpu()` returns -1.
+* **macOS/Solaris**: Limited support (PID/TID). No affinity setting; `getCpu()` returns -1.
+
+[AFF-NF-O-002]
+.Graceful Degradation
+If JNA or native libraries cannot be loaded, or if the OS is unsupported, the system must fall back to a `NullAffinity` implementation rather than crashing. Errors during native calls must be logged.
+
+[AFF-NF-O-003]
+.Lock Dump
+The system must provide `AffinityLock.dumpLocks()` to output the current status of all CPU locks for diagnostic purposes.
+
+== Operational (OPS)
+
+[AFF-OPS-001]
+.Configuration
+The system must allow configuration via system properties:
+* `affinity.reserved={hex-mask}`: Specifies which CPUs are available for reservation.
+* `java.io.tmpdir`: Overrides the location for lock files.
+
+[AFF-OPS-002]
+.Dependencies
+The project shall rely on standard libraries:
+* `net.java.dev.jna:jna` (and platform)
+* `org.slf4j:slf4j-api`
+* `org.jetbrains:annotations`
+
+[AFF-OPS-003]
+.Build System
+The project must use Apache Maven. It must provide a `make-c` profile to trigger native compilation on compatible systems.
+
+== User Experience (UX)
+
+[AFF-UX-001]
+.Resource Management
+`AffinityLock` must implement `AutoCloseable` to support the try-with-resources pattern, ensuring locks are released automatically.
+
+[AFF-UX-002]
+.API Usability
+The API must be clear and simple. Javadoc must be provided for all public APIs.
+
+== Testing (TEST)
+
+[AFF-TEST-001]
+.OSGi Compatibility
+The `affinity-test` module must be packaged as an OSGi bundle and include tests to verify OSGi compatibility (activators, exports).
+
+[AFF-TEST-002]
+.Test Coverage
+The test suite must cover:
+* JNI/JNA functionality (`NativeAffinityTest`, `JnaAffinityTest`)
+* Layout parsing (`VanillaCpuLayoutTest`)
+* Multi-process contention (`MultiProcessAffinityTest`)
+* Inter-process locking (`LockCheckTest`)
+
+== Compliance and Risk (RISK)
+
+[AFF-RISK-001]
+.Licensing
+The software must be licensed under the Apache License, Version 2.0.
+
+== Documentation (DOC)
+
+[AFF-DOC-001]
+.Language Standards
+Code and documentation must use British English (e.g., "synchronised", "behaviour"), except for established technical US spellings (e.g., `synchronized` keyword).
