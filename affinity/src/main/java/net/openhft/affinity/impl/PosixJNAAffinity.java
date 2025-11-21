@@ -175,7 +175,6 @@ public enum PosixJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     interface CLibrary extends Library {
-        // CHECKSTYLE:OFF: MethodName
         CLibrary INSTANCE = Native.load(Platform.isWindows() ? "msvcrt" : "c", CLibrary.class);
 
         int sched_setaffinity(final int pid,
@@ -196,5 +195,4 @@ public enum PosixJNAAffinity implements IAffinity {
 
         int syscall(int number, Object... args) throws LastErrorException;
     }
-    // CHECKSTYLE:ON: MethodName
 }

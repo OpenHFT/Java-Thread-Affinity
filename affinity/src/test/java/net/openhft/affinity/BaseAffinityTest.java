@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 public class BaseAffinityTest {
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    public final TemporaryFolder folder = new TemporaryFolder();
     private String originalTmpDir;
 
     @Before
