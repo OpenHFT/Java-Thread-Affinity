@@ -1,4 +1,5 @@
 = Thread Affinity
+:toc:
 :lang: en-GB
 :source-highlighter: rouge
 

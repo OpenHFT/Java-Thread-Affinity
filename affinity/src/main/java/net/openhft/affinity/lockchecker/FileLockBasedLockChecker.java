@@ -28,6 +28,13 @@ import java.util.Set;
 import static java.nio.file.StandardOpenOption.*;
 import static net.openhft.affinity.impl.VanillaCpuLayout.MAX_CPUS_SUPPORTED;
 
+/**
+ * Lock checker that coordinates CPU reservations using file locks per core.
+ * <p>
+ * Each CPU id is represented by a lock file; exclusive locks indicate ownership while shared
+ * locks signal availability checks. Includes simple retry handling to cope with concurrent file
+ * deletion.
+ */
 public class FileLockBasedLockChecker implements LockChecker {
 
     private static final int MAX_LOCK_RETRIES = 5;
@@ -39,7 +46,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     private final LockReference[] locks = new LockReference[MAX_CPUS_SUPPORTED];
 
     protected FileLockBasedLockChecker() {
-        //nothing
+        // nothing
     }
 
     public static LockChecker getInstance() {

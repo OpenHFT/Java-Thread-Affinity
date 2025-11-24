@@ -8,7 +8,6 @@ import java.io.IOException;
 /**
  * @author Tom Shercliff
  */
-
 public interface LockChecker {
 
     boolean isLockFree(int id);
