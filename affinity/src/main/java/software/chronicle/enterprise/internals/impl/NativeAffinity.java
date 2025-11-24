@@ -9,11 +9,20 @@ import org.slf4j.LoggerFactory;
 
 import java.util.BitSet;
 
+/**
+ * Enterprise {@link IAffinity} backed by the native CEInternals library.
+ * <p>
+ * Provides affinity operations and lightweight cycle timing via JNI; guarded by the {@link #LOADED}
+ * flag so callers can detect when the native library is unavailable.
+ */
 public enum NativeAffinity implements IAffinity {
     INSTANCE;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeAffinity.class);
 
+    /**
+     * Indicates whether the native library loaded successfully.
+     */
     public static final boolean LOADED;
     public static final String VERSION;
 
@@ -41,6 +50,9 @@ public enum NativeAffinity implements IAffinity {
 
     private static native long rdtsc0();
 
+    /**
+     * Read the current cycle counter if the native library supports it.
+     */
     static long rdtsc() {
         return rdtsc0();
     }
@@ -55,6 +67,9 @@ public enum NativeAffinity implements IAffinity {
         }
     }
 
+    /**
+     * Read the affinity mask for the current thread.
+     */
     @Override
     public BitSet getAffinity() {
         final byte[] buff = getAffinity0();
@@ -64,21 +79,33 @@ public enum NativeAffinity implements IAffinity {
         return BitSet.valueOf(buff);
     }
 
+    /**
+     * Apply the given affinity mask to the current thread.
+     */
     @Override
     public void setAffinity(BitSet affinity) {
         setAffinity0(affinity.toByteArray());
     }
 
+    /**
+     * Return the CPU id the current thread is running on.
+     */
     @Override
     public int getCpu() {
         return getCpu0();
     }
 
+    /**
+     * Return the current process id.
+     */
     @Override
     public int getProcessId() {
         return getProcessId0();
     }
 
+    /**
+     * Return the current thread id.
+     */
     @Override
     public int getThreadId() {
         return getThreadId0();

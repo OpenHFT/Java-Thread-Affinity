@@ -19,6 +19,13 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * Utility that inspects the JVM boot classpath (or JRT modules) to determine whether classes are
+ * provided by the platform.
+ * <p>
+ * Used by affinity checks to avoid attempting to instrument or load classes already present in the
+ * bootstrap runtime.
+ */
 enum BootClassPath {
     INSTANCE;
 

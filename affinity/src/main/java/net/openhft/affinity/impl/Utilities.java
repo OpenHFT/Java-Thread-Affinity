@@ -9,8 +9,8 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.BitSet;
 
-/*
- * Created by andre on 20/06/15.
+/**
+ * Small platform/affinity helpers used by the Linux JNA implementation.
  */
 public final class Utilities {
     public static final boolean ISLINUX = "Linux".equals(System.getProperty("os.name"));
@@ -38,6 +38,9 @@ public final class Utilities {
         return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
     }
 
+    /**
+     * Returns a binary representation of the bit set.
+     */
     public static String toBinaryString(BitSet set) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));

@@ -11,6 +11,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.BitSet;
 
+/**
+ * Linux {@link IAffinity} implementation that delegates to libc via JNA.
+ * <p>
+ * Resolves process/thread ids, reads and sets CPU affinity masks, and caches thread ids per
+ * thread. Guards against missing native libraries by exposing a {@link #LOADED} flag.
+ */
 public enum LinuxJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
@@ -46,6 +52,9 @@ public enum LinuxJNAAffinity implements IAffinity {
 
     private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
+    /**
+     * Read the current affinity mask for this process.
+     */
     @Override
     public BitSet getAffinity() {
         final LinuxHelper.cpu_set_t cpuset = LinuxHelper.sched_getaffinity();
@@ -59,21 +68,33 @@ public enum LinuxJNAAffinity implements IAffinity {
         return ret;
     }
 
+    /**
+     * Apply the given affinity mask to this process.
+     */
     @Override
     public void setAffinity(final BitSet affinity) {
         LinuxHelper.sched_setaffinity(affinity);
     }
 
+    /**
+     * Return the current CPU id.
+     */
     @Override
     public int getCpu() {
         return LinuxHelper.sched_getcpu();
     }
 
+    /**
+     * Cached process id obtained via {@link LinuxHelper#getpid()} where available.
+     */
     @Override
     public int getProcessId() {
         return PROCESS_ID;
     }
 
+    /**
+     * Thread id resolved via {@code SYS_gettid}, cached per thread to avoid repeated syscalls.
+     */
     @Override
     public int getThreadId() {
         Integer tid = threadId.get();

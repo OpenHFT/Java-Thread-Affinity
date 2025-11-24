@@ -3,18 +3,27 @@
  */
 package net.openhft.affinity.impl;
 
+/**
+ * Parses and compares dotted numeric OS version strings.
+ */
 public class VersionHelper {
     private static final String DELIM = ".";
     private final int major;
     private final int minor;
     private final int release;
 
+    /**
+        * Create a version from explicit numeric parts.
+        */
     public VersionHelper(int major, int minor, int release) {
         this.major = major;
         this.minor = minor;
         this.release = release;
     }
 
+    /**
+     * Parse a dotted {@code major.minor.patch} string; missing parts default to zero.
+     */
     public VersionHelper(String ver) {
         if (ver != null && !(ver = ver.trim()).isEmpty()) {
             final String[] parts = ver.split("\\.");
@@ -27,10 +36,14 @@ public class VersionHelper {
         }
     }
 
+    /**
+     * Render the version using {@code major.minor.patch}.
+     */
     public String toString() {
         return major + DELIM + minor + DELIM + release;
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o instanceof VersionHelper) {
             VersionHelper ver = (VersionHelper) o;
@@ -43,6 +56,7 @@ public class VersionHelper {
         }
     }
 
+    @Override
     public int hashCode() {
         return (major << 16) | (minor << 8) | release;
     }

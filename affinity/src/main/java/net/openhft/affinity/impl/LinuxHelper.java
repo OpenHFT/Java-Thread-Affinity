@@ -12,6 +12,13 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * JNI/JNA helpers for interacting with Linux CPU affinity and process metadata.
+ * <p>
+ * Wraps libc calls such as {@code sched_getaffinity}, {@code sched_setaffinity}, {@code getpid}
+ * and {@code sched_getcpu} and exposes supporting structures for use elsewhere in the affinity
+ * module.
+ */
 public class LinuxHelper {
     private static final String LIBRARY_NAME = "c";
     private static final VersionHelper UNKNOWN = new VersionHelper(0, 0, 0);
@@ -33,6 +40,11 @@ public class LinuxHelper {
         version = ver;
     }
 
+    /**
+     * Read the current process affinity mask.
+     *
+     * @return populated CPU set describing allowed processors
+     */
     public static
     @NotNull
     cpu_set_t sched_getaffinity() {
@@ -52,10 +64,16 @@ public class LinuxHelper {
         return cpuset;
     }
 
+    /**
+     * Set affinity mask for the current process.
+     */
     public static void sched_setaffinity(final BitSet affinity) {
         sched_setaffinity(0, affinity);
     }
 
+    /**
+     * Set affinity mask for a specific pid.
+     */
     public static void sched_setaffinity(final int pid, final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
         final cpu_set_t cpuset = new cpu_set_t();
@@ -80,6 +98,9 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Discover the current CPU via libc or syscall fallback.
+     */
     public static int sched_getcpu() {
         final CLibrary lib = CLibrary.INSTANCE;
         try {
@@ -117,6 +138,9 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Return the current process id.
+     */
     public static int getpid() {
         final CLibrary lib = CLibrary.INSTANCE;
         try {
@@ -130,6 +154,9 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * Invoke an arbitrary syscall by number.
+     */
     public static int syscall(int number, Object... args) {
         final CLibrary lib = CLibrary.INSTANCE;
         try {
@@ -234,6 +261,9 @@ public class LinuxHelper {
             return new String(release, 0, length(release));
         }
 
+        /**
+         * Parse the release string to extract a dotted numeric version (e.g. 5.10.0).
+         */
         public String getRealeaseVersion() {
             final String release = getRelease();
             final int releaseLen = release.length();
@@ -268,6 +298,9 @@ public class LinuxHelper {
         }
     }
 
+    /**
+     * JNA view of {@code cpu_set_t} used by sched affinity calls.
+     */
     public static class cpu_set_t extends Structure {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;

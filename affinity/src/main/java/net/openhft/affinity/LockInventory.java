@@ -16,6 +16,13 @@ import java.util.TreeMap;
 
 import static net.openhft.affinity.Affinity.getAffinityImpl;
 
+/**
+ * Maintains the mapping of logical and physical CPU cores to {@link AffinityLock} instances and
+ * coordinates allocation of locks to threads based on strategies.
+ * <p>
+ * Handles initialisation from {@link CpuLayout}, reservation attempts, and core-level acquisition
+ * while tracking hyper-threading relationships.
+ */
 class LockInventory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LockInventory.class);
