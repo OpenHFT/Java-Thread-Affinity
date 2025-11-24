@@ -194,10 +194,6 @@
 
         <profile>
             <id>quality</id>
-            <activation>
-                <!-- Run the full quality stack only on modern JDKs. -->
-                <jdk>[11,)</jdk>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
