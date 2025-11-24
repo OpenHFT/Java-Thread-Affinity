@@ -28,7 +28,7 @@ public class MicroJitterSampler {
         if (BUSYWAIT) {
             long now = System.nanoTime();
             //noinspection StatementWithEmptyBody
-            while (System.nanoTime() - now < 1_000_000) ;
+            while (System.nanoTime() - now < 1_000_000);
         } else {
             Thread.sleep(1);
         }
