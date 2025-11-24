@@ -1,3 +1,6 @@
+/*
+ * Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: LicenseRef-Proprietary
+ */
 /**
  * Platform-specific implementations backing Chronicle thread affinity.
  *
