@@ -3,7 +3,6 @@
  */
 package net.openhft.affinity;
 
-import com.sun.jna.Native;
 import net.openhft.affinity.impl.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -28,40 +27,43 @@ public enum Affinity {
     private static volatile Boolean jnaAvailable;
 
     static {
-        String osName = System.getProperty("os.name");
-        if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
-            LOGGER.trace("Using Windows JNA-based affinity control implementation");
-            AFFINITY_IMPL = WindowsJNAAffinity.INSTANCE;
+        IAffinity impl;
+        try {
+            String osName = System.getProperty("os.name");
+            if (osName.contains("Win") && isWindowsJNAAffinityUsable()) {
+                LOGGER.trace("Using Windows JNA-based affinity control implementation");
+                impl = WindowsJNAAffinity.INSTANCE;
 
-        } else if (osName.contains("x")) {
-            /*if (osName.startsWith("Linux") && NativeAffinity.LOADED) {
-                LOGGER.trace("Using Linux JNI-based affinity control implementation");
-                AFFINITY_IMPL = NativeAffinity.INSTANCE;
-            } else*/
-            if (osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
-                LOGGER.trace("Using Linux JNA-based affinity control implementation");
-                AFFINITY_IMPL = LinuxJNAAffinity.INSTANCE;
+            } else if (osName.contains("x")) {
+                if (osName.startsWith("Linux") && isLinuxJNAAffinityUsable()) {
+                    LOGGER.trace("Using Linux JNA-based affinity control implementation");
+                    impl = LinuxJNAAffinity.INSTANCE;
 
-            } else if (isPosixJNAAffinityUsable()) {
-                LOGGER.trace("Using Posix JNA-based affinity control implementation");
-                AFFINITY_IMPL = PosixJNAAffinity.INSTANCE;
+                } else if (isPosixJNAAffinityUsable()) {
+                    LOGGER.trace("Using Posix JNA-based affinity control implementation");
+                    impl = PosixJNAAffinity.INSTANCE;
+
+                } else {
+                    LOGGER.info("Unsupported POSIX OS: {} with an 'x'. Using dummy affinity control implementation", osName);
+                    impl = NullAffinity.INSTANCE;
+                }
+            } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
+                LOGGER.trace("Using MAC OSX JNA-based thread id implementation");
+                impl = OSXJNAAffinity.INSTANCE;
+
+            } else if (osName.contains("SunOS") && isSolarisJNAAffinityUsable()) {
+                LOGGER.trace("Using Solaris JNA-based thread id implementation");
+                impl = SolarisJNAAffinity.INSTANCE;
 
             } else {
-                LOGGER.info("Using dummy affinity control implementation");
-                AFFINITY_IMPL = NullAffinity.INSTANCE;
+                LOGGER.info("Unsupported OS: {}. Using dummy affinity control implementation", osName);
+                impl = NullAffinity.INSTANCE;
             }
-        } else if (osName.contains("Mac") && isMacJNAAffinityUsable()) {
-            LOGGER.trace("Using MAC OSX JNA-based thread id implementation");
-            AFFINITY_IMPL = OSXJNAAffinity.INSTANCE;
-
-        } else if (osName.contains("SunOS") && isSolarisJNAAffinityUsable()) {
-            LOGGER.trace("Using Solaris JNA-based thread id implementation");
-            AFFINITY_IMPL = SolarisJNAAffinity.INSTANCE;
-
-        } else {
-            LOGGER.info("Using dummy affinity control implementation");
-            AFFINITY_IMPL = NullAffinity.INSTANCE;
+        } catch (Throwable t) {
+            LOGGER.warn("Falling back to dummy affinity control implementation because native init failed", t);
+            impl = NullAffinity.INSTANCE;
         }
+        AFFINITY_IMPL = impl;
     }
 
     public static IAffinity getAffinityImpl() {
@@ -139,7 +141,8 @@ public enum Affinity {
     }
 
     public static BitSet getAffinity() {
-        return AFFINITY_IMPL.getAffinity();
+        IAffinity impl = AFFINITY_IMPL == null ? NullAffinity.INSTANCE : AFFINITY_IMPL;
+        return impl.getAffinity();
     }
 
     public static void setAffinity(final BitSet affinity) {
@@ -179,18 +182,28 @@ public enum Affinity {
             synchronized (Affinity.class) {
                 available = jnaAvailable;
                 if (available == null) {
-                    int majorVersion = Integer.parseInt(Native.VERSION.split("\\.")[0]);
                     boolean result;
-                    if (majorVersion < 5) {
-                        LOGGER.warn("Affinity library requires JNA version >= 5");
-                        result = false;
-                    } else {
-                        try {
-                            Class.forName("com.sun.jna.Platform");
-                            result = true;
-                        } catch (ClassNotFoundException ignored) {
+                    try {
+                        Class<?> nativeClass = Class.forName("com.sun.jna.Native");
+                        Field versionField = nativeClass.getField("VERSION");
+                        versionField.setAccessible(true);
+                        Object versionObj = versionField.get(null);
+                        String version = versionObj == null ? "0" : versionObj.toString();
+                        int majorVersion = Integer.parseInt(version.split("\\.")[0]);
+                        if (majorVersion < 5) {
+                            LOGGER.warn("Affinity library requires JNA version >= 5");
                             result = false;
+                        } else {
+                            try {
+                                Class.forName("com.sun.jna.Platform");
+                                result = true;
+                            } catch (ClassNotFoundException ignored) {
+                                result = false;
+                            }
                         }
+                    } catch (Throwable t) { // NoClassDefFoundError, UnsatisfiedLinkError, IllegalAccessException etc.
+                        LOGGER.warn("JNA not available, falling back to NullAffinity", t);
+                        result = false;
                     }
                     available = result;
                     jnaAvailable = available;
