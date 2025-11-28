@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import static org.junit.Assert.*;
 import static org.ops4j.pax.exam.CoreOptions.*;
 
-@Ignore("TODO FIX")
+@Ignore("Fails with current Felix resolver (NoSuchMethodError: ResolveContext.onCancel); skip until updated")
 @RunWith(PaxExam.class)
 public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     @Inject
