@@ -74,6 +74,7 @@ public enum JNIClock implements ITicker {
 
     static native long rdtsc0();
 
+    @Override
     public long nanoTime() {
         return tscToNano(rdtsc0() - START);
     }

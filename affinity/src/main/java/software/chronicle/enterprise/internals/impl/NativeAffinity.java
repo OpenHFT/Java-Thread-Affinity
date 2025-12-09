@@ -15,6 +15,7 @@ import java.util.BitSet;
  * Provides affinity operations and lightweight cycle timing via JNI; guarded by the {@link #LOADED}
  * flag so callers can detect when the native library is unavailable.
  */
+@SuppressWarnings("PMD.AvoidUsingNativeCode")
 public enum NativeAffinity implements IAffinity {
     INSTANCE;
 

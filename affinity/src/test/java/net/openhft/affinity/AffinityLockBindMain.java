@@ -46,6 +46,7 @@ public final class AffinityLockBindMain {
             this.wholeCore = wholeCore;
         }
 
+        @Override
         public void run() {
             affinityLock.bind(wholeCore);
             try {

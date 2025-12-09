@@ -7,6 +7,7 @@ package net.openhft.affinity;
  * @author peter.lawrey
  */
 class InterrupedThread implements Runnable {
+    @Override
     public void run() {
         try {
             Thread.sleep(Integer.MAX_VALUE);

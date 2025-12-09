@@ -39,6 +39,7 @@ public class VersionHelper {
     /**
      * Render the version using {@code major.minor.patch}.
      */
+    @Override
     public String toString() {
         return major + DELIM + minor + DELIM + release;
     }

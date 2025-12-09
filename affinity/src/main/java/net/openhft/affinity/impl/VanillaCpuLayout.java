@@ -40,7 +40,7 @@ public class VanillaCpuLayout implements CpuLayout {
         this.coresPerSocket = cores.size() / sockets.size();
         this.threadsPerCore = threads.size();
         if (cpuDetails.size() != sockets() * coresPerSocket() * threadsPerCore()) {
-            StringBuilder error = new StringBuilder();
+            StringBuilder error = new StringBuilder(128);
             error.append("cpuDetails.size= ").append(cpuDetails.size())
                     .append(" != sockets: ").append(sockets())
                     .append(" * coresPerSocket: ").append(coresPerSocket())
@@ -135,10 +135,12 @@ public class VanillaCpuLayout implements CpuLayout {
         return cpuDetails.size();
     }
 
+    @Override
     public int sockets() {
         return sockets;
     }
 
+    @Override
     public int coresPerSocket() {
         return coresPerSocket;
     }

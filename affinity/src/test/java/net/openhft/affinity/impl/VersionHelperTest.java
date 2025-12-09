@@ -17,7 +17,7 @@ public class VersionHelperTest extends BaseAffinityTest {
         final VersionHelper v4_9 = new VersionHelper(4, 9, 0);
         final VersionHelper v9_9 = new VersionHelper(9, 9, 9);
 
-        VersionHelper[] versions = new VersionHelper[]{v0, v2_6, v4_1, v4_9, v9_9};
+        VersionHelper[] versions = {v0, v2_6, v4_1, v4_9, v9_9};
 
         for (int i = 0; i < versions.length; i++) {
             for (int j = 0; j < versions.length; j++) {

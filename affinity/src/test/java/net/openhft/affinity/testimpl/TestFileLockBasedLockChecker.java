@@ -7,6 +7,7 @@ import net.openhft.affinity.lockchecker.FileLockBasedLockChecker;
 
 import java.io.File;
 
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class TestFileLockBasedLockChecker extends FileLockBasedLockChecker {
 
     public File doToFile(int cpu) {

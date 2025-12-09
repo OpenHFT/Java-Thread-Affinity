@@ -24,6 +24,7 @@ public final class AffinitySupportMain {
     }
 
     private static class SleepRunnable implements Runnable {
+        @Override
         public void run() {
             AffinityLock al = AffinityLock.acquireLock();
             try {

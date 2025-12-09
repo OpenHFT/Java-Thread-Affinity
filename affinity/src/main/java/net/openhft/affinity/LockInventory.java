@@ -45,9 +45,7 @@ class LockInventory {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < locks.length; i++) {
             AffinityLock al = locks[i];
-            sb.append(i).append(": ");
-            sb.append(al);
-            sb.append('\n');
+            sb.append(i).append(": ").append(al).append('\n');
         }
         return sb.toString();
     }

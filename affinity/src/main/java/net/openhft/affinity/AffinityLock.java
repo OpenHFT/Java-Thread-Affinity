@@ -328,11 +328,7 @@ public class AffinityLock implements Closeable {
     }
 
     private static boolean areAssertionsEnabled() {
-        boolean debug = false;
-        //noinspection AssertWithSideEffects
-        assert debug = true;
-        //noinspection ConstantValue
-        return debug;
+        return AffinityLock.class.desiredAssertionStatus();
     }
 
     /**
@@ -482,15 +478,14 @@ public class AffinityLock implements Closeable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        if (assignedThread != null)
-            sb.append(assignedThread).append(" alive=").append(assignedThread.isAlive());
-        else if (reservable)
-            sb.append("Reserved for this application");
-        else if (base)
-            sb.append("General use CPU");
-        else
-            sb.append("CPU not available");
-        return sb.toString();
+        if (assignedThread != null) {
+            return assignedThread + " alive=" + assignedThread.isAlive();
+        } else if (reservable) {
+            return "Reserved for this application";
+        } else if (base) {
+            return "General use CPU";
+        } else {
+            return "CPU not available";
+        }
     }
 }

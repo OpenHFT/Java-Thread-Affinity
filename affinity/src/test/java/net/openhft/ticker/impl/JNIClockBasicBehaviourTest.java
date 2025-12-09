@@ -6,6 +6,7 @@ package net.openhft.ticker.impl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -24,7 +25,7 @@ public class JNIClockBasicBehaviourTest {
         for (int i = 0; i < 1000 && different == first; i++) {
             different = clock.ticks();
         }
-        assertTrue("ticks should eventually change", different != first);
+        assertNotEquals("ticks should eventually change", first, different);
     }
 
     @Test
@@ -56,4 +57,3 @@ public class JNIClockBasicBehaviourTest {
         }
     }
 }
-

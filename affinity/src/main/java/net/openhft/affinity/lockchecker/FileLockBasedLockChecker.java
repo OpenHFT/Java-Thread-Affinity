@@ -50,7 +50,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     public static LockChecker getInstance() {
-        return new FileLockBasedLockChecker();
+        return instance;
     }
 
     @Override
@@ -225,7 +225,8 @@ public class FileLockBasedLockChecker implements LockChecker {
             LOGGER.warn("Empty lock file {}", lockFile.getAbsolutePath());
             return null;
         }
-        return content.substring(0, content.indexOf("\n"));
+        int nlIndex = content.indexOf('\n');
+        return nlIndex == -1 ? content : content.substring(0, nlIndex);
     }
 
     @NotNull

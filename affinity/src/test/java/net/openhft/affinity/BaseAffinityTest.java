@@ -12,6 +12,7 @@ import java.util.BitSet;
 
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("PMD.TestClassWithoutTestCases")
 public class BaseAffinityTest {
 
     @Rule

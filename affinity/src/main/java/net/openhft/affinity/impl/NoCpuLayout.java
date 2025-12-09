@@ -32,6 +32,7 @@ public class NoCpuLayout implements CpuLayout {
         return 1;
     }
 
+    @Override
     public int cpus() {
         return cpus;
     }
