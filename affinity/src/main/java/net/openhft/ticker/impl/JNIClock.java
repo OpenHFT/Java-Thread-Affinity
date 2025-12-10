@@ -72,6 +72,9 @@ public enum JNIClock implements ITicker {
         CPU_FREQUENCY = (end0 - start0 + 1) * 1000 / (end - start);
     }
 
+    /**
+     * Returns the current time-stamp counter via JNI; expects invariant TSC availability.
+     */
     static native long rdtsc0();
 
     @Override

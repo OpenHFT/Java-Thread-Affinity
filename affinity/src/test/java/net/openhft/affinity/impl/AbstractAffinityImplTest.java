@@ -3,6 +3,7 @@
  */
 package net.openhft.affinity.impl;
 
+import net.openhft.affinity.Affinity;
 import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
 import org.junit.After;
@@ -57,6 +58,28 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
             final BitSet mask = new BitSet();
             mask.set(core, true);
             getAffinityReturnsValuePreviouslySet(impl, mask);
+        }
+    }
+
+    protected void runThreadIdBenchmark(int maxThreadId) {
+        System.out.println("pid=" + getImpl().getProcessId());
+        System.out.println("tid=" + getImpl().getThreadId());
+        Affinity.setThreadId();
+
+        for (int j = 0; j < 3; j++) {
+            final int runs = 100000;
+            long tid = 0;
+            long time = 0;
+            for (int i = 0; i < runs; i++) {
+                long start = System.nanoTime();
+                @SuppressWarnings("deprecation")
+                long tid0 = Thread.currentThread().getId();
+                tid = tid0;
+                time += System.nanoTime() - start;
+                assertTrue("thread id should be positive", tid > 0);
+                assertTrue("thread id should be below maxThreadId " + maxThreadId, tid < maxThreadId);
+            }
+            System.out.printf("gettid took an average of %,d ns, tid=%d%n", time / runs, tid);
         }
     }
 

@@ -108,7 +108,7 @@ public class VanillaCpuLayout implements CpuLayout {
         Map<String, Integer> threadCount = new LinkedHashMap<>();
 
         while ((line = br.readLine()) != null) {
-            if (line.trim().isEmpty()) {
+            if (isBlank(line)) {
                 String key = details.socketId + "," + details.coreId;
                 Integer count = threadCount.get(key);
                 if (count == null)
@@ -128,6 +128,15 @@ public class VanillaCpuLayout implements CpuLayout {
                 details.coreId = parseInt(words[1]);
         }
         return new VanillaCpuLayout(cpuDetails);
+    }
+
+    private static boolean isBlank(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isWhitespace(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

@@ -24,10 +24,23 @@ public class AffinityThreadFactory implements ThreadFactory {
     private AffinityLock lastAffinityLock = null;
     private int id = 1;
 
+    /**
+     * Creates a factory that binds threads using the provided strategies.
+     *
+     * @param name       thread name prefix
+     * @param strategies strategies to choose CPUs
+     */
     public AffinityThreadFactory(String name, AffinityStrategy... strategies) {
         this(name, true, strategies);
     }
 
+    /**
+     * Creates a factory that binds threads using the provided strategies.
+     *
+     * @param name       thread name prefix
+     * @param daemon     whether created threads are daemon threads
+     * @param strategies strategies to choose CPUs
+     */
     public AffinityThreadFactory(String name, boolean daemon, @NotNull AffinityStrategy... strategies) {
         this.name = name;
         this.daemon = daemon;

@@ -13,7 +13,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * @author Rob Austin.
+ * Utility for tracking CPU reservations using filesystem locks.
  */
 public enum LockCheck {
     ; // none
@@ -25,6 +25,11 @@ public enum LockCheck {
 
     private static final LockChecker lockChecker = FileLockBasedLockChecker.getInstance();
 
+    /**
+     * Returns the current process id as reported by the JVM.
+     *
+     * @return current process id
+     */
     public static long getPID() {
         return Utilities.currentProcessId();
     }
@@ -33,6 +38,12 @@ public enum LockCheck {
         return IS_LINUX;
     }
 
+    /**
+     * Checks whether the given CPU is marked as free.
+     *
+     * @param cpu logical CPU index
+     * @return {@code true} if no pid has claimed the slot
+     */
     public static boolean isCpuFree(int cpu) {
         if (!canOSSupportOperation())
             return true;
@@ -44,6 +55,13 @@ public enum LockCheck {
         return storePid(processID, cpu, cpu2);
     }
 
+    /**
+     * Checks whether a process with the given pid is running (Linux only).
+     *
+     * @param pid process id
+     * @return {@code true} if the pid exists under {@code /proc}
+     * @throws UnsupportedOperationException on non-Linux platforms
+     */
     public static boolean isProcessRunning(long pid) {
         if (canOSSupportOperation())
             return new File("/proc/" + pid).exists();
@@ -59,10 +77,23 @@ public enum LockCheck {
         return lockChecker.obtainLock(cpu, cpu2, Long.toString(processID));
     }
 
+    /**
+     * Checks whether the lock file for the given CPU id is currently unclaimed.
+     *
+     * @param id logical CPU index
+     * @return {@code true} if no pid has reserved the slot
+     */
     private static synchronized boolean isLockFree(int id) {
         return lockChecker.isLockFree(id);
     }
 
+    /**
+     * Looks up the pid recorded for the given CPU core.
+     *
+     * @param core logical CPU index
+     * @return pid stored against the core, or {@link #EMPTY_PID} when unknown
+     * @throws IOException if the lock metadata cannot be read
+     */
     public static int getProcessForCpu(int core) throws IOException {
         if (!canOSSupportOperation())
             return EMPTY_PID;
@@ -85,6 +116,11 @@ public enum LockCheck {
         return replacePid(cpu, cpu2, getPID());
     }
 
+    /**
+     * Releases any stored reservation for the given CPU id.
+     *
+     * @param cpu logical CPU index
+     */
     public static void releaseLock(int cpu) {
         lockChecker.releaseLock(cpu);
     }

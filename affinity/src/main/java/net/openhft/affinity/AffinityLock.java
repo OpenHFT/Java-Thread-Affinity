@@ -23,12 +23,24 @@ import java.util.BitSet;
  */
 public class AffinityLock implements Closeable {
     // Static fields and methods.
+    /**
+     * System property listing reserved CPUs in hex bitset form.
+     */
     public static final String AFFINITY_RESERVED = "affinity.reserved";
     // TODO It seems like on virtualized platforms .availableProcessors() value can change at
     // TODO runtime. We should think about how to adopt to such change
+    /**
+     * Number of logical processors detected at startup.
+     */
     public static final int PROCESSORS;
 
+    /**
+     * Baseline affinity mask captured during initialisation.
+     */
     public static final BitSet BASE_AFFINITY;
+    /**
+     * CPUs reserved for general use rather than explicit pinning.
+     */
     public static final BitSet RESERVED_AFFINITY;
     static final int ANY_CPU = -1;
     private static final Logger LOGGER = LoggerFactory.getLogger(AffinityLock.class);
@@ -95,16 +107,30 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return The current CpuLayout for the application.
+     * Returns the current CPU layout used when allocating locks.
+     *
+     * @return the active {@link CpuLayout}
      */
     @NotNull
     public static CpuLayout cpuLayout() {
         return LOCK_INVENTORY.getCpuLayout();
     }
 
+    private static boolean isBlank(String value) {
+        if (value == null) {
+            return true;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isWhitespace(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static BitSet getReservedAffinity0() {
         String reservedAffinity = System.getProperty(AFFINITY_RESERVED);
-        if (BASE_AFFINITY != null && (reservedAffinity == null || reservedAffinity.trim().isEmpty())) {
+        if (BASE_AFFINITY != null && isBlank(reservedAffinity)) {
             BitSet reserverable = new BitSet(PROCESSORS);
             reserverable.set(1, PROCESSORS, true);
             reserverable.andNot(BASE_AFFINITY);
@@ -320,7 +346,9 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return All the current locks as a String.
+     * Dumps all current locks as a human-readable string.
+     *
+     * @return textual representation of lock inventory
      */
     @NotNull
     public static String dumpLocks() {
@@ -332,15 +360,19 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return Whether to reset the affinity, false indicates the thread is about to die anyway.
+     * Indicates whether the original affinity should be restored when releasing.
+     *
+     * @return {@code true} when reset is requested
      */
     public boolean resetAffinity() {
         return resetAffinity;
     }
 
     /**
-     * @param resetAffinity Whether to reset the affinity, false indicates the thread is about to die anyway.
-     * @return this
+     * Controls whether releasing the lock should restore the original affinity.
+     *
+     * @param resetAffinity {@code true} to reset; {@code false} to leave affinity unchanged
+     * @return this lock for chaining
      */
     public AffinityLock resetAffinity(boolean resetAffinity) {
         this.resetAffinity = resetAffinity;
@@ -452,25 +484,36 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return unique id for this CPI or -1 if not allocated.
+     * Returns the logical CPU id associated with this lock, or -1 if none.
+     *
+     * @return cpu id for the lock
      */
     public int cpuId() {
         return cpuId;
     }
 
+    /**
+     * Returns the secondary logical CPU id associated with this lock, or -1 if none.
+     *
+     * @return second cpu id for hyper-thread pairs
+     */
     public int cpuId2() {
         return cpuId2;
     }
 
     /**
-     * @return Was a cpu found to bind this lock to.
+     * Indicates whether this lock is associated with a real CPU.
+     *
+     * @return {@code true} if allocated to a CPU
      */
     public boolean isAllocated() {
         return cpuId >= 0;
     }
 
     /**
-     * @return Has this AffinityLock been bound?
+     * Indicates whether this lock has been bound to a thread.
+     *
+     * @return {@code true} if bound
      */
     public boolean isBound() {
         return bound;

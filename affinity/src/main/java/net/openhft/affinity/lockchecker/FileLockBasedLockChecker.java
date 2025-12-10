@@ -45,10 +45,18 @@ public class FileLockBasedLockChecker implements LockChecker {
     private static final FileLockBasedLockChecker instance = new FileLockBasedLockChecker();
     private final LockReference[] locks = new LockReference[MAX_CPUS_SUPPORTED];
 
+    /**
+     * Visible for tests; prefer {@link #getInstance()}.
+     */
     protected FileLockBasedLockChecker() {
         // nothing
     }
 
+    /**
+     * Singleton accessor for the file-lock-based checker.
+     *
+     * @return shared {@link LockChecker} instance
+     */
     public static LockChecker getInstance() {
         return instance;
     }
@@ -229,6 +237,12 @@ public class FileLockBasedLockChecker implements LockChecker {
         return nlIndex == -1 ? content : content.substring(0, nlIndex);
     }
 
+    /**
+     * Resolves the lock file location for a given CPU id.
+     *
+     * @param id logical CPU index
+     * @return file handle for that CPU
+     */
     @NotNull
     protected File toFile(int id) {
         assert id >= 0;

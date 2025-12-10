@@ -66,6 +66,11 @@ public enum Affinity {
         AFFINITY_IMPL = impl;
     }
 
+    /**
+     * Returns the platform-specific affinity implementation in use.
+     *
+     * @return current {@link IAffinity} implementation
+     */
     public static IAffinity getAffinityImpl() {
         return AFFINITY_IMPL;
     }
@@ -140,29 +145,57 @@ public enum Affinity {
         LOGGER.warn(sw.toString());
     }
 
+    /**
+     * Reads the current thread's CPU affinity mask.
+     *
+     * @return affinity bitset or {@code null} if unsupported
+     */
     public static BitSet getAffinity() {
         IAffinity impl = AFFINITY_IMPL == null ? NullAffinity.INSTANCE : AFFINITY_IMPL;
         return impl.getAffinity();
     }
 
+    /**
+     * Applies the provided affinity mask to the current thread.
+     *
+     * @param affinity mask indicating allowed CPUs
+     */
     public static void setAffinity(final BitSet affinity) {
         AFFINITY_IMPL.setAffinity(affinity);
     }
 
+    /**
+     * Binds the current thread to a single CPU.
+     *
+     * @param cpu logical CPU index
+     */
     public static void setAffinity(int cpu) {
         BitSet affinity = new BitSet(Runtime.getRuntime().availableProcessors());
         affinity.set(cpu);
         setAffinity(affinity);
     }
 
+    /**
+     * Returns the logical CPU the current thread is running on, or -1 if unknown.
+     *
+     * @return cpu id or -1
+     */
     public static int getCpu() {
         return AFFINITY_IMPL.getCpu();
     }
 
+    /**
+     * Returns the OS thread id of the current thread where available.
+     *
+     * @return native thread id or -1
+     */
     public static int getThreadId() {
         return AFFINITY_IMPL.getThreadId();
     }
 
+    /**
+     * Propagates the native thread id into {@link Thread#tid} for logging/diagnostics.
+     */
     public static void setThreadId() {
         try {
             int threadId = Affinity.getThreadId();
@@ -176,6 +209,11 @@ public enum Affinity {
         }
     }
 
+    /**
+     * Checks whether a compatible JNA version is on the classpath.
+     *
+     * @return {@code true} if JNA >= 5 is available
+     */
     public static boolean isJNAAvailable() {
         Boolean available = jnaAvailable;
         if (available == null) {
@@ -213,22 +251,47 @@ public enum Affinity {
         return available;
     }
 
+    /**
+     * Acquires an affinity lock, optionally binding the current thread.
+     *
+     * @return allocated {@link AffinityLock}
+     */
     public static AffinityLock acquireLock() {
         return AffinityLock.acquireLock();
     }
 
+    /**
+     * Acquires a lock favouring whole cores rather than hyper-threads.
+     *
+     * @return allocated {@link AffinityLock}
+     */
     public static AffinityLock acquireCore() {
         return AffinityLock.acquireCore();
     }
 
+    /**
+     * Acquires a lock and optionally binds the current thread immediately.
+     *
+     * @param bind whether to bind the thread to the lock's CPU
+     * @return allocated {@link AffinityLock}
+     */
     public static AffinityLock acquireLock(boolean bind) {
         return AffinityLock.acquireLock(bind);
     }
 
+    /**
+     * Acquires a core-oriented lock and optionally binds the current thread.
+     *
+     * @param bind whether to bind the thread to the lock's CPU
+     * @return allocated {@link AffinityLock}
+     */
     public static AffinityLock acquireCore(boolean bind) {
         return AffinityLock.acquireCore(bind);
     }
 
+    /**
+     * Restores the base affinity mask captured at startup.
+     */
     public static void resetToBaseAffinity() {
         Affinity.setAffinity(AffinityLock.BASE_AFFINITY);
     }

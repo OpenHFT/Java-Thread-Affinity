@@ -22,11 +22,33 @@ package net.openhft.ticker;
  * running platform.
  */
 public interface ITicker {
+    /**
+     * Returns the current time in nanoseconds.
+     *
+     * @return wall-clock time in nanoseconds
+     */
     long nanoTime();
 
+    /**
+     * Returns the raw tick value from the underlying clock.
+     *
+     * @return monotonically increasing tick count
+     */
     long ticks();
 
+    /**
+     * Converts ticks to nanoseconds.
+     *
+     * @param ticks tick count from {@link #ticks()}
+     * @return equivalent nanoseconds
+     */
     long toNanos(long ticks);
 
+    /**
+     * Converts ticks to microseconds.
+     *
+     * @param ticks tick count from {@link #ticks()}
+     * @return equivalent microseconds
+     */
     double toMicros(double ticks);
 }

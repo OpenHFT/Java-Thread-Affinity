@@ -8,7 +8,6 @@ import net.openhft.affinity.IAffinity;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -28,24 +27,6 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
 
     @Test
     public void testGettid() {
-        System.out.println("pid=" + getImpl().getProcessId());
-        System.out.println("tid=" + getImpl().getThreadId());
-        Affinity.setThreadId();
-
-        for (int j = 0; j < 3; j++) {
-            final int runs = 100000;
-            long tid = 0;
-            long time = 0;
-            for (int i = 0; i < runs; i++) {
-                long start = System.nanoTime();
-                @SuppressWarnings("deprecation")
-                long tid0 = Thread.currentThread().getId();
-                tid = tid0;
-                time += System.nanoTime() - start;
-                assertTrue(tid > 0);
-                assertTrue(tid < 1 << 24);
-            }
-            System.out.printf("gettid took an average of %,d ns, tid=%d%n", time / runs, tid);
-        }
+        runThreadIdBenchmark(1 << 24);
     }
 }

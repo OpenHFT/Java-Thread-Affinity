@@ -6,11 +6,10 @@ package net.openhft.affinity.impl;
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
-import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.BitSet;
+import java.util.function.IntSupplier;
 
 /**
  * This is essentially the same as the NullAffinity implementation but with concrete
@@ -18,41 +17,24 @@ import java.util.BitSet;
  *
  * @author daniel.shaya
  */
-public enum SolarisJNAAffinity implements IAffinity {
+public enum SolarisJNAAffinity implements NoAffinity {
     INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(SolarisJNAAffinity.class);
     private final ThreadLocal<Integer> threadId = new ThreadLocal<>();
 
     @Override
-    public BitSet getAffinity() {
-        return new BitSet();
+    public Logger logger() {
+        return LOGGER;
     }
 
     @Override
-    public void setAffinity(final BitSet affinity) {
-        LOGGER.trace("unable to set mask to {} as the JNI and JNA libraries not loaded", Utilities.toHexString(affinity));
+    public ThreadLocal<Integer> threadIdCache() {
+        return threadId;
     }
 
     @Override
-    public int getCpu() {
-        return -1;
-    }
-
-    @Override
-    public int getProcessId() {
-        return Utilities.currentProcessId();
-    }
-
-    @Override
-    public int getThreadId() {
-        Integer tid = threadId.get();
-        if (tid == null) {
-            tid = CLibrary.INSTANCE.pthread_self();
-            //The tid assumed to be an unsigned 24 bit, see net.openhft.lang.Jvm.getMaxPid()
-            tid = tid & 0xFFFFFF;
-            threadId.set(tid);
-        }
-        return tid;
+    public IntSupplier threadIdSupplier() {
+        return CLibrary.INSTANCE::pthread_self;
     }
 
     interface CLibrary extends Library {

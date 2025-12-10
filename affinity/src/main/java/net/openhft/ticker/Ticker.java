@@ -12,6 +12,9 @@ import net.openhft.ticker.impl.SystemClock;
  * @author Peter.Lawrey
  */
 public final class Ticker {
+    /**
+     * Chosen ticker implementation for this JVM.
+     */
     public static final ITicker INSTANCE;
 
     static {
@@ -27,20 +30,39 @@ public final class Ticker {
     }
 
     /**
-     * @return The current value of the system timer, in nanoseconds.
+     * Returns the current raw tick count.
+     *
+     * @return tick value from the active {@link ITicker}
      */
     public static long ticks() {
         return INSTANCE.ticks();
     }
 
+    /**
+     * Convenience wrapper to convert the current tick to nanoseconds.
+     *
+     * @return time in nanoseconds
+     */
     public static long nanoTime() {
         return toNanos(ticks());
     }
 
+    /**
+     * Converts ticks to nanoseconds using the active ticker.
+     *
+     * @param ticks tick count from {@link #ticks()}
+     * @return equivalent nanoseconds
+     */
     public static long toNanos(long ticks) {
         return INSTANCE.toNanos(ticks);
     }
 
+    /**
+     * Converts ticks to microseconds using the active ticker.
+     *
+     * @param ticks tick count from {@link #ticks()}
+     * @return equivalent microseconds
+     */
     public static double toMicros(long ticks) {
         return INSTANCE.toMicros(ticks);
     }

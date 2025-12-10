@@ -4,12 +4,12 @@
 package net.openhft.affinity;
 
 /**
- * Allow you define a strategy for find the a cpu relative to another select cpu.
- *
- * @author peter.lawrey
+ * Strategy interface for choosing CPUs relative to an existing allocation.
  */
 public interface AffinityStrategy {
     /**
+     * Determines whether a candidate CPU pair matches the strategy.
+     *
      * @param cpuId  to cpuId to compare
      * @param cpuId2 with a second cpuId
      * @return true if it matches the criteria.

@@ -6,7 +6,7 @@ package net.openhft.affinity;
 import java.io.PrintStream;
 
 /**
- * User: peter.lawrey Date: 30/06/13 Time: 13:13
+ * Samples scheduler jitter over time by measuring delays between tight loops.
  */
 public class MicroJitterSampler {
 
@@ -24,6 +24,12 @@ public class MicroJitterSampler {
     private final int[] count = new int[DELAY.length];
     private long totalTime = 0;
 
+    /**
+     * Creates a sampler configured from system properties.
+     */
+    public MicroJitterSampler() {
+    }
+
     private static void pause() throws InterruptedException {
         if (BUSYWAIT) {
             long now = System.nanoTime();
@@ -34,6 +40,12 @@ public class MicroJitterSampler {
         }
     }
 
+    /**
+     * Runs a single-threaded jitter benchmark.
+     *
+     * @param ignored unused
+     * @throws InterruptedException if interrupted while waiting for results
+     */
     public static void main(String... ignored) throws InterruptedException {
         MicroJitterSampler sampler = new MicroJitterSampler();
 
@@ -55,6 +67,9 @@ public class MicroJitterSampler {
         }
     }
 
+    /**
+     * Executes the sampling loop until interrupted, printing aggregated results periodically.
+     */
     public void run() {
         try (final AffinityLock lock = AffinityLock.acquireLock(CPU)) {
             assert lock != null;

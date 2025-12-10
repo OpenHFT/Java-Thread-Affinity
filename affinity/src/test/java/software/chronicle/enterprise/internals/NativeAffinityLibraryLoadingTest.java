@@ -19,7 +19,7 @@ public class NativeAffinityLibraryLoadingTest {
         // LOADED should be deterministic (true or false, not null or uninitialized)
         boolean loaded = NativeAffinity.LOADED;
         // Should not throw - field is accessible
-        assertNotNull("LOADED field should be initialized", Boolean.valueOf(loaded));
+        assertTrue("LOADED field should be initialized", loaded || !loaded);
     }
 
     @Test
@@ -172,8 +172,8 @@ public class NativeAffinityLibraryLoadingTest {
         // 2. VERSION is set based on LOADED
 
         // Both should be initialized
-        Boolean loadedWrapper = Boolean.valueOf(NativeAffinity.LOADED);
-        assertNotNull("LOADED should be initialized", loadedWrapper);
+        boolean loadedWrapper = NativeAffinity.LOADED;
+        assertTrue("LOADED should be initialized", loadedWrapper || !loadedWrapper);
 
         String version = NativeAffinity.VERSION;
         assertNotNull("VERSION should be initialized", version);

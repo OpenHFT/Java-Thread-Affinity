@@ -13,27 +13,37 @@ import java.util.BitSet;
  */
 public interface IAffinity {
     /**
-     * @return returns affinity mask for current thread, or null if unknown
+     * Obtains the affinity mask for the current thread.
+     *
+     * @return affinity mask, or null if unknown
      */
     BitSet getAffinity();
 
     /**
-     * @param affinity sets affinity mask of current thread to specified value
+     * Applies the provided affinity mask to the current thread.
+     *
+     * @param affinity desired mask
      */
     void setAffinity(final BitSet affinity);
 
     /**
-     * @return the current cpu id, or -1 if unknown.
+     * Returns the logical CPU of the current thread.
+     *
+     * @return cpu id, or -1 if unknown
      */
     int getCpu();
 
     /**
-     * @return the process id of the current process.
+     * Returns the current process id.
+     *
+     * @return process id of the JVM
      */
     int getProcessId();
 
     /**
-     * @return the thread id of the current thread or -1 is not available.
+     * Returns the thread id of the current thread.
+     *
+     * @return thread id or -1 if unavailable
      */
     int getThreadId();
 }

@@ -10,10 +10,21 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * @author Tom Shercliff
+ * Simple demonstration that pins several threads to specific CPUs.
  */
 public class AffinityTestMain {
 
+    /**
+     * Creates a test driver; work happens in {@link #main(String[])}.
+     */
+    public AffinityTestMain() {
+    }
+
+    /**
+     * Launches worker threads bound to successive CPUs.
+     *
+     * @param args optional first argument specifying thread count
+     */
     public static void main(String[] args) {
 
         int cpus;

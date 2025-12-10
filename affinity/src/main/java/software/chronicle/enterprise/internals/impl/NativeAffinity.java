@@ -37,18 +37,41 @@ public enum NativeAffinity implements IAffinity {
         }
     }
 
+    /**
+     * Returns the native library version string as reported by JNI.
+     */
     private static native String getVersion0();
 
+    /**
+     * Reads the current thread affinity mask from the native layer.
+     */
     private static native byte[] getAffinity0();
 
+    /**
+     * Applies the provided affinity mask via JNI.
+     *
+     * @param affinity serialized bitset of allowed CPUs
+     */
     private static native void setAffinity0(byte[] affinity);
 
+    /**
+     * Returns the CPU id of the caller according to the native implementation.
+     */
     private static native int getCpu0();
 
+    /**
+     * Returns the current process id via native call.
+     */
     private static native int getProcessId0();
 
+    /**
+     * Returns the current thread id via native call.
+     */
     private static native int getThreadId0();
 
+    /**
+     * Reads the CPU time-stamp counter directly through JNI.
+     */
     private static native long rdtsc0();
 
     /**

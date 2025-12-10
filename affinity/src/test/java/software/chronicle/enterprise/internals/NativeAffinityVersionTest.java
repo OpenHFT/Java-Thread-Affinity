@@ -106,7 +106,7 @@ public class NativeAffinityVersionTest {
     @Test
     public void versionCanBePrintedSafely() {
         // Should not throw when converting to string or printing
-        String versionStr = NativeAffinity.VERSION.toString();
+        String versionStr = NativeAffinity.VERSION;
         assertNotNull(versionStr);
 
         // Should be safe to print
