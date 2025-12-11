@@ -4,7 +4,13 @@
 package net.openhft.affinity.osgi;
 
 /**
- * A placeholder to have some plugin works
+ * Minimal placeholder bundle to satisfy OSGi metadata during tests.
  */
 public class OSGiPlaceholder {
+    /**
+     * Creates the placeholder; no behaviour is implemented.
+     */
+    public OSGiPlaceholder() {
+        // deliberately empty
+    }
 }
