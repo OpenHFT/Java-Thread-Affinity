@@ -3,14 +3,18 @@
  */
 package software.chronicle.enterprise.internals;
 
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Tests for improved error handling in the native layer.
@@ -18,10 +22,9 @@ import static org.junit.Assert.*;
  */
 public class NativeAffinityErrorHandlingTest {
 
-    @BeforeClass
+    @BeforeAll
     public static void checkNativeLibraryLoaded() {
-        Assume.assumeTrue("Native library must be loaded for these tests",
-                NativeAffinity.LOADED);
+        assumeTrue(NativeAffinity.LOADED, "Native library must be loaded for these tests");
     }
 
     @Test
@@ -31,21 +34,15 @@ public class NativeAffinityErrorHandlingTest {
 
         // Result should be either null or valid
         if (affinity != null) {
-            // If not null, should be a valid BitSet
-            assertNotNull("Affinity should be valid BitSet", affinity);
-
             // Should not be in an inconsistent state
             int length = affinity.length();
-            assertTrue("Affinity length should be non-negative", length >= 0);
+            assertTrue(length >= 0, "affinity length should be non-negative");
         }
     }
 
     @Test
     public void setAffinityWithEmptyBitSetHandlesGracefully() {
-        if (!isLinux()) {
-            System.out.println("Skipping Linux-specific test");
-            return;
-        }
+        assumeTrue(isLinux(), "requires Linux");
 
         BitSet original = NativeAffinity.INSTANCE.getAffinity();
         try {
@@ -56,8 +53,11 @@ public class NativeAffinityErrorHandlingTest {
                 NativeAffinity.INSTANCE.setAffinity(empty);
             } catch (RuntimeException e) {
                 // Expected on some systems
-                assertTrue("Should be RuntimeException", true);
+                String message = e.getMessage();
+                assertTrue(message == null || !message.isEmpty(), "empty BitSet exception message");
             }
+            int cpu = NativeAffinity.INSTANCE.getCpu();
+            assertTrue(cpu >= -1, "cpu should be valid after setAffinity(empty)");
         } finally {
             // Restore original affinity
             if (original != null) {
@@ -72,10 +72,7 @@ public class NativeAffinityErrorHandlingTest {
 
     @Test
     public void setAffinityWithLargeBitSetHandlesGracefully() {
-        if (!isLinux()) {
-            System.out.println("Skipping Linux-specific test");
-            return;
-        }
+        assumeTrue(isLinux(), "requires Linux");
 
         BitSet original = NativeAffinity.INSTANCE.getAffinity();
         try {
@@ -88,8 +85,10 @@ public class NativeAffinityErrorHandlingTest {
                 NativeAffinity.INSTANCE.setAffinity(large);
             } catch (RuntimeException e) {
                 // Expected - affinity mask too large
-                assertNotNull("Exception should have message", e.getMessage());
+                assertNotNull(e.getMessage(), "exception should have message");
             }
+            int cpu = NativeAffinity.INSTANCE.getCpu();
+            assertTrue(cpu >= -1, "cpu should be valid after setAffinity(large)");
         } finally {
             // Restore original affinity
             if (original != null) {
@@ -108,16 +107,15 @@ public class NativeAffinityErrorHandlingTest {
 
         if (isLinux()) {
             // On Linux, should return a valid PID (positive integer)
-            assertTrue("Process ID should be positive on Linux: " + processId,
-                    processId > 0);
+            assertTrue(processId > 0, "process ID should be positive on Linux: " + processId);
 
             // Should match system PID
             String javaPid = java.lang.management.ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
             int expectedPid = Integer.parseInt(javaPid);
-            assertEquals("Process ID should match Java runtime PID", expectedPid, processId);
+            assertEquals(expectedPid, processId, "process ID should match Java runtime PID");
         } else {
             // On non-Linux, should return -1 or throw UnsupportedOperationException
-            assertEquals("Process ID should be -1 on non-Linux platforms", -1, processId);
+            assertEquals(-1, processId, "process ID should be -1 on non-Linux platforms");
         }
     }
 
@@ -127,11 +125,10 @@ public class NativeAffinityErrorHandlingTest {
 
         if (isLinux()) {
             // On Linux, should return a valid thread ID (positive integer)
-            assertTrue("Thread ID should be positive on Linux: " + threadId,
-                    threadId > 0);
+            assertTrue(threadId > 0, "thread ID should be positive on Linux: " + threadId);
         } else {
             // On non-Linux, should return -1
-            assertEquals("Thread ID should be -1 on non-Linux platforms", -1, threadId);
+            assertEquals(-1, threadId, "thread ID should be -1 on non-Linux platforms");
         }
     }
 
@@ -142,12 +139,11 @@ public class NativeAffinityErrorHandlingTest {
         if (isLinux()) {
             // Should return a valid CPU ID (0 to number of CPUs - 1)
             int numCpus = Runtime.getRuntime().availableProcessors();
-            assertTrue("CPU ID should be non-negative: " + cpu, cpu >= 0);
-            assertTrue("CPU ID should be less than number of CPUs: " + cpu + " < " + numCpus,
-                    cpu < numCpus);
+            assertTrue(cpu >= 0, "CPU ID should be non-negative: " + cpu);
+            assertTrue(cpu < numCpus, "CPU ID should be less than number of CPUs: " + cpu + " < " + numCpus);
         } else {
             // On non-Linux, should return -1
-            assertEquals("CPU ID should be -1 on non-Linux platforms", -1, cpu);
+            assertEquals(-1, cpu, "CPU ID should be -1 on non-Linux platforms");
         }
     }
 
@@ -159,13 +155,13 @@ public class NativeAffinityErrorHandlingTest {
         BitSet affinity3 = NativeAffinity.INSTANCE.getAffinity();
 
         // All should be valid
-        assertNotNull("First call should return valid result", affinity1);
-        assertNotNull("Second call should return valid result", affinity2);
-        assertNotNull("Third call should return valid result", affinity3);
+        assertNotNull(affinity1, "first call should return valid result");
+        assertNotNull(affinity2, "second call should return valid result");
+        assertNotNull(affinity3, "third call should return valid result");
 
         // Should be equal (assuming no other thread changed affinity)
-        assertEquals("Affinity should be consistent", affinity1, affinity2);
-        assertEquals("Affinity should be consistent", affinity2, affinity3);
+        assertEquals(affinity1, affinity2, "affinity should be consistent");
+        assertEquals(affinity2, affinity3, "affinity should be consistent");
     }
 
     @Test
@@ -174,7 +170,7 @@ public class NativeAffinityErrorHandlingTest {
         final int threadCount = 5;
         final int iterationsPerThread = 10;
         Thread[] threads = new Thread[threadCount];
-        final Exception[] exceptions = new Exception[threadCount];
+        final Throwable[] failures = new Throwable[threadCount];
 
         for (int i = 0; i < threadCount; i++) {
             final int threadIndex = i;
@@ -183,19 +179,19 @@ public class NativeAffinityErrorHandlingTest {
                     for (int j = 0; j < iterationsPerThread; j++) {
                         // Mix of different operations
                         BitSet affinity = NativeAffinity.INSTANCE.getAffinity();
-                        assertNotNull("Affinity should not be null", affinity);
+                        assertNotNull(affinity, "affinity should not be null");
 
                         int cpu = NativeAffinity.INSTANCE.getCpu();
-                        assertTrue("CPU should be valid", cpu >= -1);
+                        assertTrue(cpu >= -1, "CPU should be valid");
 
                         int pid = NativeAffinity.INSTANCE.getProcessId();
-                        assertTrue("PID should be valid", pid >= -1);
+                        assertTrue(pid >= -1, "PID should be valid");
 
                         int tid = NativeAffinity.INSTANCE.getThreadId();
-                        assertTrue("TID should be valid", tid >= -1);
+                        assertTrue(tid >= -1, "TID should be valid");
                     }
-                } catch (Exception e) {
-                    exceptions[threadIndex] = e;
+                } catch (Throwable t) {
+                    failures[threadIndex] = t;
                 }
             });
         }
@@ -210,18 +206,15 @@ public class NativeAffinityErrorHandlingTest {
 
         // Check no exceptions occurred
         for (int i = 0; i < threadCount; i++) {
-            if (exceptions[i] != null) {
-                fail("Thread " + i + " threw exception: " + exceptions[i].getMessage());
+            if (failures[i] != null) {
+                fail("Thread " + i + " failed: " + failures[i]);
             }
         }
     }
 
     @Test
     public void exceptionMessagesAreInformative() {
-        if (!isLinux()) {
-            System.out.println("Skipping Linux-specific test");
-            return;
-        }
+        assumeTrue(isLinux(), "requires Linux");
 
         BitSet original = NativeAffinity.INSTANCE.getAffinity();
         try {
@@ -234,8 +227,8 @@ public class NativeAffinityErrorHandlingTest {
             } catch (RuntimeException e) {
                 // If it throws, message should be informative
                 String message = e.getMessage();
-                assertNotNull("Exception should have a message", message);
-                assertFalse("Exception message should not be empty", message.isEmpty());
+                assertNotNull(message, "exception should have a message");
+                assertFalse(message.isEmpty(), "exception message should not be empty");
 
                 System.out.println("Error message: " + message);
             }
@@ -259,7 +252,7 @@ public class NativeAffinityErrorHandlingTest {
 
         for (int i = 0; i < iterations; i++) {
             BitSet affinity = NativeAffinity.INSTANCE.getAffinity();
-            assertNotNull("Affinity should be valid on iteration " + i, affinity);
+            assertNotNull(affinity, "affinity should be valid on iteration " + i);
 
             @SuppressWarnings("unused")
             int cpu = NativeAffinity.INSTANCE.getCpu();
@@ -268,9 +261,6 @@ public class NativeAffinityErrorHandlingTest {
             @SuppressWarnings("unused")
             int tid = NativeAffinity.INSTANCE.getThreadId();
         }
-
-        // If we got here without crashing, basic memory safety is OK
-        assertTrue("No crashes during repeated calls", true);
     }
 
     private boolean isLinux() {

@@ -3,12 +3,11 @@
  */
 package net.openhft.affinity;
 
-import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
+import net.openhft.affinity.testimpl.FileLockBasedLockCheckerStub;
 import net.openhft.chronicle.testframework.process.JavaProcessBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,22 +27,25 @@ import java.util.stream.IntStream;
 
 import static java.lang.String.format;
 import static net.openhft.affinity.LockCheck.IS_LINUX;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class MultiProcessAffinityTest extends BaseAffinityTest {
+public class MultiProcessAffinityTest extends BaseAffinitySupport {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiProcessAffinityTest.class);
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        Assume.assumeTrue(IS_LINUX);
+        assumeTrue(IS_LINUX, "requires Linux");
     }
 
     @Test
     public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws InterruptedException {
         // run the separate affinity locker
         final Process affinityLockerProcess = JavaProcessBuilder.create(AffinityLockerProcess.class)
-                .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
+                .withJvmArguments("-Djava.io.tmpdir=" + folder.toAbsolutePath())
                 .withProgramArguments("last").start();
         try {
             int lastCpuId = AffinityLock.PROCESSORS - 1;
@@ -62,7 +64,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
             }
 
             try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-                assertNotEquals(lastCpuId, lock.cpuId());
+                assertNotEquals(lastCpuId, lock.cpuId(), "lock should not be acquired on cpu locked by other process");
             }
         } finally {
             affinityLockerProcess.destroy();
@@ -77,12 +79,13 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         LOGGER.info("Running test with {} locker processes", numberOfLockers);
         for (int i = 0; i < numberOfLockers; i++) {
             lockers.add(JavaProcessBuilder.create(RepeatedAffinityLocker.class)
-                    .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
+                    .withJvmArguments("-Djava.io.tmpdir=" + folder.toAbsolutePath())
                     .withProgramArguments("last", "30", "2").start());
         }
         for (int i = 0; i < numberOfLockers; i++) {
             final Process process = lockers.get(i);
             waitForProcessToEnd(20, "Locking process", process);
+            assertEquals(0, process.exitValue(), "locking process exit code: index=" + i);
         }
     }
 
@@ -94,12 +97,13 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
         Process lockFileDropper = JavaProcessBuilder.create(LockFileDropper.class).start();
         for (int i = 0; i < numberOfLockers; i++) {
             lockers.add(JavaProcessBuilder.create(RepeatedAffinityLocker.class)
-                    .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
+                    .withJvmArguments("-Djava.io.tmpdir=" + folder.toAbsolutePath())
                     .withProgramArguments("last", "30", "2").start());
         }
         for (int i = 0; i < numberOfLockers; i++) {
             final Process process = lockers.get(i);
             waitForProcessToEnd(20, "Locking process", process);
+            assertEquals(0, process.exitValue(), "locking process exit code: index=" + i);
         }
         lockFileDropper.destroy();
         waitForProcessToEnd(5, "Lock file droppper", lockFileDropper);
@@ -108,12 +112,12 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     @Test
     public void shouldBeAbleToAcquireLockLeftByOtherProcess() throws InterruptedException {
         final Process process = JavaProcessBuilder.create(AffinityLockerThatDoesNotReleaseProcess.class)
-                .withJvmArguments("-Djava.io.tmpdir=" + folder.getRoot().getAbsolutePath())
+                .withJvmArguments("-Djava.io.tmpdir=" + folder.toAbsolutePath())
                 .withProgramArguments("last").start();
         waitForProcessToEnd(5, "Locking process", process);
         // We should be able to acquire the lock despite the other process not explicitly releasing it
         try (final AffinityLock acquired = AffinityLock.acquireLock("last")) {
-            assertEquals(AffinityLock.PROCESSORS - 1, acquired.cpuId());
+            assertEquals(AffinityLock.PROCESSORS - 1, acquired.cpuId(), "acquired lock on last CPU");
         }
     }
 
@@ -255,7 +259,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
 
         @NotNull
         static File toFile(int id) {
-            return new TestFileLockBasedLockChecker().doToFile(id);
+            return new FileLockBasedLockCheckerStub().doToFile(id);
         }
     }
 }

@@ -4,22 +4,22 @@
 package net.openhft.ticker.impl;
 
 import net.openhft.affinity.Affinity;
-import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Ignore;
-import org.junit.Test;
+import net.openhft.affinity.BaseAffinitySupport;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /*
  * Created by Peter Lawrey on 13/07/15.
  */
-public class JNIClockTest extends BaseAffinityTest {
+public class JNIClockTest extends BaseAffinitySupport {
 
     @Test
     public void testNanoTime() throws InterruptedException {
-        assumeTrue("JNIClock native library must be loaded", JNIClock.LOADED);
+        assumeTrue(JNIClock.LOADED, "JNIClock native library must be loaded");
 
         for (int i = 0; i < 20000; i++)
             System.nanoTime();
@@ -34,27 +34,33 @@ public class JNIClockTest extends BaseAffinityTest {
             if (i > 1) {
                 long deltaSys = time0 - start0;
                 long deltaClock = instance.toNanos(time1 - start1);
-                assertTrue("System.nanoTime delta should be positive", deltaSys > 0);
-                assertTrue("JNIClock delta should be positive", deltaClock > 0);
+                assertTrue(deltaSys > 0, "System.nanoTime delta should be positive");
+                assertTrue(deltaClock > 0, "JNIClock delta should be positive");
 
                 // The JNI clock should report elapsed time in the same order
                 // of magnitude as System.nanoTime, but we allow wide tolerances
                 // to avoid flakiness on shared or throttled environments.
                 double ratio = (double) deltaClock / (double) deltaSys;
-                assertTrue("JNIClock and System.nanoTime deltas should be within a reasonable ratio, was " + ratio,
-                        ratio > 0.1 && ratio < 10.0);
+                assertTrue(
+                        ratio > 0.1 && ratio < 10.0,
+                        "JNIClock and System.nanoTime deltas should be within a reasonable ratio, was " + ratio
+                );
 
-                assertEquals("toMicros should be consistent with toNanos",
-                        instance.toNanos(time1 - start1) / 1e3, instance.toMicros(time1 - start1), 0.6);
+                assertEquals(
+                        instance.toNanos(time1 - start1) / 1e3,
+                        instance.toMicros(time1 - start1),
+                        0.6,
+                        "toMicros should be consistent with toNanos"
+                );
             }
         }
     }
 
     @Test
-    @Ignore("Long running")
+    @Disabled("Long running")
     public void testJitter() {
         Affinity.setAffinity(2);
-        assertEquals(2, Affinity.getCpu());
+        assertEquals(2, Affinity.getCpu(), "cpu pinned to 2");
         int samples = 100000, count = 0;
         long[] time = new long[samples];
         long[] length = new long[samples];

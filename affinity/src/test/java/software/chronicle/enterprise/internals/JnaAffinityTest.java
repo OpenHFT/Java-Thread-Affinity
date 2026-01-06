@@ -6,24 +6,32 @@ package software.chronicle.enterprise.internals;
 import net.openhft.affinity.IAffinity;
 import net.openhft.affinity.impl.AbstractAffinityImplTest;
 import net.openhft.affinity.impl.LinuxJNAAffinity;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * @author peter.lawrey
  */
 public class JnaAffinityTest extends AbstractAffinityImplTest {
-    @BeforeClass
+    @BeforeAll
     public static void checkJniLibraryPresent() {
-        Assume.assumeTrue(LinuxJNAAffinity.LOADED);
+        assumeTrue(LinuxJNAAffinity.LOADED, "requires LinuxJNAAffinity to be loaded");
     }
 
     @Test
     public void showOtherIds() {
-        System.out.println("processId: " + LinuxJNAAffinity.INSTANCE.getProcessId());
-        System.out.println("threadId: " + LinuxJNAAffinity.INSTANCE.getThreadId());
-        System.out.println("cpu: " + LinuxJNAAffinity.INSTANCE.getCpu());
+        long processId = LinuxJNAAffinity.INSTANCE.getProcessId();
+        long threadId = LinuxJNAAffinity.INSTANCE.getThreadId();
+        int cpu = LinuxJNAAffinity.INSTANCE.getCpu();
+        System.out.println("processId: " + processId);
+        System.out.println("threadId: " + threadId);
+        System.out.println("cpu: " + cpu);
+        assertTrue(processId > 0, "processId should be positive");
+        assertTrue(threadId > 0, "threadId should be positive");
+        assertTrue(cpu >= 0, "cpu should be non-negative");
     }
 
     @Override

@@ -4,34 +4,30 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.LinuxJNAAffinity;
-import org.junit.Test;
+import net.openhft.affinity.impl.NullAffinity;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class AffinitySelectionAndFallbackTest extends BaseAffinityTest {
+public class AffinitySelectionAndFallbackTest extends BaseAffinitySupport {
 
     @Test
     public void defaultsToLinuxJnaImplementationOnLinux() {
-        assumeTrue(System.getProperty("os.name").startsWith("Linux"));
-        assumeTrue("JNA must be available for this test", Affinity.isJNAAvailable());
-        assumeTrue("LinuxJNAAffinity must be loaded", LinuxJNAAffinity.LOADED);
+        assumeTrue(System.getProperty("os.name").startsWith("Linux"), "requires Linux");
+        assumeTrue(Affinity.isJNAAvailable(), "requires JNA");
+        assumeTrue(LinuxJNAAffinity.LOADED, "requires LinuxJNAAffinity to be loaded");
 
         IAffinity impl = Affinity.getAffinityImpl();
-        assertTrue("Expected LinuxJNAAffinity as default implementation on Linux",
-                impl instanceof LinuxJNAAffinity);
+        assertInstanceOf(LinuxJNAAffinity.class, impl, "default affinity implementation on Linux");
     }
 
     @Test
     public void fallsBackToNullAffinityWhenJnaUnavailable() {
-        // This behaviour can only be asserted when JNA is genuinely unavailable
-        // on the classpath. When JNA is present, we skip the assertion.
-        if (Affinity.isJNAAvailable()) {
-            return;
-        }
+        assumeFalse(Affinity.isJNAAvailable(), "requires JNA to be unavailable");
         IAffinity impl = Affinity.getAffinityImpl();
-        assertTrue("Expected NullAffinity when JNA is not available",
-                impl instanceof net.openhft.affinity.impl.NullAffinity);
+        assertInstanceOf(NullAffinity.class, impl, "expected NullAffinity when JNA is not available");
     }
 }
-

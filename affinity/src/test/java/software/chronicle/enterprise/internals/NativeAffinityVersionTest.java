@@ -3,10 +3,15 @@
  */
 package software.chronicle.enterprise.internals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the native library version tracking functionality.
@@ -16,25 +21,26 @@ public class NativeAffinityVersionTest {
 
     @Test
     public void versionConstantIsNotNull() {
-        assertNotNull("NativeAffinity.VERSION should never be null", NativeAffinity.VERSION);
+        assertNotNull(NativeAffinity.VERSION, "NativeAffinity.VERSION should never be null");
     }
 
     @Test
     public void versionConstantIsNotEmpty() {
-        assertFalse("NativeAffinity.VERSION should not be empty", NativeAffinity.VERSION.isEmpty());
+        assertFalse(NativeAffinity.VERSION.isEmpty(), "NativeAffinity.VERSION should not be empty");
     }
 
     @Test
     public void versionHasExpectedValueWhenLoaded() {
         if (NativeAffinity.LOADED) {
             // When library is loaded, version should not be "not loaded"
-            assertNotEquals("When library is loaded, VERSION should contain actual version",
-                    "not loaded", NativeAffinity.VERSION);
+            assertNotEquals("not loaded", NativeAffinity.VERSION, "When library is loaded, VERSION should contain actual version");
 
             // Should contain something that looks like a version
             // (numbers, dots, hyphens, or letters for SNAPSHOT/ea etc)
-            assertTrue("VERSION should match version pattern when loaded: " + NativeAffinity.VERSION,
-                    NativeAffinity.VERSION.matches(".*\\d+.*"));
+            assertTrue(
+                    NativeAffinity.VERSION.matches(".*\\d+.*"),
+                    "VERSION should match version pattern when loaded: " + NativeAffinity.VERSION
+            );
 
             System.out.println("Native library version: " + NativeAffinity.VERSION);
         }
@@ -43,39 +49,39 @@ public class NativeAffinityVersionTest {
     @Test
     public void versionIsNotLoadedWhenLibraryNotLoaded() {
         if (!NativeAffinity.LOADED) {
-            assertEquals("When library is not loaded, VERSION should be 'not loaded'",
-                    "not loaded", NativeAffinity.VERSION);
+            assertEquals("not loaded", NativeAffinity.VERSION, "When library is not loaded, VERSION should be 'not loaded'");
         }
     }
 
     @Test
     public void versionFormatIsValid() {
         // Version should be either "not loaded" or a valid version string
-        assertTrue("VERSION should be either 'not loaded' or contain version info",
+        assertTrue(
                 NativeAffinity.VERSION.equals("not loaded") ||
-                NativeAffinity.VERSION.matches(".*[0-9]+.*"));
+                        NativeAffinity.VERSION.matches(".*[0-9]+.*"),
+                "VERSION should be either 'not loaded' or contain version info"
+        );
     }
 
     @Test
     public void versionDoesNotContainNullCharacters() {
-        assertFalse("VERSION should not contain null characters",
-                NativeAffinity.VERSION.contains("\0"));
+        assertFalse(NativeAffinity.VERSION.contains("\0"), "VERSION should not contain null characters");
     }
 
     @Test
     public void versionLengthIsReasonable() {
-        assertTrue("VERSION length should be reasonable (< 100 chars): " + NativeAffinity.VERSION.length(),
-                NativeAffinity.VERSION.length() < 100);
-        assertTrue("VERSION length should be at least 1: " + NativeAffinity.VERSION.length(),
-                NativeAffinity.VERSION.length() >= 1);
+        assertTrue(NativeAffinity.VERSION.length() < 100, "VERSION length should be reasonable (< 100 chars): " + NativeAffinity.VERSION.length());
+        assertTrue(NativeAffinity.VERSION.length() >= 1, "VERSION length should be at least 1: " + NativeAffinity.VERSION.length());
     }
 
     @Test
     public void versionIsPrintable() {
         // All characters should be printable (ASCII 32-126) or standard version chars
         for (char c : NativeAffinity.VERSION.toCharArray()) {
-            assertTrue("VERSION should only contain printable characters, found: " + (int)c,
-                    (c >= 32 && c <= 126) || Character.isWhitespace(c));
+            assertTrue(
+                    (c >= 32 && c <= 126) || Character.isWhitespace(c),
+                    "VERSION should only contain printable characters, found: " + (int) c
+            );
         }
     }
 
@@ -84,11 +90,9 @@ public class NativeAffinityVersionTest {
         // If LOADED is true, VERSION should not be "not loaded"
         // If LOADED is false, VERSION should be "not loaded"
         if (NativeAffinity.LOADED) {
-            assertNotEquals("When LOADED is true, VERSION should not be 'not loaded'",
-                    "not loaded", NativeAffinity.VERSION);
+            assertNotEquals("not loaded", NativeAffinity.VERSION, "When LOADED is true, VERSION should not be 'not loaded'");
         } else {
-            assertEquals("When LOADED is false, VERSION should be 'not loaded'",
-                    "not loaded", NativeAffinity.VERSION);
+            assertEquals("not loaded", NativeAffinity.VERSION, "When LOADED is false, VERSION should be 'not loaded'");
         }
     }
 
@@ -96,10 +100,12 @@ public class NativeAffinityVersionTest {
     public void versionMatchesExpectedPattern() {
         if (NativeAffinity.LOADED) {
             // Expected patterns: "3.27ea2-SNAPSHOT", "3.27.0", "1.2.3-SNAPSHOT", etc.
-            assertTrue("VERSION should match semantic versioning pattern: " + NativeAffinity.VERSION,
+            assertTrue(
                     NativeAffinity.VERSION.matches("\\d+\\.\\d+.*") || // Basic semver
-                    NativeAffinity.VERSION.matches(".*\\d+.*-.*") || // Version with suffix
-                    NativeAffinity.VERSION.matches("\\d+.*")); // Any version starting with digit
+                            NativeAffinity.VERSION.matches(".*\\d+.*-.*") || // Version with suffix
+                            NativeAffinity.VERSION.matches("\\d+.*"), // Any version starting with digit
+                    "VERSION should match semantic versioning pattern: " + NativeAffinity.VERSION
+            );
         }
     }
 
@@ -107,7 +113,7 @@ public class NativeAffinityVersionTest {
     public void versionCanBePrintedSafely() {
         // Should not throw when converting to string or printing
         String versionStr = NativeAffinity.VERSION;
-        assertNotNull(versionStr);
+        assertNotNull(versionStr, "VERSION");
 
         // Should be safe to print
         System.out.println("NativeAffinity version: " + NativeAffinity.VERSION);
@@ -119,7 +125,7 @@ public class NativeAffinityVersionTest {
         String version1 = NativeAffinity.VERSION;
         String version2 = NativeAffinity.VERSION;
 
-        assertSame("VERSION should be the same instance", version1, version2);
+        assertSame(version1, version2, "VERSION should be the same instance");
     }
 
     @Test
@@ -132,7 +138,6 @@ public class NativeAffinityVersionTest {
         NativeAffinity instance = NativeAffinity.INSTANCE;
 
         // Version should still be the same
-        assertSame("VERSION should not change after initialization",
-                initialVersion, NativeAffinity.VERSION);
+        assertSame(initialVersion, NativeAffinity.VERSION, "VERSION should not change after initialisation");
     }
 }

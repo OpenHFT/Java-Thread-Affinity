@@ -3,10 +3,15 @@
  */
 package software.chronicle.enterprise.internals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests for native library loading and initialization.
@@ -19,7 +24,7 @@ public class NativeAffinityLibraryLoadingTest {
         // LOADED should be deterministic (true or false, not null or uninitialized)
         boolean loaded = NativeAffinity.LOADED;
         // Should not throw - field is accessible
-        assertTrue("LOADED field should be initialized", loaded || !loaded);
+        assertTrue(loaded || !loaded, "LOADED field should be initialised");
     }
 
     @Test
@@ -28,14 +33,14 @@ public class NativeAffinityLibraryLoadingTest {
         boolean firstCheck = NativeAffinity.LOADED;
         boolean secondCheck = NativeAffinity.LOADED;
 
-        assertEquals("LOADED state should be deterministic", firstCheck, secondCheck);
+        assertEquals(firstCheck, secondCheck, "LOADED state should be deterministic");
     }
 
     @Test
     public void instanceIsAccessibleRegardlessOfLoadState() {
         // INSTANCE should be accessible even if library is not loaded
         NativeAffinity instance = NativeAffinity.INSTANCE;
-        assertNotNull("INSTANCE should never be null", instance);
+        assertNotNull(instance, "INSTANCE should never be null");
     }
 
     @Test
@@ -44,32 +49,30 @@ public class NativeAffinityLibraryLoadingTest {
         NativeAffinity instance1 = NativeAffinity.INSTANCE;
         NativeAffinity instance2 = NativeAffinity.INSTANCE;
 
-        assertSame("INSTANCE should be a singleton", instance1, instance2);
+        assertSame(instance1, instance2, "INSTANCE should be a singleton");
     }
 
     @Test
     public void versionIsSetDuringStaticInitialization() {
         // VERSION should be set during static initialization
-        assertNotNull("VERSION should be initialized during static init", NativeAffinity.VERSION);
+        assertNotNull(NativeAffinity.VERSION, "VERSION should be initialised during static init");
 
         // Should be consistent
         String version1 = NativeAffinity.VERSION;
         String version2 = NativeAffinity.VERSION;
-        assertEquals("VERSION should be consistent", version1, version2);
+        assertEquals(version1, version2, "VERSION should be consistent");
     }
 
     @Test
     public void libraryLoadingStateIsConsistent() {
         // If LOADED is true, we should be able to access VERSION with real value
         if (NativeAffinity.LOADED) {
-            assertNotEquals("Loaded library should have real version",
-                    "not loaded", NativeAffinity.VERSION);
+            assertNotEquals("not loaded", NativeAffinity.VERSION, "loaded library should have real version");
 
             System.out.println("Native library successfully loaded");
             System.out.println("Library version: " + NativeAffinity.VERSION);
         } else {
-            assertEquals("Unloaded library should have 'not loaded' version",
-                    "not loaded", NativeAffinity.VERSION);
+            assertEquals("not loaded", NativeAffinity.VERSION, "unloaded library should have 'not loaded' version");
 
             System.out.println("Native library not loaded (JNA fallback active)");
         }
@@ -102,8 +105,7 @@ public class NativeAffinityLibraryLoadingTest {
         // All threads should see the same LOADED state
         boolean firstResult = results[0];
         for (int i = 1; i < threadCount; i++) {
-            assertEquals("All threads should see consistent LOADED state",
-                    firstResult, results[i]);
+            assertEquals(firstResult, results[i], "all threads should see consistent LOADED state");
         }
     }
 
@@ -112,12 +114,12 @@ public class NativeAffinityLibraryLoadingTest {
         // Should not throw when used in logging/printing contexts
         try {
             String logMessage = "Library version: " + NativeAffinity.VERSION;
-            assertNotNull(logMessage);
+            assertNotNull(logMessage, "log message created");
 
             // Should be safe to concatenate
             String concatenated = "V" + NativeAffinity.VERSION + "X";
-            assertTrue(concatenated.startsWith("V"));
-            assertTrue(concatenated.endsWith("X"));
+            assertTrue(concatenated.startsWith("V"), "concatenated starts with V");
+            assertTrue(concatenated.endsWith("X"), "concatenated ends with X");
         } catch (Exception e) {
             fail("VERSION should be safe for string operations: " + e.getMessage());
         }
@@ -131,8 +133,7 @@ public class NativeAffinityLibraryLoadingTest {
 
         if (NativeAffinity.LOADED) {
             // Library loaded successfully - version should be available
-            assertNotNull("Version should be available when library loaded",
-                    NativeAffinity.VERSION);
+            assertNotNull(NativeAffinity.VERSION, "version should be available when library loaded");
 
             // On Linux, library file should be libCEInternals.so
             String osName = System.getProperty("os.name").toLowerCase();
@@ -155,13 +156,10 @@ public class NativeAffinityLibraryLoadingTest {
         // 3. Version was compatible
 
         if (NativeAffinity.LOADED) {
-            // If we got here, JNI version negotiation succeeded
-            assertTrue("JNI version negotiation succeeded", true);
-
             // Verify we can call a native method (which proves JNI is working)
             String version = NativeAffinity.VERSION;
-            assertNotNull("Native method call succeeded", version);
-            assertNotEquals("Native method returned valid version", "not loaded", version);
+            assertNotNull(version, "native method call succeeded");
+            assertNotEquals("not loaded", version, "native method returned valid version");
         }
     }
 
@@ -173,16 +171,16 @@ public class NativeAffinityLibraryLoadingTest {
 
         // Both should be initialized
         boolean loadedWrapper = NativeAffinity.LOADED;
-        assertTrue("LOADED should be initialized", loadedWrapper || !loadedWrapper);
+        assertTrue(loadedWrapper || !loadedWrapper, "LOADED should be initialised");
 
         String version = NativeAffinity.VERSION;
-        assertNotNull("VERSION should be initialized", version);
+        assertNotNull(version, "VERSION should be initialised");
 
         // Relationship should be consistent
         if (NativeAffinity.LOADED) {
-            assertNotEquals("VERSION should reflect loaded state", "not loaded", version);
+            assertNotEquals("not loaded", version, "VERSION should reflect loaded state");
         } else {
-            assertEquals("VERSION should reflect not loaded state", "not loaded", version);
+            assertEquals("not loaded", version, "VERSION should reflect not loaded state");
         }
     }
 
@@ -192,6 +190,6 @@ public class NativeAffinityLibraryLoadingTest {
         Class<?> class1 = NativeAffinity.class;
         Class<?> class2 = NativeAffinity.INSTANCE.getClass();
 
-        assertSame("Class should be the same", class1, class2);
+        assertSame(class1, class2, "Class should be the same");
     }
 }

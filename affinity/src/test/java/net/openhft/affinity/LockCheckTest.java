@@ -3,13 +3,15 @@
  */
 package net.openhft.affinity;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * @author Rob Austin.
@@ -23,7 +25,7 @@ public class LockCheckTest extends AbstractLockCheckTest {
 
     @Test
     public void testNegativePidOnLinux() {
-        Assert.assertFalse("negative PID should not be considered running", LockCheck.isProcessRunning(-1));
+        assertFalse(LockCheck.isProcessRunning(-1), "negative PID should not be considered running");
     }
 
     @Test
@@ -36,6 +38,6 @@ public class LockCheckTest extends AbstractLockCheckTest {
             writer.append("not a number\nnot a date");
         }
 
-        LockCheck.isCpuFree(cpu);
+        assertDoesNotThrow(() -> LockCheck.isCpuFree(cpu), "corrupt PID file should not throw");
     }
 }

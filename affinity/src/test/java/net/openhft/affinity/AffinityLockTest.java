@@ -6,8 +6,7 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.chronicle.testframework.Waiters;
-import org.hamcrest.MatcherAssert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,14 +20,20 @@ import java.util.BitSet;
 import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * @author peter.lawrey
  */
-public class AffinityLockTest extends BaseAffinityTest {
+public class AffinityLockTest extends BaseAffinitySupport {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
     /**
@@ -68,7 +73,7 @@ public class AffinityLockTest extends BaseAffinityTest {
                 "4: General use CPU\n" +
                 "5: CPU not available\n" +
                 "6: Thread[main,5,main] alive=false\n" +
-                "7: Thread[tcp,5,main] alive=true\n", actual);
+                "7: Thread[tcp,5,main] alive=true\n", actual, "lock dump should correctly represent i7 CPU topology with reserved and assigned CPUs");
         System.out.println(actual);
 
         locks[2].assignedThread.interrupt();
@@ -94,7 +99,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         assertEquals("0: General use CPU\n" +
                 "1: Thread[engine,5,main] alive=true\n" +
                 "2: General use CPU\n" +
-                "3: Thread[main,5,main] alive=false\n", actual);
+                "3: Thread[main,5,main] alive=false\n", actual, "lock dump should correctly represent i3 CPU topology with hyperthreading configuration");
         System.out.println(actual);
 
         locks[1].assignedThread.interrupt();
@@ -112,7 +117,7 @@ public class AffinityLockTest extends BaseAffinityTest {
 
         final String actual = dumpLocks(locks);
         assertEquals("0: General use CPU\n" +
-                "1: Thread[engine,5,main] alive=true\n", actual);
+                "1: Thread[engine,5,main] alive=true\n", actual, "lock dump should correctly represent Core Duo single-core CPU topology");
         System.out.println(actual);
 
         locks[1].assignedThread.interrupt();
@@ -120,68 +125,60 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void assignReleaseThread() throws IOException {
-        if (AffinityLock.RESERVED_AFFINITY.isEmpty()) {
-            System.out.println("Cannot run affinity test as no threads gave been reserved.");
-            System.out.println("Use isolcpus= in grub.conf or use -D" + AffinityLock.AFFINITY_RESERVED + "={hex mask}");
-            return;
-
-        } else if (!new File("/proc/cpuinfo").exists()) {
-            System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
-            return;
-        }
+        assumeFalse(AffinityLock.RESERVED_AFFINITY.isEmpty(), "requires reserved CPUs (see " + AffinityLock.AFFINITY_RESERVED + ")");
+        assumeTrue(new File("/proc/cpuinfo").exists(), "requires /proc/cpuinfo");
 
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
 
-        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
-        AffinityLock al = AffinityLock.acquireLock();
-        assertEquals(1, Affinity.getAffinity().cardinality());
-        al.release();
-        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity(), "affinity should start at base configuration before acquiring any locks");
+        try (AffinityLock al = AffinityLock.acquireLock()) {
+            assertEquals(1, Affinity.getAffinity().cardinality(), () -> "acquiring a lock should pin thread affinity to exactly one CPU (cpu=" + al.cpuId() + ")");
+        }
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity(), "affinity should be restored to base configuration after releasing lock");
 
-        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
-        AffinityLock al2 = AffinityLock.acquireCore();
-        assertEquals(1, Affinity.getAffinity().cardinality());
-        al2.release();
-        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity(), "affinity should start at base configuration before acquiring core lock");
+        try (AffinityLock al2 = AffinityLock.acquireCore()) {
+            assertEquals(1, Affinity.getAffinity().cardinality(), () -> "acquiring a core lock should pin thread affinity to exactly one CPU (cpu=" + al2.cpuId() + ")");
+        }
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity(), "affinity should be restored to base configuration after releasing core lock");
     }
 
     @Test
     public void resetAffinity() {
-        assumeTrue(System.getProperty("os.name").contains("nux"));
-        assertTrue(Affinity.getAffinity().cardinality() > 1);
+        assumeTrue(System.getProperty("os.name").contains("nux"), "requires Linux");
+        assertTrue(Affinity.getAffinity().cardinality() > 1, "system should have multiple CPUs available for affinity testing");
         try (AffinityLock lock = AffinityLock.acquireLock()) {
-            assertEquals(1, Affinity.getAffinity().cardinality());
-            assertTrue(lock.resetAffinity());
+            assertEquals(1, Affinity.getAffinity().cardinality(), "acquiring lock should pin affinity to single CPU");
+            assertTrue(lock.resetAffinity(), "resetAffinity should return true when successfully resetting to base affinity");
             lock.resetAffinity(false);
         }
-        assertEquals(1, Affinity.getAffinity().cardinality());
+        assertEquals(1, Affinity.getAffinity().cardinality(), "affinity should remain pinned to single CPU after resetAffinity(false)");
         try (AffinityLock lock = AffinityLock.acquireLock()) {
-            assertNotNull(lock);
+            assertNotNull(lock, "should be able to acquire a new lock after partial reset");
         }
-        assertTrue(Affinity.getAffinity().cardinality() > 1);
+        assertTrue(Affinity.getAffinity().cardinality() > 1, "affinity should be restored to multi-CPU base configuration after full release");
     }
 
     @Test
     public void testIssue21() throws IOException {
-        if (!new File("/proc/cpuinfo").exists()) {
-            System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
-            return;
-        }
+        assumeTrue(new File("/proc/cpuinfo").exists(), "requires /proc/cpuinfo");
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
         AffinityLock al = AffinityLock.acquireLock();
         AffinityLock alForAnotherThread = al.acquireLock(AffinityStrategies.ANY);
         if (Runtime.getRuntime().availableProcessors() > 2) {
             AffinityLock alForAnotherThread2 = al.acquireLock(AffinityStrategies.ANY);
-            assertNotSame(alForAnotherThread, alForAnotherThread2);
-            if (alForAnotherThread.cpuId() != -1)
-                assertNotSame(alForAnotherThread.cpuId(), alForAnotherThread2.cpuId());
+            assertNotSame(alForAnotherThread, alForAnotherThread2, "acquiring multiple locks should return distinct lock instances");
+            if (alForAnotherThread.cpuId() != -1) {
+                assertNotEquals(alForAnotherThread.cpuId(), alForAnotherThread2.cpuId(), "distinct locks should be assigned to different CPU ids");
+            }
 
             alForAnotherThread2.release();
 
         } else {
-            assertNotSame(alForAnotherThread, al);
-            if (alForAnotherThread.cpuId() != -1)
-                assertNotSame(alForAnotherThread.cpuId(), al.cpuId());
+            assertNotSame(alForAnotherThread, al, "acquiring a derived lock should return a distinct instance from parent lock");
+            if (alForAnotherThread.cpuId() != -1) {
+                assertNotEquals(alForAnotherThread.cpuId(), al.cpuId(), "parent and child locks should be assigned to different CPU ids");
+            }
         }
         alForAnotherThread.release();
         al.release();
@@ -199,6 +196,7 @@ public class AffinityLockTest extends BaseAffinityTest {
                     AffinityStrategies.DIFFERENT_CORE,
                     AffinityStrategies.SAME_SOCKET,
                     AffinityStrategies.ANY));
+        assertEquals(257, locks.size(), "should successfully acquire 257 locks using fallback strategies without exhausting lock pool");
         for (AffinityLock lock : locks) {
             lock.release();
         }
@@ -206,11 +204,14 @@ public class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     public void testGettid() {
-        System.out.println("cpu= " + Affinity.getCpu());
+        int cpu = Affinity.getCpu();
+        System.out.println("cpu= " + cpu);
+        assertTrue(cpu >= -1, "getCpu should return a valid CPU id (non-negative) or -1 when unavailable");
     }
 
     @Test
     public void testAffinity() throws InterruptedException {
+        BitSet before = (BitSet) Affinity.getAffinity().clone();
         logger.info("Started");
         displayStatus();
         try (AffinityLock al = AffinityLock.acquireLock()) {
@@ -229,16 +230,17 @@ public class AffinityLockTest extends BaseAffinityTest {
         }
         System.out.println("All unlocked");
         displayStatus();
+        assertEquals(before, Affinity.getAffinity(), "affinity should be restored to original configuration after all locks released");
     }
 
     @Test
     public void shouldReturnLockForSpecifiedCpu() {
-        assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 3, "requires >3 CPUs");
 
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
-            MatcherAssert.assertThat(affinityLock.cpuId(), is(3));
+            assertEquals(3, affinityLock.cpuId(), "acquireLock with explicit CPU id should bind to that specific CPU");
         }
-        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
+        assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity(), "affinity should be restored to base configuration after releasing explicit CPU lock");
     }
 
     @Test
@@ -246,14 +248,12 @@ public class AffinityLockTest extends BaseAffinityTest {
         if (!Utilities.ISLINUX) {
             return;
         }
-        final AffinityLock lock = AffinityLock.acquireLock();
-
-        Path lockFile = Paths.get(System.getProperty("java.io.tmpdir"), "cpu-" + lock.cpuId() + ".lock");
-        assertTrue(Files.exists(lockFile));
-
-        lock.release();
-
-        assertFalse(Files.exists(lockFile));
+        Path lockFile;
+        try (AffinityLock lock = AffinityLock.acquireLock()) {
+            lockFile = Paths.get(System.getProperty("java.io.tmpdir"), "cpu-" + lock.cpuId() + ".lock");
+            assertTrue(Files.exists(lockFile), "lock file should exist in temp directory while lock is held: " + lockFile);
+        }
+        assertFalse(Files.exists(lockFile), "lock file should be automatically removed after lock is released: " + lockFile);
     }
 
     @Test
@@ -269,12 +269,12 @@ public class AffinityLockTest extends BaseAffinityTest {
             int coreId = layout.coreId(lock.cpuId());
             for (int i = 0; i < layout.cpus(); i++) {
                 if (layout.socketId(i) == socketId && layout.coreId(i) == coreId) {
-                    assertFalse("CPU " + i + " should be reserved", LockCheck.isCpuFree(i));
+                    assertFalse(LockCheck.isCpuFree(i), "acquireCore should reserve all logical CPUs on the same physical core, including hyperthreading siblings: CPU " + i);
                 }
             }
         }
         for (int i = 0; i < layout.cpus(); i++) {
-            assertTrue("CPU " + i + " should not be reserved", LockCheck.isCpuFree(i));
+            assertTrue(LockCheck.isCpuFree(i), "all CPUs should be released after core lock is closed: CPU " + i);
         }
     }
 
@@ -288,32 +288,28 @@ public class AffinityLockTest extends BaseAffinityTest {
             return;
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertNotNull(lock);
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(PROCESSORS - 1, lock.cpuId(), "string descriptor 'last' should acquire lock on highest numbered CPU");
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last")) {
-            assertNotNull(lock);
-            assertEquals(PROCESSORS - 1, Affinity.getCpu());
+            assertEquals(PROCESSORS - 1, lock.cpuId(), "string descriptor 'last' should consistently return same CPU on repeated calls");
         }
         try (AffinityLock lock = AffinityLock.acquireLock("last-1")) {
-            assertNotNull(lock);
-            assertEquals(PROCESSORS - 2, Affinity.getCpu());
+            assertEquals(PROCESSORS - 2, lock.cpuId(), "string descriptor 'last-1' should acquire lock on second-to-last CPU");
         }
         try (AffinityLock lock = AffinityLock.acquireLock("1")) {
-            assertNotNull(lock);
-            assertEquals(1, Affinity.getCpu());
+            assertEquals(1, lock.cpuId(), "numeric string descriptor should acquire lock on that specific CPU id");
         }
         try (AffinityLock lock = AffinityLock.acquireLock("any")) {
-            assertTrue(lock.bound);
+            assertTrue(lock.bound, "string descriptor 'any' should bind to an available CPU");
         }
         try (AffinityLock lock = AffinityLock.acquireLock("none")) {
-            assertFalse(lock.bound);
+            assertFalse(lock.bound, "string descriptor 'none' should create unbound lock without pinning to CPU");
         }
         try (AffinityLock lock = AffinityLock.acquireLock((String) null)) {
-            assertFalse(lock.bound);
+            assertFalse(lock.bound, "null string descriptor should create unbound lock without pinning to CPU");
         }
         try (AffinityLock lock = AffinityLock.acquireLock("0")) {
-            assertFalse(lock.bound);
+            assertFalse(lock.bound, "string descriptor '0' should create unbound lock as CPU 0 is reserved for general use");
         }
     }
 
@@ -321,31 +317,31 @@ public class AffinityLockTest extends BaseAffinityTest {
     public void acquireLockWithoutBindingDoesNotChangeAffinity() {
         BitSet before = (BitSet) Affinity.getAffinity().clone();
         try (AffinityLock lock = AffinityLock.acquireLock(false)) {
-            assertFalse(lock.isBound());
-            assertEquals(before, Affinity.getAffinity());
+            assertFalse(lock.isBound(), "acquireLock(false) should create an unbound lock that does not pin to a CPU");
+            assertEquals(before, Affinity.getAffinity(), "thread affinity should remain unchanged while holding an unbound lock");
         }
-        assertEquals(before, Affinity.getAffinity());
+        assertEquals(before, Affinity.getAffinity(), "thread affinity should remain unchanged after releasing an unbound lock");
     }
 
     @Test
     public void testTooHighCpuId() {
-        assertFalse(AffinityLock.acquireLock(123456).isBound());
+        assertFalse(AffinityLock.acquireLock(123456).isBound(), "acquireLock should create unbound lock when requested CPU id exceeds available processors");
     }
 
     @Test
     public void testNegativeCpuId() {
-        assertFalse(AffinityLock.acquireLock(-1).isBound());
+        assertFalse(AffinityLock.acquireLock(-1).isBound(), "acquireLock should create unbound lock when given negative CPU id");
     }
 
     @Test
     public void testTooHighCpuId2() {
         AffinityLock lock = AffinityLock.acquireLock(new int[]{123456});
-        assertFalse(lock.isBound());
+        assertFalse(lock.isBound(), "acquireLock should create unbound lock when CPU id array contains invalid processor numbers");
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
-        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 1, "requires >1 CPU");
 
         final AffinityLock lock = AffinityLock.acquireLock(false);
         Thread t = new Thread(() -> {
@@ -361,7 +357,7 @@ public class AffinityLockTest extends BaseAffinityTest {
         Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
 
         try {
-            lock.bind();
+            assertThrows(IllegalStateException.class, () -> lock.bind(), "attempting to bind the same lock from a second thread should throw IllegalStateException");
         } finally {
             t.join();
             lock.release();

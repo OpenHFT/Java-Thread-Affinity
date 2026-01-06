@@ -3,22 +3,22 @@
  */
 package net.openhft.affinity.impl;
 
-import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import net.openhft.affinity.BaseAffinitySupport;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /*
  * Created by Peter Lawrey on 23/03/16.
  */
-public class LinuxJNAAffinityTest extends BaseAffinityTest {
-    @BeforeClass
+public class LinuxJNAAffinityTest extends BaseAffinitySupport {
+    @BeforeAll
     public static void checkJniLibraryPresent() {
-        Assume.assumeTrue(LinuxJNAAffinity.LOADED);
+        assumeTrue(LinuxJNAAffinity.LOADED, "requires LinuxJNAAffinity to be loaded");
     }
 
     @Test
@@ -33,8 +33,8 @@ public class LinuxJNAAffinityTest extends BaseAffinityTest {
         LinuxJNAAffinity.INSTANCE.setAffinity(affinity);
         BitSet affinity2 = LinuxJNAAffinity.INSTANCE.getAffinity();
         System.out.println(affinity2);
-        assertEquals(1, LinuxJNAAffinity.INSTANCE.getCpu());
-        assertEquals(affinity, affinity2);
+        assertEquals(1, LinuxJNAAffinity.INSTANCE.getCpu(), "cpu id after setting affinity");
+        assertEquals(affinity, affinity2, "affinity mask round-trip");
 
         affinity.set(0, nbits);
         LinuxJNAAffinity.INSTANCE.setAffinity(affinity);

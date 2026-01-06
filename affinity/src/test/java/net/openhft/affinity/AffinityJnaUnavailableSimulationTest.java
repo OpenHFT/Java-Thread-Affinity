@@ -4,21 +4,18 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.NullAffinity;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public class AffinityJnaUnavailableSimulationTest extends BaseAffinityTest {
+public class AffinityJnaUnavailableSimulationTest extends BaseAffinitySupport {
 
     @Test
     public void whenJnaUnavailableFallsBackToNullAffinity() {
-        // This test only asserts behaviour when JNA is genuinely unavailable
-        // in the runtime. When JNA is present, the test is effectively a no-op.
-        if (Affinity.isJNAAvailable()) {
-            return;
-        }
+        assumeFalse(Affinity.isJNAAvailable(), "requires JNA to be unavailable");
         IAffinity impl = Affinity.getAffinityImpl();
-        assertTrue("Expected NullAffinity when JNA is not available",
-                impl instanceof NullAffinity);
+        assertInstanceOf(NullAffinity.class, impl, "expected NullAffinity when JNA is not available");
     }
 }

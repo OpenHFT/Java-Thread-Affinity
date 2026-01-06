@@ -3,11 +3,14 @@
  */
 package net.openhft.affinity;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Tom Shercliff
@@ -23,33 +26,32 @@ public class FileLockLockCheckTest extends AbstractLockCheckTest {
     public void lockFileDeletedWhileHeld() throws Exception {
         cpu++;
 
-        Assert.assertTrue("CPU should be free before locking", LockCheck.isCpuFree(cpu));
+        assertTrue(LockCheck.isCpuFree(cpu), "cpu should be free before locking: cpu=" + cpu);
         LockCheck.updateCpu(cpu, 0);
 
         File lockFile = lockChecker.doToFile(cpu);
-        Assert.assertTrue(lockFile.exists());
+        assertTrue(lockFile.exists(), "lock file exists: " + lockFile);
 
-        Assert.assertTrue("Could not delete lock file", lockFile.delete());
-        Assert.assertFalse(lockFile.exists());
+        assertTrue(lockFile.delete(), "delete lock file: " + lockFile);
+        assertFalse(lockFile.exists(), "lock file deleted: " + lockFile);
 
-        Assert.assertFalse("CPU should remain locked despite missing file", LockCheck.isCpuFree(cpu));
-        Assert.assertEquals("process ID should still be recorded for locked CPU",
-                LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
+        assertFalse(LockCheck.isCpuFree(cpu), "cpu remains locked despite missing file: cpu=" + cpu);
+        assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu), "process id recorded for locked cpu=" + cpu);
 
         LockCheck.releaseLock(cpu);
 
-        Assert.assertTrue("Lock should be free after release", LockCheck.isCpuFree(cpu));
+        assertTrue(LockCheck.isCpuFree(cpu), "cpu should be free after release: cpu=" + cpu);
         LockCheck.updateCpu(cpu, 0);
 
         lockFile = lockChecker.doToFile(cpu);
-        Assert.assertTrue("Lock file should be recreated", lockFile.exists());
+        assertTrue(lockFile.exists(), "lock file recreated: " + lockFile);
     }
 
     @Test
     public void getProcessForCpuReturnsEmptyPidWhenNoFile() throws IOException {
         int freeCpu = 99;
         File lockFile = lockChecker.doToFile(freeCpu);
-        Assert.assertFalse(lockFile.exists());
-        Assert.assertEquals(Integer.MIN_VALUE, LockCheck.getProcessForCpu(freeCpu));
+        assertFalse(lockFile.exists(), "lock file absent: " + lockFile);
+        assertEquals(Integer.MIN_VALUE, LockCheck.getProcessForCpu(freeCpu), "no pid when lock file absent");
     }
 }

@@ -3,18 +3,21 @@
  */
 package net.openhft.ticker.impl;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class JNIClockBasicBehaviourTest {
 
-    @BeforeClass
+    @BeforeAll
     public static void checkLoaded() {
-        assumeTrue("JNIClock native library must be loaded", JNIClock.LOADED);
+        assumeTrue(JNIClock.LOADED, "JNIClock native library must be loaded");
     }
 
     @Test
@@ -25,7 +28,7 @@ public class JNIClockBasicBehaviourTest {
         for (int i = 0; i < 1000 && different == first; i++) {
             different = clock.ticks();
         }
-        assertNotEquals("ticks should eventually change", first, different);
+        assertNotEquals(first, different, "ticks should eventually change");
     }
 
     @Test
@@ -34,7 +37,7 @@ public class JNIClockBasicBehaviourTest {
         long start = clock.nanoTime();
         Thread.sleep(5L);
         long end = clock.nanoTime();
-        assertTrue("nanoTime should increase over sleep", end > start);
+        assertTrue(end > start, "nanoTime should increase over sleep");
     }
 
     @Test
@@ -43,9 +46,14 @@ public class JNIClockBasicBehaviourTest {
         int threads = 4;
         int iterations = 10_000;
         Thread[] ts = new Thread[threads];
+        AtomicReference<Throwable> failure = new AtomicReference<>();
         Runnable r = () -> {
-            for (int i = 0; i < iterations; i++) {
-                clock.ticks();
+            try {
+                for (int i = 0; i < iterations; i++) {
+                    clock.ticks();
+                }
+            } catch (Throwable t) {
+                failure.compareAndSet(null, t);
             }
         };
         for (int i = 0; i < threads; i++) {
@@ -55,5 +63,7 @@ public class JNIClockBasicBehaviourTest {
         for (Thread t : ts) {
             t.join();
         }
+        Throwable thrown = failure.get();
+        assertNull(thrown, () -> "ticks threw: " + thrown);
     }
 }

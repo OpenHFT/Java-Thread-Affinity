@@ -5,16 +5,17 @@ package software.chronicle.enterprise.internals;
 
 import net.openhft.affinity.IAffinity;
 import net.openhft.affinity.impl.Utilities;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 public class NativeAffinityEdgeCaseTest {
 
@@ -25,14 +26,14 @@ public class NativeAffinityEdgeCaseTest {
         CORES_MASK.set(0, CORES, true);
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void checkNativeLoaded() {
         String osName = System.getProperty("os.name");
-        assumeTrue(osName.startsWith("Linux"));
-        assumeTrue("NativeAffinity library must be loaded", NativeAffinity.LOADED);
+        assumeTrue(osName.startsWith("Linux"), "requires Linux");
+        assumeTrue(NativeAffinity.LOADED, "NativeAffinity library must be loaded");
     }
 
-    @After
+    @AfterEach
     public void resetAffinity() {
         NativeAffinity.INSTANCE.setAffinity(CORES_MASK);
     }
@@ -45,16 +46,15 @@ public class NativeAffinityEdgeCaseTest {
             return;
         }
         System.out.println("Native affinity: " + Utilities.toBinaryString(affinity));
-        assertFalse("Affinity mask must be non-empty", affinity.isEmpty());
-        assertTrue("Affinity mask length must not exceed available cores",
-                affinity.length() <= CORES_MASK.length());
+        assertFalse(affinity.isEmpty(), "affinity mask must be non-empty");
+        assertTrue(affinity.length() <= CORES_MASK.length(), "affinity mask length within available cores");
     }
 
     @Test
     public void setAffinityWithEmptyMaskCompletes() {
         IAffinity impl = NativeAffinity.INSTANCE;
         BitSet empty = new BitSet();
-        impl.setAffinity(empty);
+        assertDoesNotThrow(() -> impl.setAffinity(empty), "setAffinity accepts empty mask");
     }
 
     @Test
@@ -64,7 +64,6 @@ public class NativeAffinityEdgeCaseTest {
         // Intentionally set bits well beyond cpu_set_t size; native code
         // should safely copy only the supported portion.
         large.set(0, CORES * 2, true);
-        impl.setAffinity(large);
+        assertDoesNotThrow(() -> impl.setAffinity(large), "setAffinity accepts large mask");
     }
 }
-

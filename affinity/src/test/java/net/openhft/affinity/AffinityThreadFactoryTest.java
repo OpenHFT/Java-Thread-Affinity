@@ -3,20 +3,22 @@
  */
 package net.openhft.affinity;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class AffinityThreadFactoryTest extends BaseAffinityTest {
+public class AffinityThreadFactoryTest extends BaseAffinitySupport {
 
-    @Before
+    @BeforeEach
     public void checkLinux() {
-        Assume.assumeTrue(LockCheck.IS_LINUX);
+        assumeTrue(LockCheck.IS_LINUX, "requires Linux");
     }
 
     @Test
@@ -44,11 +46,11 @@ public class AffinityThreadFactoryTest extends BaseAffinityTest {
             });
         }
 
-        assertTrue(finished.await(5, TimeUnit.SECONDS));
+        assertTrue(finished.await(5, TimeUnit.SECONDS), "threads finished within timeout");
         es.shutdown();
         es.awaitTermination(5, TimeUnit.SECONDS);
 
-        assertFalse(cpus.contains(-1));
-        assertEquals(nThreads, cpus.size());
+        assertFalse(cpus.contains(-1), "cpu id should never be -1");
+        assertEquals(nThreads, cpus.size(), "each thread records a distinct CPU id");
     }
 }

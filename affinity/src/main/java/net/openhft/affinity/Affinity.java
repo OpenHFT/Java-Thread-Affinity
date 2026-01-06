@@ -212,7 +212,7 @@ public enum Affinity {
     /**
      * Checks whether a compatible JNA version is on the classpath.
      *
-     * @return {@code true} if JNA >= 5 is available
+     * @return {@code true} if JNA 5 or later is available
      */
     public static boolean isJNAAvailable() {
         Boolean available = jnaAvailable;

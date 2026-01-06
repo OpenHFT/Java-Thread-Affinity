@@ -4,20 +4,24 @@
 package net.openhft.affinity.impl;
 
 import net.openhft.affinity.Affinity;
-import net.openhft.affinity.BaseAffinityTest;
+import net.openhft.affinity.BaseAffinitySupport;
 import net.openhft.affinity.IAffinity;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author cheremin
  * @since 29.12.11,  20:25
  */
-public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
+public abstract class AbstractAffinityImplTest extends BaseAffinitySupport {
 
     private static final int CORES = Runtime.getRuntime().availableProcessors();
     private static final BitSet CORES_MASK = new BitSet(CORES);
@@ -30,17 +34,17 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
 
     @Test
     public void getAffinityCompletesGracefully() {
-        getImpl().getAffinity();
+        assertNotNull(getImpl().getAffinity(), "getAffinity returns a BitSet");
     }
 
     @Test
     public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
+        assertFalse(affinity.isEmpty(), () -> "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty");
         final long allCoresMask = (1L << CORES) - 1;
         assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
-                affinity.length() <= CORES_MASK.length()
+                affinity.length() <= CORES_MASK.length(),
+                () -> "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")"
         );
     }
 
@@ -48,7 +52,7 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
     public void setAffinityCompletesGracefully() {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
-        getImpl().setAffinity(affinity);
+        assertDoesNotThrow(() -> getImpl().setAffinity(affinity), "setAffinity completes");
     }
 
     @Test
@@ -57,7 +61,9 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
         for (int core = 0; core < CORES; core++) {
             final BitSet mask = new BitSet();
             mask.set(core, true);
-            getAffinityReturnsValuePreviouslySet(impl, mask);
+            impl.setAffinity(mask);
+            final BitSet actual = impl.getAffinity();
+            assertEquals(mask, actual, "affinity round-trip for core=" + core);
         }
     }
 
@@ -76,22 +82,14 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
                 long tid0 = Thread.currentThread().getId();
                 tid = tid0;
                 time += System.nanoTime() - start;
-                assertTrue("thread id should be positive", tid > 0);
-                assertTrue("thread id should be below maxThreadId " + maxThreadId, tid < maxThreadId);
+                assertTrue(tid > 0, "thread id should be positive");
+                assertTrue(tid < maxThreadId, "thread id should be below maxThreadId " + maxThreadId);
             }
             System.out.printf("gettid took an average of %,d ns, tid=%d%n", time / runs, tid);
         }
     }
 
-    private void getAffinityReturnsValuePreviouslySet(final IAffinity impl,
-                                                      final BitSet mask) {
-
-        impl.setAffinity(mask);
-        final BitSet _mask = impl.getAffinity();
-        assertEquals(mask, _mask);
-    }
-
-    @After
+    @AfterEach
     public void tearDown() {
         try {
             getImpl().setAffinity(CORES_MASK);

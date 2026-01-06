@@ -4,18 +4,18 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.LinuxJNAAffinity;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-public class LinuxAffinityParityTest extends BaseAffinityTest {
+public class LinuxAffinityParityTest extends BaseAffinitySupport {
 
     private static final int CORES = Runtime.getRuntime().availableProcessors();
     private static final BitSet CORES_MASK = new BitSet(CORES);
@@ -24,14 +24,14 @@ public class LinuxAffinityParityTest extends BaseAffinityTest {
         CORES_MASK.set(0, CORES, true);
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void checkEnvironment() {
-        assumeTrue(System.getProperty("os.name").startsWith("Linux"));
-        assumeTrue("LinuxJNAAffinity must be loaded", LinuxJNAAffinity.LOADED);
-        assumeTrue("NativeAffinity must be loaded", NativeAffinity.LOADED);
+        assumeTrue(System.getProperty("os.name").startsWith("Linux"), "requires Linux");
+        assumeTrue(LinuxJNAAffinity.LOADED, "requires LinuxJNAAffinity to be loaded");
+        assumeTrue(NativeAffinity.LOADED, "requires NativeAffinity to be loaded");
     }
 
-    @After
+    @AfterEach
     public void resetAffinity() {
         NativeAffinity.INSTANCE.setAffinity(CORES_MASK);
     }
@@ -45,14 +45,12 @@ public class LinuxAffinityParityTest extends BaseAffinityTest {
             // Set via JNA, read via JNI
             LinuxJNAAffinity.INSTANCE.setAffinity(mask);
             BitSet jniMask = NativeAffinity.INSTANCE.getAffinity();
-            assertTrue("JNI mask should intersect JNA mask for core " + core,
-                    jniMask != null && jniMask.intersects(mask));
+            assertTrue(jniMask != null && jniMask.intersects(mask), "JNI mask intersects JNA mask for core=" + core);
 
             // Set via JNI, read via JNA
             NativeAffinity.INSTANCE.setAffinity(mask);
             BitSet jnaMask = LinuxJNAAffinity.INSTANCE.getAffinity();
-            assertFalse("JNA mask must not be empty after JNI set", jnaMask.isEmpty());
+            assertFalse(jnaMask.isEmpty(), "JNA mask not empty after JNI set");
         }
     }
 }
-

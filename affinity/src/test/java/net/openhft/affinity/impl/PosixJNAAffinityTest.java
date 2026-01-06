@@ -5,21 +5,16 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.IAffinity;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 /**
  * @author peter.lawrey
  */
+@Disabled("TODO: JNA library is not used, test is flaky")
 public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
-    @BeforeClass
-    public static void checkJniLibraryPresent() {
-        assumeTrue("TODO FIX JNA library is not used, but the test is flaky", false);
-        assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
-    }
-
     @Override
     public IAffinity getImpl() {
         return Affinity.getAffinityImpl();
@@ -27,6 +22,6 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
 
     @Test
     public void testGettid() {
-        runThreadIdBenchmark(1 << 24);
+        assertDoesNotThrow(() -> runThreadIdBenchmark(1 << 24), "gettid benchmark completes");
     }
 }

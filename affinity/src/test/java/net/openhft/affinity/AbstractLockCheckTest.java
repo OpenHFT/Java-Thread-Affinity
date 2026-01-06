@@ -3,33 +3,35 @@
  */
 package net.openhft.affinity;
 
-import net.openhft.affinity.testimpl.TestFileLockBasedLockChecker;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import net.openhft.affinity.testimpl.FileLockBasedLockCheckerStub;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import static net.openhft.affinity.LockCheck.IS_LINUX;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Base harness for exercising {@link LockCheck} behaviour on platforms that expose the PID files.
  * Concrete subclasses provide the starting CPU id so tests can be re-used across environments.
  */
-public abstract class AbstractLockCheckTest extends BaseAffinityTest {
+public abstract class AbstractLockCheckTest extends BaseAffinitySupport {
 
-    protected final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
+    protected final FileLockBasedLockCheckerStub lockChecker = new FileLockBasedLockCheckerStub();
     protected int cpu;
 
     /**
      * Skip on non-Linux platforms and capture the starting CPU index for the test run.
      */
-    @Before
+    @BeforeEach
     public void before() {
-        Assume.assumeTrue(IS_LINUX);
+        assumeTrue(IS_LINUX, "requires Linux lock files");
         cpu = initialCpu();
     }
 
@@ -43,9 +45,9 @@ public abstract class AbstractLockCheckTest extends BaseAffinityTest {
      */
     @Test
     public void test() throws IOException {
-        Assert.assertTrue(LockCheck.isCpuFree(cpu));
+        assertTrue(LockCheck.isCpuFree(cpu), "cpu should be free: cpu=" + cpu);
         LockCheck.updateCpu(cpu, 0);
-        Assert.assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
+        assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu), "process id recorded for cpu=" + cpu);
     }
 
     /**
@@ -53,7 +55,7 @@ public abstract class AbstractLockCheckTest extends BaseAffinityTest {
      */
     @Test
     public void testPidOnLinux() {
-        Assert.assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
+        assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()), "current process should be running");
     }
 
     /**
@@ -62,9 +64,9 @@ public abstract class AbstractLockCheckTest extends BaseAffinityTest {
     @Test
     public void testReplace() throws IOException {
         cpu++;
-        Assert.assertTrue(LockCheck.isCpuFree(cpu + 1));
+        assertTrue(LockCheck.isCpuFree(cpu + 1), "cpu should be free: cpu=" + (cpu + 1));
         LockCheck.replacePid(cpu, 0, 123L);
-        Assert.assertEquals(123L, LockCheck.getProcessForCpu(cpu));
+        assertEquals(123L, LockCheck.getProcessForCpu(cpu), "pid replaced for cpu=" + cpu);
     }
 
     /**
@@ -77,6 +79,6 @@ public abstract class AbstractLockCheckTest extends BaseAffinityTest {
         final File file = lockChecker.doToFile(cpu);
         new RandomAccessFile(file, "rw").setLength(0);
 
-        LockCheck.isCpuFree(cpu);
+        assertDoesNotThrow(() -> LockCheck.isCpuFree(cpu), "empty PID file should not throw");
     }
 }

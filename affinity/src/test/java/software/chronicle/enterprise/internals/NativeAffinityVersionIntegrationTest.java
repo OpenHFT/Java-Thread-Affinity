@@ -3,12 +3,17 @@
  */
 package software.chronicle.enterprise.internals;
 
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Integration tests for the native version functionality.
@@ -16,11 +21,10 @@ import static org.junit.Assert.*;
  */
 public class NativeAffinityVersionIntegrationTest {
 
-    @BeforeClass
+    @BeforeAll
     public static void checkNativeLibraryLoaded() {
         // Only run these tests if native library is loaded
-        Assume.assumeTrue("Native library must be loaded for these tests",
-                NativeAffinity.LOADED);
+        assumeTrue(NativeAffinity.LOADED, "Native library must be loaded for these tests");
     }
 
     @Test
@@ -28,8 +32,7 @@ public class NativeAffinityVersionIntegrationTest {
         String version = NativeAffinity.VERSION;
 
         // Should contain at least one digit
-        assertTrue("Version should contain version number: " + version,
-                version.matches(".*\\d+.*"));
+        assertTrue(version.matches(".*\\d+.*"), "Version should contain version number: " + version);
 
         System.out.println("Native library version: " + version);
     }
@@ -40,9 +43,11 @@ public class NativeAffinityVersionIntegrationTest {
 
         // Version should match Maven project version pattern
         // Common patterns: "3.27ea2-SNAPSHOT", "3.27.0", "1.0.0-RC1"
-        assertTrue("Version should match project versioning scheme: " + version,
+        assertTrue(
                 version.matches("\\d+\\.\\d+.*") || // Major.minor...
-                version.matches("\\d+.*")); // At least major version
+                        version.matches("\\d+.*"), // At least major version
+                "Version should match project versioning scheme: " + version
+        );
     }
 
     @Test
@@ -57,7 +62,7 @@ public class NativeAffinityVersionIntegrationTest {
                 version.contains("RELEASE") ||
                 version.matches("\\d+\\.\\d+\\.\\d+"); // Or is a clean release version
 
-        assertTrue("Version should contain status marker: " + version, hasStatusMarker);
+        assertTrue(hasStatusMarker, "Version should contain status marker: " + version);
     }
 
     @Test
@@ -65,16 +70,13 @@ public class NativeAffinityVersionIntegrationTest {
         String version = NativeAffinity.VERSION;
 
         // Should not have leading/trailing whitespace
-        assertEquals("Version should not have leading/trailing whitespace",
-                version, version.trim());
+        assertEquals(version, version.trim(), "Version should not have leading/trailing whitespace");
 
         // Should not be too short
-        assertTrue("Version should have reasonable length: " + version.length(),
-                version.length() >= 3);
+        assertTrue(version.length() >= 3, "Version should have reasonable length: " + version.length());
 
         // Should not contain unexpected characters
-        assertTrue("Version should only contain version-appropriate characters",
-                version.matches("[0-9a-zA-Z.\\-_]+"));
+        assertTrue(version.matches("[0-9a-zA-Z.\\-_]+"), "Version should only contain version-appropriate characters");
     }
 
     @Test
@@ -84,8 +86,8 @@ public class NativeAffinityVersionIntegrationTest {
         String version2 = NativeAffinity.VERSION;
         String version3 = NativeAffinity.VERSION;
 
-        assertSame("VERSION should be the same object", version1, version2);
-        assertSame("VERSION should be the same object", version2, version3);
+        assertSame(version1, version2, "version constant should return identical string instance across calls");
+        assertSame(version2, version3, "version constant should maintain object identity for all accesses");
     }
 
     @Test
@@ -94,9 +96,9 @@ public class NativeAffinityVersionIntegrationTest {
 
         // Version comes from C++ PROJECT_VERSION define
         // Should not be Java defaults
-        assertNotEquals("Version should not be fallback value", "unknown", version);
-        assertNotEquals("Version should not be fallback value", "", version);
-        assertNotEquals("Version should not be fallback value", "0.0.0", version);
+        assertNotEquals("unknown", version, "native layer should provide actual version instead of 'unknown' placeholder");
+        assertNotEquals("", version, "native layer should provide non-empty version string");
+        assertNotEquals("0.0.0", version, "native layer should provide real version instead of default '0.0.0'");
     }
 
     @Test
@@ -105,12 +107,14 @@ public class NativeAffinityVersionIntegrationTest {
 
         // The version should be the compile-time PROJECT_VERSION
         // This is set via -DPROJECT_VERSION in the Makefile
-        assertNotNull("Compile-time version should be set", version);
+        assertNotNull(version, "Compile-time version should be set");
 
         // Should look like a Maven version (since it comes from pom.xml)
-        assertTrue("Should use Maven-style versioning: " + version,
+        assertTrue(
                 version.contains(".") || // Has version separators
-                version.matches("\\d+.*")); // Or at least starts with number
+                        version.matches("\\d+.*"), // Or at least starts with number
+                "Should use Maven-style versioning: " + version
+        );
     }
 
     @Test
@@ -122,7 +126,7 @@ public class NativeAffinityVersionIntegrationTest {
             String majorVersion = version.split("\\.")[0];
             int major = Integer.parseInt(majorVersion);
 
-            assertTrue("Major version should be positive", major > 0);
+            assertTrue(major > 0, "Major version should be positive");
             System.out.println("Major version: " + major);
         }
     }
@@ -135,9 +139,11 @@ public class NativeAffinityVersionIntegrationTest {
         // It should match the pattern: <major>.<minor><release-type>[-SNAPSHOT]
         // Examples: "3.27ea2-SNAPSHOT", "3.27.0", "1.0.0-RC1"
 
-        assertTrue("Version should match build system pattern: " + version,
+        assertTrue(
                 version.matches("\\d+\\.\\d+.*") || // Standard semver
-                version.matches("\\d+\\.\\d+[a-z]+\\d*.*")); // With EA/RC markers
+                        version.matches("\\d+\\.\\d+[a-z]+\\d*.*"), // With EA/RC markers
+                "Version should match build system pattern: " + version
+        );
     }
 
     @Test
@@ -145,13 +151,14 @@ public class NativeAffinityVersionIntegrationTest {
         String version = NativeAffinity.VERSION;
 
         // Should not contain null terminators (C string should be properly converted)
-        assertFalse("Version should not contain null terminators",
-                version.contains("\0"));
+        assertFalse(version.contains("\0"), "Version should not contain null terminators");
 
         // Should not contain control characters
         for (char c : version.toCharArray()) {
-            assertTrue("Version should not contain control characters: " + (int)c,
-                    c >= 32 || c == '\n' || c == '\r' || c == '\t');
+            assertTrue(
+                    c >= 32 || c == '\n' || c == '\r' || c == '\t',
+                    "Version should not contain control characters: " + (int) c
+            );
         }
     }
 
@@ -163,16 +170,16 @@ public class NativeAffinityVersionIntegrationTest {
         // Should be able to create substrings
         if (version.length() > 1) {
             String substring = version.substring(0, 1);
-            assertNotNull("Should be able to create substring", substring);
+            assertNotNull(substring, "version string should support substring operations without memory corruption");
         }
 
         // Should be able to compare
         boolean equals = version.equals(version);
-        assertTrue("Should be able to compare with itself", equals);
+        assertTrue(equals, "version string should support equality comparison with itself");
 
         // Should be able to hash
         int hash = version.hashCode();
-        assertEquals("Hash should be consistent", hash, version.hashCode());
+        assertEquals(hash, version.hashCode(), "version string should return consistent hashcode across calls");
     }
 
     @Test
@@ -188,6 +195,6 @@ public class NativeAffinityVersionIntegrationTest {
         System.out.println("Architecture: " + System.getProperty("os.arch"));
         System.out.println("==================================");
 
-        assertNotNull("Documentation should be available", version);
+        assertNotNull(version, "native library version should be available for troubleshooting and compatibility checks");
     }
 }
