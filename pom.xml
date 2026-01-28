@@ -16,7 +16,7 @@
     </parent>
 
     <artifactId>Java-Thread-Affinity</artifactId>
-    <version>2026.1</version>
+    <version>2026.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OpenHFT/Java-Thread-Affinity Parent</name>
@@ -32,7 +32,7 @@
         <connection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git</connection>
         <developerConnection>scm:git:git@github.com:OpenHFT/Java-Thread-Affinity.git
         </developerConnection>
-        <tag>Java-Thread-Affinity-2026.1</tag>
+        <tag>ea</tag>
     </scm>
 
 </project>
