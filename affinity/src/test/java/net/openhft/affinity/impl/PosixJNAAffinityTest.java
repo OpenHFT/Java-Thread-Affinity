@@ -5,19 +5,19 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.IAffinity;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 /**
  * @author peter.lawrey
  */
 public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
-    @BeforeClass
+    @BeforeAll
     public static void checkJniLibraryPresent() {
-        assumeTrue("TODO FIX JNA library is not used, but the test is flaky", false);
+        assumeTrue(false, "TODO FIX JNA library is not used, but the test is flaky");
         assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
     }
 

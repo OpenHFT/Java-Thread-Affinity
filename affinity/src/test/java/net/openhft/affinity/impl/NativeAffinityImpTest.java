@@ -5,21 +5,21 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.IAffinity;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 /*
  * Created by andre on 22/06/15.
  */
 public class NativeAffinityImpTest extends AbstractAffinityImplTest {
-    @BeforeClass
+    @BeforeAll
     public static void checkJniLibraryPresent() {
-        Assume.assumeTrue(NativeAffinity.LOADED);
-        Assume.assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
+        assumeTrue(NativeAffinity.LOADED);
+        assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
     }
 
     @Override

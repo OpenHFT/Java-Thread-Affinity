@@ -4,11 +4,11 @@
 package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilitiesTest extends BaseAffinityTest {
 

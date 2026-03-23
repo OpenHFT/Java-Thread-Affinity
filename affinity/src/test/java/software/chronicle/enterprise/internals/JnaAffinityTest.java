@@ -7,14 +7,14 @@ import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
 import net.openhft.affinity.impl.LinuxJNAAffinity;
 import net.openhft.affinity.impl.Utilities;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 /**
  * @author peter.lawrey
@@ -27,9 +27,9 @@ public class JnaAffinityTest extends BaseAffinityTest {
         CORES_MASK.set(0, CORES, true);
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void checkJniLibraryPresent() {
-        Assume.assumeTrue(LinuxJNAAffinity.LOADED);
+        assumeTrue(LinuxJNAAffinity.LOADED);
     }
 
     @Test
@@ -40,11 +40,11 @@ public class JnaAffinityTest extends BaseAffinityTest {
     @Test
     public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
+        assertFalse(affinity.isEmpty(), "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty");
         final int allCoresMask = (1 << CORES) - 1;
         assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
-                affinity.length() <= CORES_MASK.length()
+                affinity.length() <= CORES_MASK.length(),
+                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")"
         );
     }
 
@@ -85,7 +85,7 @@ public class JnaAffinityTest extends BaseAffinityTest {
         assertEquals(mask, _mask);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         getImpl().setAffinity(CORES_MASK);
     }

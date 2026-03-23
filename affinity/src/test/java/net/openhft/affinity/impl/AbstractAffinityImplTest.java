@@ -5,12 +5,12 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author cheremin
@@ -35,11 +35,11 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
     @Test
     public void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
+        assertFalse(affinity.isEmpty(), "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty");
         final long allCoresMask = (1L << CORES) - 1;
         assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
-                affinity.length() <= CORES_MASK.length()
+                affinity.length() <= CORES_MASK.length(),
+                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")"
         );
     }
 
@@ -68,7 +68,7 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
         assertEquals(mask, _mask);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         try {
             getImpl().setAffinity(CORES_MASK);
