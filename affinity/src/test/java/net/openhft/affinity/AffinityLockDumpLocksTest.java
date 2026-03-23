@@ -4,8 +4,7 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,7 +12,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 public class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
@@ -23,7 +23,7 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
     @Test
     public void dumpLocksListsThreadsHoldingLocks() throws Exception {
-        Assume.assumeTrue(new File("/proc/cpuinfo").exists());
+        assumeTrue(new File("/proc/cpuinfo").exists());
 
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());
         int nThreads = Math.min(3, Math.max(1, AffinityLock.PROCESSORS - 1));
@@ -46,11 +46,11 @@ public class AffinityLockDumpLocksTest extends BaseAffinityTest {
             t.start();
         }
 
-        assertTrue("threads failed to acquire locks", acquired.await(5, TimeUnit.SECONDS));
+        assertTrue(acquired.await(5, TimeUnit.SECONDS), "threads failed to acquire locks");
 
         String dump = AffinityLock.dumpLocks();
         for (Thread t : threads) {
-            assertTrue("Missing entry for " + t.getName(), dump.contains(t.getName()));
+            assertTrue(dump.contains(t.getName()), "Missing entry for " + t.getName());
         }
 
         release.countDown();

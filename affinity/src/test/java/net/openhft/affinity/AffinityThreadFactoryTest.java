@@ -3,20 +3,20 @@
  */
 package net.openhft.affinity;
 
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 import java.util.concurrent.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 public class AffinityThreadFactoryTest extends BaseAffinityTest {
 
-    @Before
+    @BeforeEach
     public void checkLinux() {
-        Assume.assumeTrue(LockCheck.IS_LINUX);
+        assumeTrue(LockCheck.IS_LINUX);
     }
 
     @Test

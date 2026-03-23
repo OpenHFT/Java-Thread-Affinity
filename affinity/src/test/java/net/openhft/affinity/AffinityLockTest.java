@@ -7,7 +7,6 @@ import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.chronicle.testframework.Waiters;
 import org.hamcrest.MatcherAssert;
-import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,8 +21,9 @@ import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assumptions.*;
 
 /**
  * @author peter.lawrey
@@ -269,12 +269,12 @@ public class AffinityLockTest extends BaseAffinityTest {
             int coreId = layout.coreId(lock.cpuId());
             for (int i = 0; i < layout.cpus(); i++) {
                 if (layout.socketId(i) == socketId && layout.coreId(i) == coreId) {
-                    assertFalse("CPU " + i + " should be reserved", LockCheck.isCpuFree(i));
+                    assertFalse(LockCheck.isCpuFree(i), "CPU " + i + " should be reserved");
                 }
             }
         }
         for (int i = 0; i < layout.cpus(); i++) {
-            assertTrue("CPU " + i + " should not be reserved", LockCheck.isCpuFree(i));
+            assertTrue(LockCheck.isCpuFree(i), "CPU " + i + " should not be reserved");
         }
     }
 
@@ -343,28 +343,30 @@ public class AffinityLockTest extends BaseAffinityTest {
         assertFalse(lock.isBound());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
-        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+        assertThrows(IllegalStateException.class, () -> {
+            assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
 
-        final AffinityLock lock = AffinityLock.acquireLock(false);
-        Thread t = new Thread(() -> {
-            lock.bind();
+            final AffinityLock lock = AffinityLock.acquireLock(false);
+            Thread t = new Thread(() -> {
+                lock.bind();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ignored) {
+                    // ignored
+                }
+            });
+            t.start();
+
+            Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
+
             try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-                // ignored
+                lock.bind();
+            } finally {
+                t.join();
+                lock.release();
             }
         });
-        t.start();
-
-        Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
-
-        try {
-            lock.bind();
-        } finally {
-            t.join();
-            lock.release();
-        }
     }
 }
