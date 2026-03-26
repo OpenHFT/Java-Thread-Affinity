@@ -10,10 +10,10 @@ import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class VanillaCpuLayoutPropertiesParseTest extends BaseAffinityTest {
+class VanillaCpuLayoutPropertiesParseTest extends BaseAffinityTest {
 
     @Test
-    public void testCountsI7() throws Exception {
+    void testCountsI7() throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream("i7.properties");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(is);
         assertEquals(8, vcl.cpus());
@@ -23,7 +23,7 @@ public class VanillaCpuLayoutPropertiesParseTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testCountsDualXeon() throws Exception {
+    void testCountsDualXeon() throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream("dual.xeon.properties");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(is);
         assertEquals(4, vcl.cpus());
@@ -33,7 +33,7 @@ public class VanillaCpuLayoutPropertiesParseTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testCountsDualE5405() throws Exception {
+    void testCountsDualE5405() throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream("dual.E5405.properties");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(is);
         assertEquals(8, vcl.cpus());
@@ -43,7 +43,7 @@ public class VanillaCpuLayoutPropertiesParseTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testCountsI3() throws Exception {
+    void testCountsI3() throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream("i3.properties");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(is);
         assertEquals(4, vcl.cpus());

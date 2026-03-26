@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assumptions.*;
 /*
  * Created by andre on 22/06/15.
  */
-public class NativeAffinityImpTest extends AbstractAffinityImplTest {
+class NativeAffinityImpTest extends AbstractAffinityImplTest {
     @BeforeAll
-    public static void checkJniLibraryPresent() {
+    static void checkJniLibraryPresent() {
         assumeTrue(NativeAffinity.LOADED);
         assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
     }
@@ -28,7 +28,7 @@ public class NativeAffinityImpTest extends AbstractAffinityImplTest {
     }
 
     @Test
-    public void testGettid() {
+    void testGettid() {
         System.out.println("pid=" + getImpl().getProcessId());
         System.out.println("tid=" + getImpl().getThreadId());
         Affinity.setThreadId();

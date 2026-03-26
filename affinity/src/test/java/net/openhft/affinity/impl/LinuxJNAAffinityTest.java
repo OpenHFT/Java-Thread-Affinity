@@ -15,14 +15,14 @@ import static org.junit.jupiter.api.Assumptions.*;
 /*
  * Created by Peter Lawrey on 23/03/16.
  */
-public class LinuxJNAAffinityTest extends BaseAffinityTest {
+class LinuxJNAAffinityTest extends BaseAffinityTest {
     @BeforeAll
-    public static void checkJniLibraryPresent() {
+    static void checkJniLibraryPresent() {
         assumeTrue(LinuxJNAAffinity.LOADED);
     }
 
     @Test
-    public void LinuxJNA() {
+    void LinuxJNA() {
         int nbits = Runtime.getRuntime().availableProcessors();
         BitSet affinity0 = LinuxJNAAffinity.INSTANCE.getAffinity();
         System.out.println(affinity0);

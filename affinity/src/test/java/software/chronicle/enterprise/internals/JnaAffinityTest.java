@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assumptions.*;
 /**
  * @author peter.lawrey
  */
-public class JnaAffinityTest extends BaseAffinityTest {
+class JnaAffinityTest extends BaseAffinityTest {
     private static final int CORES = Runtime.getRuntime().availableProcessors();
     private static final BitSet CORES_MASK = new BitSet(CORES);
 
@@ -28,17 +28,17 @@ public class JnaAffinityTest extends BaseAffinityTest {
     }
 
     @BeforeAll
-    public static void checkJniLibraryPresent() {
+    static void checkJniLibraryPresent() {
         assumeTrue(LinuxJNAAffinity.LOADED);
     }
 
     @Test
-    public void getAffinityCompletesGracefully() {
+    void getAffinityCompletesGracefully() {
         System.out.println("affinity: " + Utilities.toBinaryString(getImpl().getAffinity()));
     }
 
     @Test
-    public void getAffinityReturnsValidValue() {
+    void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
         assertFalse(affinity.isEmpty(), "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty");
         final int allCoresMask = (1 << CORES) - 1;
@@ -49,14 +49,14 @@ public class JnaAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void setAffinityCompletesGracefully() {
+    void setAffinityCompletesGracefully() {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
     }
 
     @Test
-    public void getAffinityReturnsValuePreviouslySet() {
+    void getAffinityReturnsValuePreviouslySet() {
         String osName = System.getProperty("os.name");
         if (!osName.startsWith("Linux")) {
             System.out.println("Skipping Linux tests");
@@ -71,7 +71,7 @@ public class JnaAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void showOtherIds() {
+    void showOtherIds() {
         System.out.println("processId: " + LinuxJNAAffinity.INSTANCE.getProcessId());
         System.out.println("threadId: " + LinuxJNAAffinity.INSTANCE.getThreadId());
         System.out.println("cpu: " + LinuxJNAAffinity.INSTANCE.getCpu());
@@ -86,7 +86,7 @@ public class JnaAffinityTest extends BaseAffinityTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         getImpl().setAffinity(CORES_MASK);
     }
 

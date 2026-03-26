@@ -20,35 +20,35 @@ import static org.junit.jupiter.api.Assumptions.*;
 /**
  * @author Rob Austin.
  */
-public class LockCheckTest extends BaseAffinityTest {
+class LockCheckTest extends BaseAffinityTest {
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
     private int cpu = 11;
 
     @BeforeEach
-    public void before() {
+    void before() {
         assumeTrue(IS_LINUX);
     }
 
     @Test
-    public void test() throws IOException {
+    void test() throws IOException {
         assertTrue(LockCheck.isCpuFree(cpu));
         LockCheck.updateCpu(cpu, 0);
         assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
     }
 
     @Test
-    public void testPidOnLinux() {
+    void testPidOnLinux() {
         assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
     }
 
     @Test
-    public void testNegativePidOnLinux() {
+    void testNegativePidOnLinux() {
         assertFalse(LockCheck.isProcessRunning(-1));
     }
 
     @Test
-    public void testReplace() throws IOException {
+    void testReplace() throws IOException {
         cpu++;
         assertTrue(LockCheck.isCpuFree(cpu + 1));
         LockCheck.replacePid(cpu, 0, 123L);
@@ -56,7 +56,7 @@ public class LockCheckTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldNotBlowUpIfPidFileIsEmpty() throws Exception {
+    void shouldNotBlowUpIfPidFileIsEmpty() throws Exception {
         LockCheck.updateCpu(cpu, 0);
 
         final File file = lockChecker.doToFile(cpu);
@@ -66,7 +66,7 @@ public class LockCheckTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldNotBlowUpIfPidFileIsCorrupt() throws Exception {
+    void shouldNotBlowUpIfPidFileIsCorrupt() throws Exception {
         LockCheck.updateCpu(cpu, 0);
 
         final File file = lockChecker.doToFile(cpu);

@@ -14,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit test to verify that releasing an {@link AffinityLock} restores the
  * affinity mask back to {@link AffinityLock#BASE_AFFINITY}.
  */
-public class AffinityLockReleaseTest extends BaseAffinityTest {
+class AffinityLockReleaseTest extends BaseAffinityTest {
 
     @Test
-    public void acquireAndReleaseShouldRestoreBaseAffinity() throws Exception {
+    void acquireAndReleaseShouldRestoreBaseAffinity() throws Exception {
         if (!new File("/proc/cpuinfo").exists()) {
             System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
             return;

@@ -19,13 +19,13 @@ public class BaseAffinityTest {
     private String originalTmpDir;
 
     @BeforeEach
-    public void setTmpDirectory() {
+    void setTmpDirectory() {
         originalTmpDir = System.getProperty("java.io.tmpdir");
         System.setProperty("java.io.tmpdir", folder.getAbsolutePath());
     }
 
     @AfterEach
-    public void afterEachBaseAffinityTest() {
+    void afterEachBaseAffinityTest() {
         restoreTmpDirectoryAndReleaseAllLocks();
         baseAffinity();
     }

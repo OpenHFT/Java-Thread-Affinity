@@ -13,11 +13,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /*
  * Created by Peter Lawrey on 13/07/15.
  */
-public class JNIClockTest extends BaseAffinityTest {
+class JNIClockTest extends BaseAffinityTest {
 
     @Test
     @Disabled("TODO Fix")
-    public void testNanoTime() throws InterruptedException {
+    void testNanoTime() throws InterruptedException {
         for (int i = 0; i < 20000; i++)
             System.nanoTime();
         Affinity.setAffinity(2);
@@ -39,7 +39,7 @@ public class JNIClockTest extends BaseAffinityTest {
 
     @Test
     @Disabled("Long running")
-    public void testJitter() {
+    void testJitter() {
         Affinity.setAffinity(2);
         assertEquals(2, Affinity.getCpu());
         int samples = 100000, count = 0;

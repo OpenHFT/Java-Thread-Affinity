@@ -22,13 +22,15 @@ import java.util.List;
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assumptions.*;
 
 /**
  * @author peter.lawrey
  */
-public class AffinityLockTest extends BaseAffinityTest {
+class AffinityLockTest extends BaseAffinityTest {
     private static final Logger logger = LoggerFactory.getLogger(AffinityLockTest.class);
 
     /**
@@ -41,7 +43,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void dumpLocksI7() throws IOException {
+    void dumpLocksI7() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i7.cpuinfo"));
         AffinityLock[] locks = {
                 new AffinityLock(0, 0, true, false, lockInventory),
@@ -78,7 +80,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void dumpLocksI3() throws IOException {
+    void dumpLocksI3() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("i3.cpuinfo"));
         AffinityLock[] locks = {
                 new AffinityLock(0, 0, true, false, lockInventory),
@@ -101,7 +103,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void dumpLocksCoreDuo() throws IOException {
+    void dumpLocksCoreDuo() throws IOException {
         LockInventory lockInventory = new LockInventory(VanillaCpuLayout.fromCpuInfo("core.duo.cpuinfo"));
         AffinityLock[] locks = {
                 new AffinityLock(0, 0, true, false, lockInventory),
@@ -119,7 +121,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void assignReleaseThread() throws IOException {
+    void assignReleaseThread() throws IOException {
         if (AffinityLock.RESERVED_AFFINITY.isEmpty()) {
             System.out.println("Cannot run affinity test as no threads gave been reserved.");
             System.out.println("Use isolcpus= in grub.conf or use -D" + AffinityLock.AFFINITY_RESERVED + "={hex mask}");
@@ -146,7 +148,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void resetAffinity() {
+    void resetAffinity() {
         assumeTrue(System.getProperty("os.name").contains("nux"));
         assertTrue(Affinity.getAffinity().cardinality() > 1);
         try (AffinityLock lock = AffinityLock.acquireLock()) {
@@ -162,7 +164,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testIssue21() throws IOException {
+    void testIssue21() throws IOException {
         if (!new File("/proc/cpuinfo").exists()) {
             System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
             return;
@@ -188,7 +190,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testIssue19() {
+    void testIssue19() {
         System.out.println("AffinityLock.PROCESSORS=" + PROCESSORS);
 
         AffinityLock al = AffinityLock.acquireLock();
@@ -205,12 +207,12 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testGettid() {
+    void testGettid() {
         System.out.println("cpu= " + Affinity.getCpu());
     }
 
     @Test
-    public void testAffinity() throws InterruptedException {
+    void testAffinity() throws InterruptedException {
         logger.info("Started");
         displayStatus();
         try (AffinityLock al = AffinityLock.acquireLock()) {
@@ -232,7 +234,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldReturnLockForSpecifiedCpu() {
+    void shouldReturnLockForSpecifiedCpu() {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
 
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
@@ -242,7 +244,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void lockFilesShouldBeRemovedOnRelease() {
+    void lockFilesShouldBeRemovedOnRelease() {
         if (!Utilities.ISLINUX) {
             return;
         }
@@ -257,7 +259,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void wholeCoreLockReservesAllLogicalCpus() throws IOException {
+    void wholeCoreLockReservesAllLogicalCpus() throws IOException {
         if (!Utilities.ISLINUX || !new File("/proc/cpuinfo").exists()) {
             return;
         }
@@ -283,7 +285,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testAffinityLockDescriptions() {
+    void testAffinityLockDescriptions() {
         if (!Utilities.ISLINUX) {
             return;
         }
@@ -318,7 +320,7 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void acquireLockWithoutBindingDoesNotChangeAffinity() {
+    void acquireLockWithoutBindingDoesNotChangeAffinity() {
         BitSet before = (BitSet) Affinity.getAffinity().clone();
         try (AffinityLock lock = AffinityLock.acquireLock(false)) {
             assertFalse(lock.isBound());
@@ -328,23 +330,23 @@ public class AffinityLockTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testTooHighCpuId() {
+    void testTooHighCpuId() {
         assertFalse(AffinityLock.acquireLock(123456).isBound());
     }
 
     @Test
-    public void testNegativeCpuId() {
+    void testNegativeCpuId() {
         assertFalse(AffinityLock.acquireLock(-1).isBound());
     }
 
     @Test
-    public void testTooHighCpuId2() {
+    void testTooHighCpuId2() {
         AffinityLock lock = AffinityLock.acquireLock(new int[]{123456});
         assertFalse(lock.isBound());
     }
 
     @Test
-    public void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
+    void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
         assertThrows(IllegalStateException.class, () -> {
             assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
 

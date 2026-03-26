@@ -15,14 +15,14 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
-public class AffinityLockDumpLocksTest extends BaseAffinityTest {
+class AffinityLockDumpLocksTest extends BaseAffinityTest {
 
     private static void supressUnusedWarning(AutoCloseable c) {
         // do nothing
     }
 
     @Test
-    public void dumpLocksListsThreadsHoldingLocks() throws Exception {
+    void dumpLocksListsThreadsHoldingLocks() throws Exception {
         assumeTrue(new File("/proc/cpuinfo").exists());
 
         AffinityLock.cpuLayout(VanillaCpuLayout.fromCpuInfo());

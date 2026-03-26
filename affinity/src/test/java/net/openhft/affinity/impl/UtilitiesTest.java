@@ -10,7 +10,7 @@ import java.util.BitSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class UtilitiesTest extends BaseAffinityTest {
+class UtilitiesTest extends BaseAffinityTest {
 
     private static String hex(BitSet set, int... bits) {
         set.clear();
@@ -29,7 +29,7 @@ public class UtilitiesTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testToHexString() {
+    void testToHexString() {
         BitSet set = new BitSet();
         assertEquals("", hex(set));
         assertEquals("1", hex(set, 0));
@@ -40,7 +40,7 @@ public class UtilitiesTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testToBinaryString() {
+    void testToBinaryString() {
         BitSet set = new BitSet();
         assertEquals("", bin(set));
         assertEquals("1", bin(set, 0));

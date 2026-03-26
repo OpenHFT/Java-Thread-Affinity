@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assumptions.*;
+
 import software.chronicle.enterprise.internals.impl.NativeAffinity;
 
 import java.util.BitSet;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author peter.lawrey
  */
-public class NativeAffinityTest extends BaseAffinityTest {
+class NativeAffinityTest extends BaseAffinityTest {
     private static final int CORES = Runtime.getRuntime().availableProcessors();
     private static final BitSet CORES_MASK = new BitSet(CORES);
 
@@ -31,17 +32,17 @@ public class NativeAffinityTest extends BaseAffinityTest {
     }
 
     @BeforeAll
-    public static void checkJniLibraryPresent() {
+    static void checkJniLibraryPresent() {
         assumeTrue(NativeAffinity.LOADED);
     }
 
     @Test
-    public void getAffinityCompletesGracefully() {
+    void getAffinityCompletesGracefully() {
         System.out.println("affinity: " + Utilities.toBinaryString(getImpl().getAffinity()));
     }
 
     @Test
-    public void getAffinityReturnsValidValue() {
+    void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
         assertFalse(affinity.isEmpty(), "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty");
         final int allCoresMask = (1 << CORES) - 1;
@@ -52,7 +53,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void setAffinityCompletesGracefully() {
+    void setAffinityCompletesGracefully() {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
@@ -60,7 +61,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
 
     @Test
     @Disabled("TODO AFFINITY-25")
-    public void getAffinityReturnsValuePreviouslySet() {
+    void getAffinityReturnsValuePreviouslySet() {
         String osName = System.getProperty("os.name");
         if (!osName.startsWith("Linux")) {
             System.out.println("Skipping Linux tests");
@@ -76,7 +77,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
 
     @Test
     @Disabled("TODO AFFINITY-25")
-    public void JNAwithJNI() {
+    void JNAwithJNI() {
         String osName = System.getProperty("os.name");
         if (!osName.startsWith("Linux")) {
             System.out.println("Skipping Linux tests");
@@ -102,7 +103,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void showOtherIds() {
+    void showOtherIds() {
         System.out.println("processId: " + NativeAffinity.INSTANCE.getProcessId());
         System.out.println("threadId: " + NativeAffinity.INSTANCE.getThreadId());
         System.out.println("cpu: " + NativeAffinity.INSTANCE.getCpu());
@@ -117,7 +118,7 @@ public class NativeAffinityTest extends BaseAffinityTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         getImpl().setAffinity(CORES_MASK);
     }
 

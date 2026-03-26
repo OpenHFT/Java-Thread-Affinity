@@ -19,30 +19,30 @@ import static org.junit.jupiter.api.Assumptions.*;
 /**
  * @author Tom Shercliff
  */
-public class FileLockLockCheckTest extends BaseAffinityTest {
+class FileLockLockCheckTest extends BaseAffinityTest {
 
     private final TestFileLockBasedLockChecker lockChecker = new TestFileLockBasedLockChecker();
     private int cpu = 5;
 
     @BeforeEach
-    public void before() {
+    void before() {
         assumeTrue(IS_LINUX);
     }
 
     @Test
-    public void test() throws IOException {
+    void test() throws IOException {
         assertTrue(LockCheck.isCpuFree(cpu));
         LockCheck.updateCpu(cpu, 0);
         assertEquals(LockCheck.getPID(), LockCheck.getProcessForCpu(cpu));
     }
 
     @Test
-    public void testPidOnLinux() {
+    void testPidOnLinux() {
         assertTrue(LockCheck.isProcessRunning(LockCheck.getPID()));
     }
 
     @Test
-    public void testReplace() throws IOException {
+    void testReplace() throws IOException {
         cpu++;
         assertTrue(LockCheck.isCpuFree(cpu + 1));
         LockCheck.replacePid(cpu, 0, 123L);
@@ -50,7 +50,7 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldNotBlowUpIfPidFileIsEmpty() throws Exception {
+    void shouldNotBlowUpIfPidFileIsEmpty() throws Exception {
         LockCheck.updateCpu(cpu, 0);
 
         final File file = lockChecker.doToFile(cpu);
@@ -60,7 +60,7 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
     }
 
     @Test
-    public void lockFileDeletedWhileHeld() throws Exception {
+    void lockFileDeletedWhileHeld() throws Exception {
         cpu++;
 
         assertTrue(LockCheck.isCpuFree(cpu));
@@ -85,7 +85,7 @@ public class FileLockLockCheckTest extends BaseAffinityTest {
     }
 
     @Test
-    public void getProcessForCpuReturnsEmptyPidWhenNoFile() throws IOException {
+    void getProcessForCpuReturnsEmptyPidWhenNoFile() throws IOException {
         int freeCpu = 99;
         File lockFile = lockChecker.doToFile(freeCpu);
         assertFalse(lockFile.exists());

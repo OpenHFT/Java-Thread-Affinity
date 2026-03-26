@@ -12,15 +12,15 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
-public class AffinityThreadFactoryTest extends BaseAffinityTest {
+class AffinityThreadFactoryTest extends BaseAffinityTest {
 
     @BeforeEach
-    public void checkLinux() {
+    void checkLinux() {
         assumeTrue(LockCheck.IS_LINUX);
     }
 
     @Test
-    public void threadsReceiveDistinctCpus() throws InterruptedException {
+    void threadsReceiveDistinctCpus() throws InterruptedException {
         int available = Math.max(1, AffinityLock.PROCESSORS - 1);
         int nThreads = Math.min(4, available);
 

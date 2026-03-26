@@ -30,17 +30,17 @@ import static net.openhft.affinity.LockCheck.IS_LINUX;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
-public class MultiProcessAffinityTest extends BaseAffinityTest {
+class MultiProcessAffinityTest extends BaseAffinityTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MultiProcessAffinityTest.class);
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         assumeTrue(IS_LINUX);
     }
 
     @Test
-    public void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws InterruptedException {
+    void shouldNotAcquireLockOnCoresLockedByOtherProcesses() throws InterruptedException {
         // run the separate affinity locker
         final Process affinityLockerProcess = JavaProcessBuilder.create(AffinityLockerProcess.class)
                 .withJvmArguments("-Djava.io.tmpdir=" + folder.getAbsolutePath())
@@ -71,7 +71,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldAllocateCoresCorrectlyUnderContention() throws InterruptedException {
+    void shouldAllocateCoresCorrectlyUnderContention() throws InterruptedException {
         final int numberOfLockers = Math.max(2, Math.min(12, Runtime.getRuntime().availableProcessors())) / 2;
         List<Process> lockers = new ArrayList<>();
         LOGGER.info("Running test with {} locker processes", numberOfLockers);
@@ -87,7 +87,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldAllocateCoresCorrectlyUnderContentionWithFailures() throws InterruptedException {
+    void shouldAllocateCoresCorrectlyUnderContentionWithFailures() throws InterruptedException {
         final int numberOfLockers = Math.max(2, Math.min(12, Runtime.getRuntime().availableProcessors())) / 2;
         List<Process> lockers = new ArrayList<>();
         LOGGER.info("Running test with {} locker processes", numberOfLockers);
@@ -106,7 +106,7 @@ public class MultiProcessAffinityTest extends BaseAffinityTest {
     }
 
     @Test
-    public void shouldBeAbleToAcquireLockLeftByOtherProcess() throws InterruptedException {
+    void shouldBeAbleToAcquireLockLeftByOtherProcess() throws InterruptedException {
         final Process process = JavaProcessBuilder.create(AffinityLockerThatDoesNotReleaseProcess.class)
                 .withJvmArguments("-Djava.io.tmpdir=" + folder.getAbsolutePath())
                 .withProgramArguments("last").start();

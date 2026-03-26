@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assumptions.*;
 /**
  * @author peter.lawrey
  */
-public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
+class PosixJNAAffinityTest extends AbstractAffinityImplTest {
     @BeforeAll
-    public static void checkJniLibraryPresent() {
+    static void checkJniLibraryPresent() {
         assumeTrue(false, "TODO FIX JNA library is not used, but the test is flaky");
         assumeTrue("linux".equalsIgnoreCase(System.getProperty("os.name")));
     }
@@ -27,7 +27,7 @@ public class PosixJNAAffinityTest extends AbstractAffinityImplTest {
     }
 
     @Test
-    public void testGettid() {
+    void testGettid() {
         System.out.println("pid=" + getImpl().getProcessId());
         System.out.println("tid=" + getImpl().getThreadId());
         Affinity.setThreadId();

@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class VersionHelperTest extends BaseAffinityTest {
+class VersionHelperTest extends BaseAffinityTest {
 
     @Test
-    public void isSameOrNewerTest() {
+    void isSameOrNewerTest() {
         final VersionHelper v0 = new VersionHelper(0, 0, 0);
         final VersionHelper v2_6 = new VersionHelper(2, 6, 0);
         final VersionHelper v4_1 = new VersionHelper(4, 1, 1);
