@@ -6,7 +6,6 @@ package net.openhft.affinity;
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
 import net.openhft.chronicle.testframework.Waiters;
-import org.hamcrest.MatcherAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +19,6 @@ import java.util.BitSet;
 import java.util.List;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -238,7 +236,7 @@ class AffinityLockTest extends BaseAffinityTest {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 3);
 
         try (final AffinityLock affinityLock = AffinityLock.acquireLock(3)) {
-            MatcherAssert.assertThat(affinityLock.cpuId(), is(3));
+            assertEquals(3, affinityLock.cpuId());
         }
         assertEquals(AffinityLock.BASE_AFFINITY, Affinity.getAffinity());
     }
