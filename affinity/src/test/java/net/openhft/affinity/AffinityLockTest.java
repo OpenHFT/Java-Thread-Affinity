@@ -345,28 +345,26 @@ class AffinityLockTest extends BaseAffinityTest {
 
     @Test
     void bindingTwoThreadsToSameCpuThrows() throws InterruptedException {
-        assertThrows(IllegalStateException.class, () -> {
-            assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
+        assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
 
-            final AffinityLock lock = AffinityLock.acquireLock(false);
-            Thread t = new Thread(() -> {
-                lock.bind();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ignored) {
-                    // ignored
-                }
-            });
-            t.start();
-
-            Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
-
+        final AffinityLock lock = AffinityLock.acquireLock(false);
+        Thread t = new Thread(() -> {
+            lock.bind();
             try {
-                lock.bind();
-            } finally {
-                t.join();
-                lock.release();
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+                // ignored
             }
         });
+        t.start();
+
+        Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
+
+        try {
+            assertThrows(IllegalStateException.class, lock::bind);
+        } finally {
+            t.join();
+            lock.release();
+        }
     }
 }
