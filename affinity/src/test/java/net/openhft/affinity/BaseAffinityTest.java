@@ -5,6 +5,7 @@ package net.openhft.affinity;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class BaseAffinityTest {
 
-    @TempDir
+    @TempDir(cleanup = CleanupMode.ON_SUCCESS)
     File folder;
     private String originalTmpDir;
 
