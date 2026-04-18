@@ -314,7 +314,7 @@ System.out.println("\nThe assignment of CPUs is\n" + AffinityLock.dumpLocks());
 
 https://groups.google.com/forum/?hl=en-GB#!forum/java-thread-affinity[Java Thread Affinity support group]
 
-For an article on how much difference affinity can make and how to use it http://vanillajava.blogspot.com/2013/07/micro-jitter-busy-waiting-and-binding.html
+For an article on how much difference affinity can make and how to use it https://vanillajava.blogspot.com/2013/07/micro-jitter-busy-waiting-and-binding.html
 
 == Questions and Answers
 
