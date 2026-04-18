@@ -456,7 +456,7 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return unique id for this CPI or -1 if not allocated.
+     * @return unique id for this CPU or -1 if not allocated.
      */
     public int cpuId() {
         return cpuId;
