@@ -292,7 +292,7 @@ The project includes a comprehensive suite of tests:
 ** `VanillaCpuLayoutTest`, `VanillaCpuLayoutPropertiesParseTest`: Test parsing of `cpuinfo` files and properties files for CPU layout.
 ** `TickerTest`, `JNIClockTest`: Test timer implementations.
 ** `LockCheckTest`, `FileLockLockCheckTest`: Test inter-process lock checking.
-** `MultiProcessAffinityTest`: Tests affinity locking behavior across multiple Java processes.
+** `MultiProcessAffinityTest`: Tests affinity locking behaviour across multiple Java processes.
 * *OSGi Bundle Tests*: Located in `affinity-test/src/test/java/net/openhft/affinity/osgi/`.
 ** `OSGiBundleTest`: Verifies bundle activation and package exports in an OSGi environment using Pax Exam.
 * *Test Resources*: Includes sample `cpuinfo` files for various architectures and corresponding properties files to test layout parsing.
