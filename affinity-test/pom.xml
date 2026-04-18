@@ -23,6 +23,7 @@
     <description>Java Thread Affinity library</description>
 
     <properties>
+        <license.year>2013-2026</license.year>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jacoco.line.coverage>0</jacoco.line.coverage>
         <jacoco.branch.coverage>0</jacoco.branch.coverage>
@@ -201,4 +202,3 @@
   </scm>
 
 </project>
-

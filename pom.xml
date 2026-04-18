@@ -22,6 +22,10 @@
     <name>OpenHFT/Java-Thread-Affinity Parent</name>
     <description>Java Thread Affinity library</description>
 
+    <properties>
+        <license.year>2013-2026</license.year>
+    </properties>
+
     <modules>
         <module>affinity</module>
         <module>affinity-test</module>
