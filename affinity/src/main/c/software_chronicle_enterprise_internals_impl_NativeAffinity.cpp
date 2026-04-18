@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2025 chronicle.software; SPDX-License-Identifier: Apache-2.0
+ * Copyright 2013-2026 chronicle.software; SPDX-License-Identifier: Apache-2.0
  */
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
@@ -114,4 +114,3 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
   return (jint) sched_getcpu();
 #endif
 }
-
