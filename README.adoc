@@ -31,8 +31,6 @@ Process and thread IDs are available, while `getCpu()` returns `-1`.
 
 === Changes
 
-For detailed release notes and upgrade impact for tagged releases since the start of 2020, see link:RELEASE_NOTES.adoc[RELEASE_NOTES.adoc].
-
 * V3.2.0 - Add support for text configuration
 * V3.1.1 - Upgraded JNA dependency to 4.4.0
 * V2.0.1 - Added getThreadId for the process if of the thread.
