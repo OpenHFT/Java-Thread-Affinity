@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import static org.junit.Assert.*;
 import static org.ops4j.pax.exam.CoreOptions.*;
 
-@Ignore("TODO FIX")
+@Ignore("Pax Exam still relies on the JUnit 4 runner in this module; migrate once a JUnit 5 extension is available")
 @RunWith(PaxExam.class)
 public class OSGiBundleTest extends net.openhft.affinity.osgi.OSGiTestBase {
     @Inject

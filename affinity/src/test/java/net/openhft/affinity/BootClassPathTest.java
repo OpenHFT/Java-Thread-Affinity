@@ -3,13 +3,13 @@
  */
 package net.openhft.affinity;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class BootClassPathTest extends BaseAffinityTest {
+class BootClassPathTest extends BaseAffinityTest {
     @Test
-    public void shouldDetectClassesOnClassPath() {
+    void shouldDetectClassesOnClassPath() {
         assertTrue(BootClassPath.INSTANCE.has("java.lang.Thread"));
         assertTrue(BootClassPath.INSTANCE.has("java.lang.Runtime"));
     }

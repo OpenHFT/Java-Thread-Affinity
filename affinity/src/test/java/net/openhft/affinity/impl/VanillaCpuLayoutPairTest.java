@@ -4,20 +4,20 @@
 package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for {@link VanillaCpuLayout#pair(int)} using sample cpuinfo files.
  */
-public class VanillaCpuLayoutPairTest extends BaseAffinityTest {
+class VanillaCpuLayoutPairTest extends BaseAffinityTest {
 
     @Test
-    public void testPairForI7() throws IOException {
+    void testPairForI7() throws IOException {
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("i7.cpuinfo")) {
             VanillaCpuLayout layout = VanillaCpuLayout.fromCpuInfo(is);
             assertEquals(4, layout.pair(0));
@@ -32,7 +32,7 @@ public class VanillaCpuLayoutPairTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testPairForI3() throws IOException {
+    void testPairForI3() throws IOException {
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("i3.cpuinfo")) {
             VanillaCpuLayout layout = VanillaCpuLayout.fromCpuInfo(is);
             assertEquals(2, layout.pair(0));

@@ -4,25 +4,25 @@
 package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 /*
  * Created by Peter Lawrey on 23/03/16.
  */
-public class LinuxJNAAffinityTest extends BaseAffinityTest {
-    @BeforeClass
-    public static void checkJniLibraryPresent() {
-        Assume.assumeTrue(LinuxJNAAffinity.LOADED);
+class LinuxJNAAffinityTest extends BaseAffinityTest {
+    @BeforeAll
+    static void checkJniLibraryPresent() {
+        assumeTrue(LinuxJNAAffinity.LOADED);
     }
 
     @Test
-    public void LinuxJNA() {
+    void LinuxJNA() {
         int nbits = Runtime.getRuntime().availableProcessors();
         BitSet affinity0 = LinuxJNAAffinity.INSTANCE.getAffinity();
         System.out.println(affinity0);

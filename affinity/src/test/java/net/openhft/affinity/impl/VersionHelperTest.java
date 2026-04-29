@@ -4,13 +4,14 @@
 package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class VersionHelperTest extends BaseAffinityTest {
+import static org.junit.jupiter.api.Assertions.*;
+
+class VersionHelperTest extends BaseAffinityTest {
 
     @Test
-    public void isSameOrNewerTest() {
+    void isSameOrNewerTest() {
         final VersionHelper v0 = new VersionHelper(0, 0, 0);
         final VersionHelper v2_6 = new VersionHelper(2, 6, 0);
         final VersionHelper v4_1 = new VersionHelper(4, 1, 1);
@@ -21,8 +22,8 @@ public class VersionHelperTest extends BaseAffinityTest {
 
         for (int i = 0; i < versions.length; i++) {
             for (int j = 0; j < versions.length; j++) {
-                Assert.assertEquals(String.format("expected %s.isSameOrNewer(%s) to be %b", versions[i], versions[j], i >= j),
-                        i >= j, versions[i].isSameOrNewer(versions[j]));
+                assertEquals(i >= j, versions[i].isSameOrNewer(versions[j]),
+                        String.format("expected %s.isSameOrNewer(%s) to be %b", versions[i], versions[j], i >= j));
             }
         }
     }

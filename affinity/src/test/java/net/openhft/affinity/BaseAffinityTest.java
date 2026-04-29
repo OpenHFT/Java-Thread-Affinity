@@ -3,28 +3,34 @@
  */
 package net.openhft.affinity;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.CleanupMode;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.util.BitSet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class BaseAffinityTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir(cleanup = CleanupMode.ON_SUCCESS)
+    File folder;
     private String originalTmpDir;
 
-    @Before
-    public void setTmpDirectory() {
+    @BeforeEach
+    void setTmpDirectory() {
         originalTmpDir = System.getProperty("java.io.tmpdir");
-        System.setProperty("java.io.tmpdir", folder.getRoot().getAbsolutePath());
+        System.setProperty("java.io.tmpdir", folder.getAbsolutePath());
     }
 
-    @After
+    @AfterEach
+    void afterEachBaseAffinityTest() {
+        restoreTmpDirectoryAndReleaseAllLocks();
+        baseAffinity();
+    }
+
     public void restoreTmpDirectoryAndReleaseAllLocks() {
         // don't leave any locks locked
         for (int i = 0; i < AffinityLock.PROCESSORS; i++) {
@@ -33,7 +39,6 @@ public class BaseAffinityTest {
         System.setProperty("java.io.tmpdir", originalTmpDir);
     }
 
-    @After
     public void baseAffinity() {
         BitSet affinity = Affinity.getAffinity();
         Affinity.resetToBaseAffinity();

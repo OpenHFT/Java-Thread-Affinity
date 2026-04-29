@@ -4,20 +4,20 @@
 package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author peter.lawrey
  */
-public class VanillaCpuLayoutTest extends BaseAffinityTest {
+class VanillaCpuLayoutTest extends BaseAffinityTest {
 
     @Test
-    public void testFromCpuInfoI7() throws IOException {
+    void testFromCpuInfoI7() throws IOException {
         final InputStream i7 = getClass().getClassLoader().getResourceAsStream("i7.cpuinfo");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(i7);
         assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
@@ -31,7 +31,7 @@ public class VanillaCpuLayoutTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testFromCpuInfoOthers() throws IOException {
+    void testFromCpuInfoOthers() throws IOException {
         {
             final InputStream is = getClass().getClassLoader().getResourceAsStream("amd64.dual.core.cpuinfo");
             VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(is);
@@ -91,7 +91,7 @@ public class VanillaCpuLayoutTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testNoIDs() throws IOException {
+    void testNoIDs() throws IOException {
         final InputStream noids = getClass().getClassLoader().getResourceAsStream("q6600.vm.cpuinfo");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromCpuInfo(noids);
         assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +
@@ -101,7 +101,7 @@ public class VanillaCpuLayoutTest extends BaseAffinityTest {
     }
 
     @Test
-    public void testFromProperties() throws IOException {
+    void testFromProperties() throws IOException {
         final InputStream i7 = getClass().getClassLoader().getResourceAsStream("i7.properties");
         VanillaCpuLayout vcl = VanillaCpuLayout.fromProperties(i7);
         assertEquals("0: CpuInfo{socketId=0, coreId=0, threadId=0}\n" +

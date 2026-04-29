@@ -4,16 +4,16 @@
 package net.openhft.affinity;
 
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class AffinityResetToBaseAffinityTest extends BaseAffinityTest {
+class AffinityResetToBaseAffinityTest extends BaseAffinityTest {
 
     @Test
-    public void resettingShouldRestoreBaseAffinity() throws Exception {
+    void resettingShouldRestoreBaseAffinity() throws Exception {
         if (!new File("/proc/cpuinfo").exists()) {
             System.out.println("Cannot run affinity test as this system doesn't have a /proc/cpuinfo file");
             return;

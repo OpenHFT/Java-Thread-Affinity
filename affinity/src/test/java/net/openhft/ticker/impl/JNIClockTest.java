@@ -5,19 +5,19 @@ package net.openhft.ticker.impl;
 
 import net.openhft.affinity.Affinity;
 import net.openhft.affinity.BaseAffinityTest;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /*
  * Created by Peter Lawrey on 13/07/15.
  */
-public class JNIClockTest extends BaseAffinityTest {
+class JNIClockTest extends BaseAffinityTest {
 
     @Test
-    @Ignore("TODO Fix")
-    public void testNanoTime() throws InterruptedException {
+    @Disabled("TODO Fix")
+    void testNanoTime() throws InterruptedException {
         for (int i = 0; i < 20000; i++)
             System.nanoTime();
         Affinity.setAffinity(2);
@@ -38,8 +38,8 @@ public class JNIClockTest extends BaseAffinityTest {
     }
 
     @Test
-    @Ignore("Long running")
-    public void testJitter() {
+    @Disabled("Long running")
+    void testJitter() {
         Affinity.setAffinity(2);
         assertEquals(2, Affinity.getCpu());
         int samples = 100000, count = 0;

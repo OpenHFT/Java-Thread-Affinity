@@ -5,18 +5,18 @@ package net.openhft.affinity.impl;
 
 import net.openhft.affinity.BaseAffinityTest;
 import net.openhft.affinity.IAffinity;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.BitSet;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author cheremin
  * @since 29.12.11,  20:25
  */
-public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
+abstract class AbstractAffinityImplTest extends BaseAffinityTest {
 
     private static final int CORES = Runtime.getRuntime().availableProcessors();
     private static final BitSet CORES_MASK = new BitSet(CORES);
@@ -28,30 +28,30 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
     protected abstract IAffinity getImpl();
 
     @Test
-    public void getAffinityCompletesGracefully() {
+    void getAffinityCompletesGracefully() {
         getImpl().getAffinity();
     }
 
     @Test
-    public void getAffinityReturnsValidValue() {
+    void getAffinityReturnsValidValue() {
         final BitSet affinity = getImpl().getAffinity();
-        assertFalse("Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty", affinity.isEmpty());
+        assertFalse(affinity.isEmpty(), "Affinity mask " + Utilities.toBinaryString(affinity) + " must be non-empty");
         final long allCoresMask = (1L << CORES) - 1;
         assertTrue(
-                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")",
-                affinity.length() <= CORES_MASK.length()
+                affinity.length() <= CORES_MASK.length(),
+                "Affinity mask " + Utilities.toBinaryString(affinity) + " must be <=(2^" + CORES + "-1 = " + allCoresMask + ")"
         );
     }
 
     @Test
-    public void setAffinityCompletesGracefully() {
+    void setAffinityCompletesGracefully() {
         BitSet affinity = new BitSet(1);
         affinity.set(0, true);
         getImpl().setAffinity(affinity);
     }
 
     @Test
-    public void getAffinityReturnsValuePreviouslySet() {
+    void getAffinityReturnsValuePreviouslySet() {
         final IAffinity impl = getImpl();
         for (int core = 0; core < CORES; core++) {
             final BitSet mask = new BitSet();
@@ -68,8 +68,8 @@ public abstract class AbstractAffinityImplTest extends BaseAffinityTest {
         assertEquals(mask, _mask);
     }
 
-    @After
-    public void tearDown() {
+    @AfterEach
+    void tearDown() {
         try {
             getImpl().setAffinity(CORES_MASK);
         } catch (Exception e) {
