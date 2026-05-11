@@ -31,9 +31,7 @@ Process and thread IDs are available, while `getCpu()` returns `-1`.
 
 === Changes
 
-* V3.2.0 - Add support for text configuration
-* V3.1.1 - Upgraded JNA dependency to 4.4.0
-* V2.0.1 - Added getThreadId for the process if of the thread.
+For detailed release notes and upgrade impact for tagged releases since the start of 2020, see link:RELEASE_NOTES.adoc[RELEASE_NOTES.adoc].
 
 === Dependencies
 
@@ -86,9 +84,9 @@ Note: the CPU 0 is reserved for the Operating System, it has to run somewhere.
 
 === References
 
-https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+https://github.com/OepnHFT/Java-Thread-Affinity/wiki/Getting-started
 
-https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/How-it-works
+https://github.com/OpenHFT/Java-Thread-Affinity/wiki/How-it-works
 
 https://vanillajava.blogspot.com/2013/07/micro-jitter-busy-waiting-and-binding.html
 
@@ -320,7 +318,7 @@ For an article on how much difference affinity can make and how to use it http:/
 
 === Question: How to lock a specific cpuId
 I am currently working on a project related to deadlock detection in multithreaded programs in java.
-We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/peter-lawrey/Java-Thread-Affinity/wiki/Getting-started
+We are trying to run threads on different processors and thus came across your github posts regarding the same. https://github.com/OpenHFT/Java-Thread-Affinity/wiki/Getting-started
 Being a beginner, I have little knowledge and thus need your assistance.
 We need to know how to run threads on specified cpu number and then switch threads when one is waiting.
 
