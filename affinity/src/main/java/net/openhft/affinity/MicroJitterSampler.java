@@ -92,7 +92,7 @@ public class MicroJitterSampler {
 
     void sample(long intervalNS) {
         long prev = System.nanoTime();
-        long end = prev + intervalNS;
+        long endNs = prev + intervalNS;
         long now;
         do {
             now = System.nanoTime();
@@ -105,7 +105,7 @@ public class MicroJitterSampler {
                 count[i - 1]++;
             }
             prev = now;
-        } while (now < end);
+        } while (now < endNs);
         totalTime += intervalNS;
     }
 

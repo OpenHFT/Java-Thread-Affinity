@@ -5,6 +5,7 @@ package net.openhft.affinity.impl;
 
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
+import net.openhft.affinity.Bounds;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -271,7 +272,7 @@ public class LinuxHelper {
     public static class cpu_set_t extends Structure {
         static final int __CPU_SETSIZE = 1024;
         static final int __NCPUBITS = 8 * NativeLong.SIZE;
-        static final int SIZE_OF_CPU_SET_T = (__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE;
+        static final int SIZE_OF_CPU_SET_T = Bounds.requireSize((__CPU_SETSIZE / __NCPUBITS) * NativeLong.SIZE, "SIZE_OF_CPU_SET_T");
         static List<String> FIELD_ORDER = Collections.singletonList("__bits");
         public NativeLong[] __bits = new NativeLong[__CPU_SETSIZE / __NCPUBITS];
 

@@ -6,6 +6,7 @@ package net.openhft.affinity.impl;
 import com.sun.jna.*;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.ptr.PointerByReference;
+import net.openhft.affinity.Bounds;
 import net.openhft.affinity.IAffinity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +62,8 @@ public enum PosixJNAAffinity implements IAffinity {
         final CLibrary lib = CLibrary.INSTANCE;
         final int procs = Runtime.getRuntime().availableProcessors();
 
-        final int cpuSetSizeInLongs = (procs + 63) / 64;
-        final int cpuSetSizeInBytes = cpuSetSizeInLongs * 8;
+        final int cpuSetSizeInLongs = Bounds.requireSize((procs + 63) / 64, "cpuSetSizeInLongs");
+        final int cpuSetSizeInBytes = Bounds.requireSize(cpuSetSizeInLongs * 8, "cpuSetSizeInBytes");
         final Memory cpusetArray = new Memory(cpuSetSizeInBytes);
         final PointerByReference cpuset = new PointerByReference(cpusetArray);
         try {

@@ -58,16 +58,16 @@ public enum JNIClock implements ITicker {
         while (System.nanoTime() == start) {
         }
 
-        long end = start + factor * 1000000L;
-        final long start0 = rdtsc0();
-        while ((now = System.nanoTime()) < end) {
+        long endNs = start + factor * 1000000L;
+        final long startCycles0 = net.openhft.affinity.Bounds.requireOffset(rdtsc0(), "startCycles0");
+        while ((now = System.nanoTime()) < endNs) {
         }
-        long end0 = rdtsc0();
-        end = now;
+        long endCycles0 = rdtsc0();
+        endNs = now;
 
-        RDTSC_FACTOR = ((end - start) << FACTOR_BITS) / (end0 - start0) - 1;
-        RDTSC_MICRO_FACTOR = 1e-3 * (end - start) / (end0 - start0);
-        CPU_FREQUENCY = (end0 - start0 + 1) * 1000 / (end - start);
+        RDTSC_FACTOR = ((endNs - start) << FACTOR_BITS) / (endCycles0 - startCycles0) - 1;
+        RDTSC_MICRO_FACTOR = 1e-3 * (endNs - start) / (endCycles0 - startCycles0);
+        CPU_FREQUENCY = (endCycles0 - startCycles0 + 1) * 1000 / (endNs - start);
     }
 
     native static long rdtsc0();
