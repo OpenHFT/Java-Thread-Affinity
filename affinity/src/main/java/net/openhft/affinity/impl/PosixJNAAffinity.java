@@ -28,7 +28,6 @@ public enum PosixJNAAffinity implements IAffinity {
     INSTANCE;
     public static final boolean LOADED;
     private static final Logger LOGGER = LoggerFactory.getLogger(PosixJNAAffinity.class);
-    private static final String LIBRARY_NAME = Platform.isWindows() ? "msvcrt" : "c";
     private static final int PROCESS_ID;
     private static final int SYS_gettid = Utilities.is64Bit() ? 186 : 224;
     private static final Object[] NO_ARGS = {};
@@ -177,7 +176,7 @@ public enum PosixJNAAffinity implements IAffinity {
      * @author BegemoT
      */
     interface CLibrary extends Library {
-        CLibrary INSTANCE = Native.load(LIBRARY_NAME, CLibrary.class);
+        CLibrary INSTANCE = Native.load(Platform.isWindows() ? "msvcrt" : "c", CLibrary.class);
 
         int sched_setaffinity(final int pid,
                               final int cpusetsize,

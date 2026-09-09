@@ -45,6 +45,9 @@ public enum LinuxJNAAffinity implements IAffinity {
 
     private final ThreadLocal<Integer> THREAD_ID = new ThreadLocal<>();
 
+    /**
+     * Returns the CPU affinity mask of the calling thread.
+     */
     @Override
     public BitSet getAffinity() {
         final LinuxHelper.cpu_set_t cpuset = LinuxHelper.sched_getaffinity();
@@ -58,6 +61,9 @@ public enum LinuxJNAAffinity implements IAffinity {
         return ret;
     }
 
+    /**
+     * Sets the CPU affinity mask of the calling thread.
+     */
     @Override
     public void setAffinity(final BitSet affinity) {
         LinuxHelper.sched_setaffinity(affinity);
