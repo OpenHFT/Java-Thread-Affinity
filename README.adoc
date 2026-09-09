@@ -5,8 +5,8 @@ image::docs/images/Thread-Affinity_line.png[width=20%]
 == Version
 
 [#image-maven]
-[caption="",link=https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity]
-image::https://maven-badges.herokuapp.com/maven-central/net.openhft/affinity/badge.svg[]
+[caption="",link=https://central.sonatype.com/artifact/net.openhft/affinity]
+image::https://img.shields.io/maven-central/v/net.openhft/affinity.svg[Maven Central]
 image:https://javadoc.io/badge2/net.openhft/affinity/javadoc.svg[link="https://www.javadoc.io/doc/net.openhft/affinity/latest/index.html"]
 
 == Overview
@@ -14,7 +14,7 @@ Lets you bind a thread to a given core, this can improve performance (this libra
 
 OpenHFT Java Thread Affinity library
 
-See https://github.com/OpenHFT/Java-Thread-Affinity/tree/master/affinity/src/test/java[affinity/src/test/java]
+See https://github.com/OpenHFT/Java-Thread-Affinity/tree/develop/affinity/src/test/java[affinity/src/test/java]
 for working examples of how to use this library.
 
 === Supported operating systems
@@ -312,7 +312,7 @@ System.out.println("\nThe assignment of CPUs is\n" + AffinityLock.dumpLocks());
 
 https://groups.google.com/forum/?hl=en-GB#!forum/java-thread-affinity[Java Thread Affinity support group]
 
-For an article on how much difference affinity can make and how to use it http://vanillajava.blogspot.com/2013/07/micro-jitter-busy-waiting-and-binding.html
+For an article on how much difference affinity can make and how to use it https://blog.vanillajava.blog/2013/07/micro-jitter-busy-waiting-and-binding.html
 
 == Questions and Answers
 
