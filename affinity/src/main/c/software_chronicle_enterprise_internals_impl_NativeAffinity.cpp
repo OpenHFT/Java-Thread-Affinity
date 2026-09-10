@@ -12,22 +12,38 @@
   #include <sys/types.h>
   #include <unistd.h>
   #include <string.h>
+  #include <errno.h>
+  #include <stdio.h>
 #endif
-#include <stdexcept>
 #include "software_chronicle_enterprise_internals_impl_NativeAffinity.h"
+
+#ifndef __linux__
+static void throwUnsupportedOperation(JNIEnv *env, const char *message) {
+    jclass exClass = env->FindClass("java/lang/UnsupportedOperationException");
+    if (exClass != NULL) {
+        env->ThrowNew(exClass, message);
+    }
+}
+#endif
+
+#ifdef __linux__
+static void throwRuntimeException(JNIEnv *env, const char *message) {
+    jclass exClass = env->FindClass("java/lang/RuntimeException");
+    if (exClass != NULL) {
+        env->ThrowNew(exClass, message);
+    }
+}
+#endif
 
 /*
  * Class:     software_chronicle_enterprise_internals_impl_NativeAffinity
  * Method:    getAffinity0
- * Signature: ()J
+ * Signature: ()[B
  */
 JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getAffinity0
-  (JNIEnv *env, jclass c) 
+  (JNIEnv *env, jclass c)
 {
 #ifdef __linux__
-    // The default size of the structure supports 1024 CPUs, should be enough
-    // for now In the future we can use dynamic sets, which can support more
-    // CPUs, given OS can handle them as well
     cpu_set_t mask;
     const size_t size = sizeof(mask);
 
@@ -37,21 +53,23 @@ JNIEXPORT jbyteArray JNICALL Java_software_chronicle_enterprise_internals_impl_N
         return NULL;
     }
 
-    jbyteArray ret = env->NewByteArray(size);
-    jbyte* bytes = env->GetByteArrayElements(ret, 0);
-    memcpy(bytes, &mask, size);
-    env->SetByteArrayRegion(ret, 0, size, bytes);
+    jbyteArray ret = env->NewByteArray((jsize) size);
+    if (ret == NULL) {
+        return NULL;
+    }
+    env->SetByteArrayRegion(ret, 0, (jsize) size, (const jbyte *) &mask);
 
     return ret;
 #else
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.getAffinity0 is only supported on Linux");
+    return NULL;
 #endif
 }
 
 /*
- * Class:     software_chronicle_enterprise_internals_NativeAffinity
+ * Class:     software_chronicle_enterprise_internals_impl_NativeAffinity
  * Method:    setAffinity0
- * Signature: (J)V
+ * Signature: ([B)V
  */
 JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_setAffinity0
   (JNIEnv *env, jclass c, jbyteArray affinity)
@@ -61,12 +79,26 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
     const size_t size = sizeof(mask);
     CPU_ZERO(&mask);
 
-    jbyte* bytes = env->GetByteArrayElements(affinity, 0);
-    memcpy(&mask, bytes, size);
+    jsize length = env->GetArrayLength(affinity);
+    if (length > 0) {
+        jsize copyLength = length < (jsize) size ? length : (jsize) size;
+        env->GetByteArrayRegion(affinity, 0, copyLength, (jbyte *) &mask);
+        if (env->ExceptionCheck()) {
+            return;
+        }
+    }
 
-    sched_setaffinity(0, size, &mask);
+    int res = sched_setaffinity(0, size, &mask);
+    if (res != 0) {
+        const int error = errno;
+        char message[256];
+        snprintf(message, sizeof(message),
+                 "sched_setaffinity(thread=0, maskBytes=%d) failed: errno=%d (%s)",
+                 (int) length, error, strerror(error));
+        throwRuntimeException(env, message);
+    }
 #else
-    throw std::runtime_error("Not supported");
+    throwUnsupportedOperation(env, "NativeAffinity.setAffinity0 is only supported on Linux");
 #endif
 }
 
@@ -77,11 +109,11 @@ JNIEXPORT void JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getProcessId0
   (JNIEnv *env, jclass c) {
-#ifndef __linux__
-    throw std::runtime_error("Not supported");
+#ifdef __linux__
+    return (jint) getpid();
 #else
-      
-  return (jint) getpid();
+    throwUnsupportedOperation(env, "NativeAffinity.getProcessId0 is only supported on Linux");
+    return (jint) -1;
 #endif
 }
 
@@ -92,11 +124,11 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getThreadId0
   (JNIEnv *env, jclass c) {
-#ifndef __linux__
-    throw std::runtime_error("Not supported");
-#else
-      
+#ifdef __linux__
     return (jint) (pid_t) syscall (SYS_gettid);
+#else
+    throwUnsupportedOperation(env, "NativeAffinity.getThreadId0 is only supported on Linux");
+    return (jint) -1;
 #endif
 }
 
@@ -107,11 +139,10 @@ JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeA
  */
 JNIEXPORT jint JNICALL Java_software_chronicle_enterprise_internals_impl_NativeAffinity_getCpu0
   (JNIEnv *env, jclass c) {
-#ifndef __linux__
-    throw std::runtime_error("Not supported");
+#ifdef __linux__
+    return (jint) sched_getcpu();
 #else
-      
-  return (jint) sched_getcpu();
+    throwUnsupportedOperation(env, "NativeAffinity.getCpu0 is only supported on Linux");
+    return (jint) -1;
 #endif
 }
-

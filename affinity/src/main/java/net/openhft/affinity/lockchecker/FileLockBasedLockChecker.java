@@ -14,6 +14,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.NoSuchFileException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.OpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
@@ -158,7 +159,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     }
 
     private void writeMetaInfoToFile(FileChannel fc, String metaInfo) throws IOException {
-        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes();
+        byte[] content = String.format("%s%n%s", metaInfo, dfTL.get().format(new Date())).getBytes(StandardCharsets.UTF_8);
         ByteBuffer buffer = ByteBuffer.wrap(content);
         while (buffer.hasRemaining()) {
             //noinspection ResultOfMethodCallIgnored
@@ -211,7 +212,7 @@ public class FileLockBasedLockChecker implements LockChecker {
     private String readMetaInfoFromLockFileChannel(File lockFile, FileChannel lockFileChannel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(64);
         int len = lockFileChannel.read(buffer, 0);
-        String content = len < 1 ? "" : new String(buffer.array(), 0, len);
+        String content = len < 1 ? "" : new String(buffer.array(), 0, len, StandardCharsets.UTF_8);
         if (content.isEmpty()) {
             LOGGER.warn("Empty lock file {}", lockFile.getAbsolutePath());
             return null;

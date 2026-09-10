@@ -33,6 +33,11 @@ public class LinuxHelper {
         version = ver;
     }
 
+    /**
+     * Returns the CPU affinity mask of the calling thread.
+     *
+     * @return the processors on which the calling thread is permitted to run
+     */
     public static
     @NotNull
     cpu_set_t sched_getaffinity() {
@@ -52,10 +57,16 @@ public class LinuxHelper {
         return cpuset;
     }
 
+    /**
+     * Sets the CPU affinity mask of the calling thread.
+     */
     public static void sched_setaffinity(final BitSet affinity) {
         sched_setaffinity(0, affinity);
     }
 
+    /**
+     * Sets affinity for the thread identified by {@code pid}; zero selects the calling thread.
+     */
     public static void sched_setaffinity(final int pid, final BitSet affinity) {
         final CLibrary lib = CLibrary.INSTANCE;
         final cpu_set_t cpuset = new cpu_set_t();
