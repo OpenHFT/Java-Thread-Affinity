@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledOnOs(OS.LINUX)
 class LinuxThreadIdTest {
@@ -36,7 +36,7 @@ class LinuxThreadIdTest {
     @Test
     void threadIdMatchesProcThreadSelf() throws IOException {
         Path threadSelf = Paths.get("/proc/thread-self");
-        assumeTrue(Files.isSymbolicLink(threadSelf), "/proc/thread-self is required for the native TID check");
+        assertTrue(Files.isSymbolicLink(threadSelf), "/proc/thread-self is required for the native TID check");
         int kernelThreadId = Integer.parseInt(Files.readSymbolicLink(threadSelf).getFileName().toString());
 
         assertEquals(kernelThreadId, LinuxJNAAffinity.INSTANCE.getThreadId());
