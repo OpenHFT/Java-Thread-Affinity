@@ -374,3 +374,7 @@ try (AffinityLock lock = AffinityLock.acquireLock("0")) { // prints a warning
     assertFalse(lock.bound);
 }
 ----
+
+== Affinity diagnostic logging
+
+See link:docs/affinity-logging.adoc[Affinity diagnostic logging: behaviour and usage].

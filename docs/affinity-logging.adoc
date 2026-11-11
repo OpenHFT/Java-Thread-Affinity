@@ -1,0 +1,14 @@
+= Routine topology logging
+
+Two normal observations now use DEBUG: a non-uniform socket/core/SMT layout,
+and the fallback CPU range when no isolated CPUs were configured. The layout
+message retains counts and CPU records; formatting occurs only at DEBUG.
+
+Valid hybrid CPUs need not satisfy the rectangular sockets * cores * threads
+formula. This diagnostic does not establish corrupt topology. It also does not
+fix or qualify the existing layout model. CPU selection is unchanged.
+
+Enable DEBUG for `net.openhft.affinity.impl.VanillaCpuLayout` or
+`net.openhft.affinity.AffinityLock` to inspect these messages. Invalid CPU requests,
+reservation failures, binding failures and leaked reservations retain their levels.
+Core's banners and successful acquisition INFO logs are outside this change.

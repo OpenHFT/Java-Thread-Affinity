@@ -39,16 +39,17 @@ public class VanillaCpuLayout implements CpuLayout {
         this.sockets = sockets.size();
         this.coresPerSocket = cores.size() / sockets.size();
         this.threadsPerCore = threads.size();
-        if (cpuDetails.size() != sockets() * coresPerSocket() * threadsPerCore()) {
+        if (cpuDetails.size() != sockets() * coresPerSocket() * threadsPerCore()
+                && LoggerFactory.getLogger(VanillaCpuLayout.class).isDebugEnabled()) {
             StringBuilder error = new StringBuilder();
-            error.append("cpuDetails.size= ").append(cpuDetails.size())
+            error.append("Non-uniform CPU layout: cpuDetails.size= ").append(cpuDetails.size())
                     .append(" != sockets: ").append(sockets())
                     .append(" * coresPerSocket: ").append(coresPerSocket())
                     .append(" * threadsPerCore: ").append(threadsPerCore()).append('\n');
             for (CpuInfo detail : cpuDetails) {
                 error.append(detail).append('\n');
             }
-            LoggerFactory.getLogger(VanillaCpuLayout.class).warn(error.toString());
+            LoggerFactory.getLogger(VanillaCpuLayout.class).debug(error.toString());
         }
     }
 
