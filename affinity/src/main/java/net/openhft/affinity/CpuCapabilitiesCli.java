@@ -45,7 +45,7 @@ public final class CpuCapabilitiesCli {
             return 2;
         }
     }
-    private static String escape(String value) {
+    static String escape(String value) {
         return value.replace("\\", "\\\\").replace("\t", "\\t").replace("\r", "\\r").replace("\n", "\\n");
     }
 }

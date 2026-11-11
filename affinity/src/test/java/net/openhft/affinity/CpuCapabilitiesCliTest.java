@@ -34,12 +34,12 @@ class CpuCapabilitiesCliTest {
         assertEquals(first, run(0, "--allowed", "8-9", "--sysfs-root", root.toString()));
     }
     @Test void unknownDiagnosticsAndEscapedSources() throws Exception {
-        root = root.resolve("tab\tnewline\n");
         file("devices/system/cpu/online", "8");
         String out = run(3, "--allowed", "8", "--sysfs-root", root.toString());
         assertTrue(out.contains("8\tUNKNOWN\tUNKNOWN"));
         assertTrue(out.contains("diagnostic\t"));
-        assertTrue(out.contains("tab\\tnewline\\n"));
+        assertEquals("tab\\tnewline\\nreturn\\rslash\\\\",
+                CpuCapabilitiesCli.escape("tab\tnewline\nreturn\rslash\\"));
         assertTrue(out.contains("\tunknown\t"));
     }
     @Test void publicMainReportsIncompleteWithoutWritingFixture() throws Exception {
