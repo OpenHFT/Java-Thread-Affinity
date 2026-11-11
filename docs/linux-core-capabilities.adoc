@@ -1,0 +1,77 @@
+= Linux core-class and maximum-frequency observations
+
+The Linux capability reader provides an explicit read-only observation API. It does not change
+`AffinityLock`, reserve a CPU, change affinity, or rank CPUs by performance.
+
+[source,java]
+----
+import java.util.BitSet;
+import net.openhft.affinity.CpuCapabilitySnapshot;
+import net.openhft.affinity.LinuxCpuCapabilities;
+
+// Supply the permitted envelope captured before narrowing thread affinity.
+CpuCapabilitySnapshot snapshot = LinuxCpuCapabilities.read(allowedCpus);
+snapshot.cpus().forEach((id, cpu) ->
+        System.out.println(id + " " + cpu.coreType() + " " + cpu.source()));
+----
+
+`allowedCpus` is a caller-supplied BitSet, not a count of processors. The reader
+intersects it with `/sys/devices/system/cpu/online`. CPU IDs remain sparse.
+A narrowed current-thread mask is not the process's original eligibility envelope.
+The reader does not discover cgroup membership, reservation policy or free locks.
+
+On Linux Intel hybrid systems, the kernel's PMU lists
+`/sys/bus/event_source/devices/cpu_core/cpus` and
+`/sys/bus/event_source/devices/cpu_atom/cpus` identify performance-class and
+efficiency-class logical CPUs. Records carry the source path and OS_REPORTED
+confidence. This means reported class, not independently measured performance.
+E and LP-E are deliberately not distinguished: these PMU lists do not provide
+that distinction. Frequencies, cache sizes and CPU numbers are not substitutes.
+
+Both PMU lists must be readable and valid. An empty list is valid; an absent,
+unreadable or malformed list leaves classes UNKNOWN with diagnostics. Membership
+in both lists is a conflict, and membership in neither is unknown. Homogeneous
+or unsupported machines without these lists are not assumed performance-class.
+Missing or invalid online data yields an empty result with diagnostics, never a
+wider guessed mask. The parser supports decimal CPU IDs up to 1048575, including
+comma-separated IDs and inclusive ranges; unsupported syntax fails closed.
+
+Snapshots and diagnostic collections are immutable. Each call reads afresh, with
+no background polling or static cache. Sysfs reads are not atomic across hotplug;
+revalidate eligibility at the binding boundary. A snapshot grants no authority
+to bind. Unknown capability is not low performance. Ranking and default allocation policy are separate concerns; this reader
+does not change either. No automatic warning
+or logging is added to existing acquisition paths.
+
+`read(Path sysfsRoot, BitSet allowedCpus)` supports recorded directory fixtures.
+Tests cover sparse/offline IDs, restricted masks, missing/malformed/conflicting
+sources, homogeneous unknown hosts, E/LP-E non-distinction and explicit refresh.
+The live smoke probe is a topology observation, not a latency benchmark.
+
+Kernel reference:
+https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux-stable/+/master/tools/perf/Documentation/intel-hybrid.txt[Intel hybrid PMU interface].
+
+== Optional maximum frequency
+
+Each eligible CPU exposes `maximumFrequencyKhz()` as an `OptionalLong` and
+`frequencySource()` as its source path. The reader uses
+`/sys/devices/system/cpu/cpu<ID>/cpufreq/cpuinfo_max_freq`, including when the
+core class is unknown. Missing CPUFreq data remains empty; malformed, unreadable,
+non-positive or overflowing values remain empty with a diagnostic. The attempted
+source path is retained even when no value is available.
+
+This is the kernel-reported maximum in kHz, not current speed, a guaranteed
+sustained speed or a measured performance ranking. `scaling_max_freq` is a policy
+cap and is deliberately not used as a fallback. Frequency does not infer P/E
+class or change allocation preferences. Refresh requires another explicit read.
+
+[source,java]
+----
+snapshot.cpus().forEach((id, cpu) -> System.out.println(id + " maximum kHz: " +
+        (cpu.maximumFrequencyKhz().isPresent()
+                ? Long.toString(cpu.maximumFrequencyKhz().getAsLong()) : "unknown") +
+        " source: " + cpu.frequencySource()));
+----
+
+Kernel reference:
+https://www.kernel.org/doc/html/latest/admin-guide/pm/cpufreq.html[CPUFreq attributes].
