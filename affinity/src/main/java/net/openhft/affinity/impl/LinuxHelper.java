@@ -146,11 +146,11 @@ public class LinuxHelper {
         try {
             final int ret = lib.syscall(number, args);
             if (ret < 0) {
-                throw new IllegalStateException("sched_getcpu() failed; errno=" + Native.getLastError());
+                throw new IllegalStateException("syscall(" + number + ") failed; errno=" + Native.getLastError());
             }
             return ret;
         } catch (LastErrorException e) {
-            throw new IllegalStateException("sched_getcpu() failed; errno=" + e.getErrorCode(), e);
+            throw new IllegalStateException("syscall(" + number + ") failed; errno=" + e.getErrorCode(), e);
         }
     }
 
