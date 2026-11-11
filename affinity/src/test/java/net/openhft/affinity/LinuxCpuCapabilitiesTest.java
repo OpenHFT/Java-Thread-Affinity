@@ -36,7 +36,7 @@ class LinuxCpuCapabilitiesTest {
         assertEquals(PERFORMANCE, s.cpus().get(2).coreType());
         assertEquals(EFFICIENCY, s.cpus().get(4).coreType());
         assertEquals(CpuCapability.Confidence.OS_REPORTED, s.cpus().get(4).confidence());
-        assertTrue(s.cpus().get(2).source().endsWith("cpu_core/cpus"));
+        assertEquals(root.resolve("bus/event_source/devices/cpu_core/cpus").toString(), s.cpus().get(2).source());
         assertTrue(s.diagnostics().isEmpty());
     }
     @Test void cpuNumbersDoNotDetermineClass() throws Exception {

@@ -27,7 +27,7 @@ class CpuFrequencyTest {
         CpuCapability c = LinuxCpuCapabilities.read(root, CpuIdList.parse("8")).cpus().get(8);
         assertEquals(4800000L, c.maximumFrequencyKhz().getAsLong());
         assertEquals(CpuCapability.CoreType.UNKNOWN, c.coreType());
-        assertTrue(c.frequencySource().endsWith("cpu8/cpufreq/cpuinfo_max_freq"));
+        assertEquals(root.resolve("devices/system/cpu/cpu8/cpufreq/cpuinfo_max_freq").toString(), c.frequencySource());
     }
     @Test void missingHardwareMaximumDoesNotUsePolicyCap() throws Exception {
         file("devices/system/cpu/online", "0");
