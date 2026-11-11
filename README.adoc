@@ -374,3 +374,7 @@ try (AffinityLock lock = AffinityLock.acquireLock("0")) { // prints a warning
     assertFalse(lock.bound);
 }
 ----
+
+== Verify thread binding
+
+See link:docs/binding-verification.adoc[Verify thread binding: behaviour and usage].
