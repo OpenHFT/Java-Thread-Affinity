@@ -456,9 +456,6 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return unique id for this CPI or -1 if not allocated.
-     */
-    /**
      * Verify this reservation against the calling thread's actual affinity mask.
      * A reservation made with bind=false is reported as reserved_not_bound.
      * The check does not release the lock; use try-with-resources for ownership.
@@ -469,6 +466,9 @@ public class AffinityLock implements Closeable {
         }
     }
 
+    /**
+     * @return the reserved CPU id, or -1 if no CPU was allocated
+     */
     public int cpuId() {
         return cpuId;
     }
