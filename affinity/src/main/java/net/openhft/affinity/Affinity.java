@@ -68,6 +68,19 @@ public enum Affinity {
         AFFINITY_IMPL = impl;
     }
 
+    /** Read-only point-in-time description; a sampled CPU is not proof of a binding. */
+    public static String describeCurrentThread() {
+        String mask;
+        try {
+            BitSet observed = AFFINITY_IMPL.getAffinity();
+            mask = observed == null || observed.isEmpty() ? "unknown" : observed.toString();
+        } catch (RuntimeException | LinkageError unavailable) {
+            mask = "unknown:" + unavailable.getClass().getSimpleName();
+        }
+        return "thread=" + Thread.currentThread().getName() + "; backend="
+                + AFFINITY_IMPL.getClass().getSimpleName() + "; allowed_mask=" + mask;
+    }
+
     public static IAffinity getAffinityImpl() {
         return AFFINITY_IMPL;
     }
