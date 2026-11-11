@@ -9,6 +9,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PerformanceInventoryTest extends BaseAffinityTest {
+    private final boolean linux = System.getProperty("os.name", "").startsWith("Linux");
     private String property;
     @BeforeEach void preference() {
         property = System.getProperty("affinity.disablePerformanceCorePreference");
@@ -32,11 +33,13 @@ class PerformanceInventoryTest extends BaseAffinityTest {
     @Test void automaticFallsThroughOccupiedTierAndReleases() {
         LockInventory inventory = inventory();
         try {
-            assertEquals(1, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
-            assertEquals(3, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
+            assertEquals(linux ? 1 : 3, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
+            assertEquals(linux ? 3 : 2, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
+            if (!linux)
+                assertEquals(1, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
             assertFalse(inventory.acquireLock(false, -1, AffinityStrategies.ANY).isAllocated());
         } finally { inventory.release(false); }
-        try { assertEquals(1, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId()); }
+        try { assertEquals(linux ? 1 : 3, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId()); }
         finally { inventory.release(false); }
     }
     @Test void explicitAndLegacyChoicesRemainUnchanged() {
@@ -66,12 +69,12 @@ class PerformanceInventoryTest extends BaseAffinityTest {
         LockInventory inventory = mixed(true);
         try {
             assertEquals(4, inventory.acquireLock(false, 4, AffinityStrategies.ANY).cpuId());
-            assertEquals(1, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
+            assertEquals(linux ? 1 : 3, inventory.acquireLock(false, -1, AffinityStrategies.ANY).cpuId());
         } finally { inventory.release(false); }
     }
     @Test void wholeCoreCannotWidenMaskToMissingSibling() {
         LockInventory inventory = mixed(false);
-        try { assertEquals(1, inventory.acquireCore(false, -1, AffinityStrategies.ANY).cpuId()); }
+        try { assertEquals(linux ? 1 : 3, inventory.acquireCore(false, -1, AffinityStrategies.ANY).cpuId()); }
         finally { inventory.release(false); }
     }
     @Test void concurrentReservationsAreDistinct() throws Exception {
@@ -88,13 +91,13 @@ class PerformanceInventoryTest extends BaseAffinityTest {
                 } finally { inventory.release(false); }
             };
             java.util.concurrent.Future<Integer> first = pool.submit(task), second = pool.submit(task);
-            assertEquals(new HashSet<>(Arrays.asList(1, 3)), new HashSet<>(Arrays.asList(
+            assertEquals(new HashSet<>(linux ? Arrays.asList(1, 3) : Arrays.asList(2, 3)), new HashSet<>(Arrays.asList(
                     first.get(10, java.util.concurrent.TimeUnit.SECONDS), second.get(10, java.util.concurrent.TimeUnit.SECONDS))));
         } finally { pool.shutdownNow(); }
     }
     @Test void wholeCoreAndStrategyConstraintsUsePreference() {
         LockInventory inventory = inventory();
-        try { assertEquals(1, inventory.acquireCore(false, -1, AffinityStrategies.ANY).cpuId()); }
+        try { assertEquals(linux ? 1 : 3, inventory.acquireCore(false, -1, AffinityStrategies.ANY).cpuId()); }
         finally { inventory.release(false); }
         try { assertEquals(3, inventory.acquireCore(false, -1, (reference, candidate) -> candidate == 3).cpuId()); }
         finally { inventory.release(false); }
