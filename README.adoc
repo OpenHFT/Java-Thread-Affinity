@@ -131,6 +131,13 @@ The try-with-resources block releases the reservation if either check throws.
 Run these checks on the owning thread with a supported native affinity backend;
 a successful CPU sample alone is not proof of binding.
 
+The topology commands above use Linux sysfs. The current macOS JNA backend
+provides process/thread IDs but does not pin threads: `setAffinity()` has no
+effect, `getAffinity()` returns an empty mask, and `getCpu()` returns `-1`.
+On that backend, `isBound()` records library ownership, not native CPU binding.
+The mask check above therefore rejects it; performance-core placement cannot
+be verified through this backend.
+
 `acquireLock(int[])` takes the first free CPU in the list.
 If none is free it returns an unallocated lock (`isAllocated()` is `false`, `cpuId()` is `-1`) and logs only a WARN, which is invisible without an SLF4J binding; it does not throw.
 `Affinity.getAffinity()` is the set of CPUs the current thread may run on; `Affinity.getCpu()` is only where it runs at that instant.
