@@ -11,6 +11,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.channels.ClosedByInterruptException;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.nio.file.Paths;
+import java.util.function.Supplier;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
@@ -30,9 +35,77 @@ class LockInventory {
      */
     private AffinityLock[] logicalCoreLocks;
 
+    private final Supplier<CpuCapabilitySnapshot> capabilities;
+    private final Supplier<NumaLocality> locality;
+
     public LockInventory(CpuLayout cpuLayout) {
+        this(cpuLayout, () -> {
+            BitSet allowed = Affinity.getAffinity();
+            return LinuxCpuCapabilities.read(allowed == null ? new BitSet() : allowed);
+        }, () -> NumaLocality.read(Paths.get("/sys")));
+    }
+
+    LockInventory(CpuLayout cpuLayout, Supplier<CpuCapabilitySnapshot> capabilities) {
+        this(cpuLayout, capabilities, NumaLocality::unknown);
+    }
+
+    LockInventory(CpuLayout cpuLayout, Supplier<CpuCapabilitySnapshot> capabilities, Supplier<NumaLocality> locality) {
+        this.capabilities = capabilities;
+        this.locality = locality;
         set(cpuLayout);
     }
+
+    private boolean preferPerformance(int cpuId) {
+        return isAnyCpu(cpuId) && System.getProperty("os.name", "").startsWith("Linux")
+                && !Boolean.getBoolean("affinity.disablePerformanceCorePreference");
+    }
+
+    private boolean freePhysicalCore(int id) {
+        for (AffinityLock sibling : physicalCoreLocks.get(toPhysicalCore(id)))
+            if (!sibling.canReserve(false)) return false;
+        return true;
+    }
+
+    private List<Integer> ordered(List<Integer> legacy, CpuCapabilitySnapshot snapshot) {
+        PerformanceCpuOrder order = PerformanceCpuOrder.choose(legacy, snapshot, this::freePhysicalCore, locality.get());
+        LOGGER.debug("Automatic CPU preference: {}; candidates={}", order.reason, order.ids);
+        return order.ids;
+    }
+
+    private List<AffinityLock> logicalCandidates(int cpuId) {
+        List<Integer> ids = new ArrayList<>();
+        for (int i = logicalCoreLocks.length - 1; i > 0; i--)
+            if (!preferPerformance(cpuId) || logicalCoreLocks[i].reservable()) ids.add(i);
+        if (preferPerformance(cpuId)) ids = ordered(ids, capabilities.get());
+        List<AffinityLock> result = new ArrayList<>();
+        for (int id : ids) result.add(logicalCoreLocks[id]);
+        return result;
+    }
+
+    private List<AffinityLock[]> coreCandidates(int cpuId) {
+        List<AffinityLock[]> legacy = new ArrayList<>(physicalCoreLocks.descendingMap().values());
+        if (!preferPerformance(cpuId)) return legacy;
+        CpuCapabilitySnapshot snapshot = capabilities.get();
+        List<Integer> ids = new ArrayList<>();
+        Map<Integer, AffinityLock[]> groups = new TreeMap<>();
+        boolean uniform = true;
+        for (AffinityLock[] group : legacy) {
+            boolean eligible = group.length > 0;
+            for (AffinityLock lock : group)
+                eligible &= lock.cpuId() > 0 && lock.reservable() && snapshot.cpus().containsKey(lock.cpuId());
+            if (eligible) {
+                CpuCapability.CoreType type = snapshot.cpus().get(group[0].cpuId()).coreType();
+                for (AffinityLock lock : group)
+                    uniform &= snapshot.cpus().get(lock.cpuId()).coreType() == type;
+                ids.add(group[0].cpuId()); groups.put(group[0].cpuId(), group);
+            }
+        }
+        List<AffinityLock[]> result = new ArrayList<>();
+        if (!uniform) LOGGER.debug("Automatic core preference: legacy_order_conflicting_sibling_classes");
+        for (int id : uniform ? ordered(ids, snapshot) : ids) result.add(groups.get(id));
+        return result;
+    }
+
 
     public static String dumpLocks(@NotNull AffinityLock[] locks) {
         StringBuilder sb = new StringBuilder();
@@ -149,11 +222,11 @@ class LockInventory {
                         cpuId, Thread.currentThread());
             }
 
+            List<AffinityLock> candidates = logicalCandidates(cpuId);
             for (AffinityStrategy strategy : strategies) {
                 // consider all processors except cpu 0 which is usually used by the OS.
                 // if you have only one core, this library is not appropriate in any case.
-                for (int i = logicalCoreLocks.length - 1; i > 0; i--) {
-                    AffinityLock al = logicalCoreLocks[i];
+                for (AffinityLock al : candidates) {
                     if (al.canReserve(false)
                             && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))
                             && updateLockForCurrentThread(bind, al, false)) {
@@ -194,9 +267,10 @@ class LockInventory {
     }
 
     public final synchronized AffinityLock acquireCore(boolean bind, int cpuId, AffinityStrategy... strategies) {
+        List<AffinityLock[]> candidates = coreCandidates(cpuId);
         for (AffinityStrategy strategy : strategies) {
             LOOP:
-            for (AffinityLock[] als : physicalCoreLocks.descendingMap().values()) {
+            for (AffinityLock[] als : candidates) {
                 for (AffinityLock al : als)
                     if (!al.canReserve(false) || !strategy.matches(cpuId, al.cpuId()))
                         continue LOOP;
