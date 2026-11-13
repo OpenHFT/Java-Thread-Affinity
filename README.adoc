@@ -442,3 +442,7 @@ try (AffinityLock lock = AffinityLock.acquireLock("0")) { // prints a warning
 See link:docs/linux-core-capabilities.adoc[Linux core-class observations] for an
 explicit read-only snapshot of eligible P/E classes and unknown-data diagnostics.
 This API does not change allocation or distinguish E from LP-E cores.
+
+== Inspect CPU capabilities
+
+See link:docs/cpu-capabilities-cli.adoc[Inspect CPU capabilities: behaviour and usage].
