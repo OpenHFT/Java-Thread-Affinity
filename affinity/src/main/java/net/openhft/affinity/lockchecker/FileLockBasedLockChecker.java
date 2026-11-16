@@ -89,26 +89,27 @@ public class FileLockBasedLockChecker implements LockChecker {
     public synchronized boolean obtainLock(int id, int id2, String metaInfo) throws IOException {
         int attempt = 0;
         while (attempt < MAX_LOCK_RETRIES) {
+            LockReference first = null;
+            boolean acquired = false;
             try {
-                LockReference lockReference = tryAcquireLockOnFile(id, metaInfo);
-                if (lockReference != null) {
-                    if (id2 <= 0) {
-                        // no second lock to acquire, return success
-                        locks[id] = lockReference;
-                        return true;
-                    }
-                    LockReference lockReference2 = tryAcquireLockOnFile(id2, metaInfo);
-                    if (lockReference2 != null) {
-                        locks[id] = lockReference;
-                        locks[id2] = lockReference2;
-                        return true;
-                    } else {
-                        releaseLock(id);
-                    }
+                first = tryAcquireLockOnFile(id, metaInfo);
+                if (first == null)
+                    return false;
+                if (id2 > 0) {
+                    LockReference second = tryAcquireLockOnFile(id2, metaInfo);
+                    if (second == null)
+                        return false;
+                    locks[id2] = second;
                 }
-                return false;
+                locks[id] = first;
+                acquired = true;
+                return true;
             } catch (ConcurrentLockFileDeletionException e) {
                 attempt++;
+            } finally {
+                // Ownership transfers only when the complete pair was acquired.
+                if (!acquired && first != null)
+                    closeQuietly(first.lock, first.channel);
             }
         }
         LOGGER.warn("Exceeded maximum retries for locking CPU {}, {}, failing acquire", id, id2);
@@ -128,24 +129,21 @@ public class FileLockBasedLockChecker implements LockChecker {
      */
     private LockReference tryAcquireLockOnFile(int id, String metaInfo) throws IOException, ConcurrentLockFileDeletionException {
         final File lockFile = toFile(id);
-        final FileChannel fileChannel = FileChannel.open(lockFile.toPath(), LOCK_FILE_OPEN_OPTIONS, LOCK_FILE_ATTRIBUTES); // NOSONAR
+        final FileAttribute<?>[] attributes = lockFile.toPath().getFileSystem()
+                .supportedFileAttributeViews().contains("posix")
+                ? new FileAttribute<?>[]{LOCK_FILE_ATTRIBUTES} : new FileAttribute<?>[0];
+        final FileChannel fileChannel = FileChannel.open(lockFile.toPath(), LOCK_FILE_OPEN_OPTIONS, attributes);
+        boolean acquired = false;
         try {
             final FileLock fileLock = fileChannel.tryLock(0, Long.MAX_VALUE, false);
-            if (fileLock == null) {
-                // someone else has a lock (exclusive or shared), fail to acquire
-                closeQuietly(fileChannel);
+            if (fileLock == null)
                 return null;
-            } else {
-                if (!lockFile.exists()) {
-                    // someone deleted the file between us opening it and acquiring the lock, signal to retry
-                    closeQuietly(fileLock, fileChannel);
-                    throw new ConcurrentLockFileDeletionException();
-                } else {
-                    // we have the lock, the file exists. That's success.
-                    writeMetaInfoToFile(fileChannel, metaInfo);
-                    return new LockReference(fileChannel, fileLock);
-                }
-            }
+            if (!lockFile.exists())
+                throw new ConcurrentLockFileDeletionException();
+            writeMetaInfoToFile(fileChannel, metaInfo);
+            LockReference reference = new LockReference(fileChannel, fileLock);
+            acquired = true;
+            return reference;
         } catch (OverlappingFileLockException e) {
             // someone else (in the same JVM) has a lock, fail to acquire
             /*
@@ -153,8 +151,11 @@ public class FileLockBasedLockChecker implements LockChecker {
              * {@link #locks} array to prevent overlapping locks from the same JVM, but
              * it can occur when there are multiple classloaders in the JVM
              */
-            closeQuietly(fileChannel);
             return null;
+        } finally {
+            // Closing the channel also releases any lock obtained before a failure.
+            if (!acquired)
+                closeQuietly(fileChannel);
         }
     }
 

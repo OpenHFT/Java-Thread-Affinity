@@ -218,6 +218,12 @@ class LockInventory {
         return acquireLock(bind, cpuId, strategies);
     }
 
+    // Reserving without binding still owns every sibling and must release all their file locks.
+    final synchronized void assignWholeCore(int logicalCoreID) {
+        for (AffinityLock lock : physicalCoreLocks.get(toPhysicalCore(logicalCoreID)))
+            lock.assignedThread = Thread.currentThread();
+    }
+
     public final synchronized void bindWholeCore(int logicalCoreID) {
         if (logicalCoreID < 0) {
             LOGGER.warn("Can't bind core since it was not possible to reserve it!");

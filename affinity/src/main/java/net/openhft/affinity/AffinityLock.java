@@ -360,6 +360,8 @@ public class AffinityLock implements Closeable {
      */
     final void assignCurrentThread(boolean bind, boolean wholeCore) {
         assignedThread = Thread.currentThread();
+        if (wholeCore && !bind)
+            lockInventory.assignWholeCore(cpuId);
         if (bind)
             bind(wholeCore);
     }
