@@ -5,7 +5,6 @@ package net.openhft.affinity;
 
 import net.openhft.affinity.impl.Utilities;
 import net.openhft.affinity.impl.VanillaCpuLayout;
-import net.openhft.chronicle.testframework.Waiters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +16,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static net.openhft.affinity.AffinityLock.PROCESSORS;
 import static org.junit.jupiter.api.Assertions.*;
@@ -348,21 +349,24 @@ class AffinityLockTest extends BaseAffinityTest {
         assumeTrue(Runtime.getRuntime().availableProcessors() > 1);
 
         final AffinityLock lock = AffinityLock.acquireLock(false);
+        CountDownLatch bound = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
         Thread t = new Thread(() -> {
             lock.bind();
+            bound.countDown();
             try {
-                Thread.sleep(100);
-            } catch (InterruptedException ignored) {
-                // ignored
+                release.await();
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
             }
         });
         t.start();
 
-        Waiters.waitForCondition("Waiting for lock to be bound", lock::isBound, 1000);
-
         try {
+            assertTrue(bound.await(5, TimeUnit.SECONDS), "Waiting for owner to bind");
             assertThrows(IllegalStateException.class, lock::bind);
         } finally {
+            release.countDown();
             t.join();
             lock.release();
         }
