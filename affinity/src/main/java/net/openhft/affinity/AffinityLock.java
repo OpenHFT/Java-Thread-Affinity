@@ -459,6 +459,8 @@ public class AffinityLock implements Closeable {
      * Verify this reservation against the calling thread's actual affinity mask.
      * A reservation made with bind=false is reported as reserved_not_bound.
      * The check does not release the lock; use try-with-resources for ownership.
+     *
+     * @return the binding status, the reason for it, and the observed affinity mask if available
      */
     public BindingCheck checkBound() {
         synchronized (lockInventory) {
