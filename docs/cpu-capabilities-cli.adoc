@@ -1,0 +1,27 @@
+= Read-only CPU capability CLI
+
+Run with the affinity module and its normal runtime dependencies on the classpath:
+
+[source,shell]
+----
+java -cp "$AFFINITY_CLASSPATH" net.openhft.affinity.CpuCapabilitiesCli --allowed 0-21
+----
+
+`--allowed IDS` is required: provide the intended eligibility envelope explicitly.
+It is not inferred from availableProcessors or a previously narrowed thread mask.
+The CLI intersects this list with online CPUs. It never reserves, pins or changes
+masks. `--sysfs-root PATH` reads recorded fixtures through the same Linux capability reader.
+No original process/cgroup eligibility claim is made for the supplied list.
+
+Output is deterministic TSV: CPU ID, class, confidence, class source, optional
+maximum kHz and frequency source. Backslash, tab, CR and LF are escaped in sources
+and diagnostics. Missing frequency is `unknown`, not zero. Frequency is not a
+ranking or recommendation. Diagnostics are on stderr, data/status on stdout.
+
+Exit 0: observed known core classes (or --help). Exit 2: invalid arguments.
+Exit 3: incomplete observation (no eligible CPUs, UNKNOWN class or diagnostics).
+Optional absent maximum frequency alone does not make known classes incomplete.
+No exit code certifies placement or performance. SMT grouping, holder inspection
+and policy recommendations are outside this CLI. The Linux capability reader
+supplies observations, including optional maximum frequency; allocation policy
+remains separate from this read-only interface.
