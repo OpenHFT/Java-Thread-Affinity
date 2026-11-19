@@ -1,0 +1,32 @@
+= Verify a reservation's binding
+
+Use `AffinityLock.checkBound()` inside the scope that owns the reservation:
+
+[source,java]
+----
+try (AffinityLock lock = AffinityLock.acquireLock()) {
+    BindingCheck check = lock.checkBound();
+    if (check.status() != BindingCheck.Status.VERIFIED)
+        throw new IllegalStateException(check.toString());
+    // Work that requires a verified singleton affinity mask.
+}
+----
+
+The result is VERIFIED only when the calling thread owns an allocated, bound
+reservation and the observed current-thread mask contains exactly its CPU.
+MISMATCH distinguishes unallocated, different owner, reserved-not-bound and mask
+mismatch. UNKNOWN means unavailable backend/mask, not successful verification.
+A sampled current CPU is not used: it can match even when migration is permitted.
+
+The check neither binds nor releases. It is non-throwing for mismatch/unavailable
+observations; VM errors other than optional native linkage failures propagate.
+A check on an existing reservation does not release anybody's resources. Use
+try-with-resources as above if validation failure should release your reservation.
+`Affinity.describeCurrentThread()` reports the current mask and backend without
+acquiring a lock. Neither API requires core-class discovery or a hybrid CPU.
+
+This is a point-in-time observation, not a guarantee against later external
+mask changes, CPU offlining or migration within a subsequently widened mask.
+Whole-core reservations still bind the owning thread to one logical CPU, matching
+the current library's bindWholeCore implementation. Cross-process exclusivity,
+OS scheduling/latency and future mask stability are not certified here.
