@@ -397,6 +397,8 @@ public class AffinityLock implements Closeable {
         }
     }
 
+    final boolean reservable() { return reservable; }
+
     final boolean canReserve(boolean specified) {
 
         if (!specified && !reservable)

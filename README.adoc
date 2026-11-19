@@ -446,3 +446,7 @@ This API does not change allocation or distinguish E from LP-E cores.
 == Inspect CPU capabilities
 
 See link:docs/cpu-capabilities-cli.adoc[Inspect CPU capabilities: behaviour and usage].
+
+== Prefer performance cores
+
+See link:docs/performance-core-preference.adoc[Prefer performance cores: behaviour and usage].
