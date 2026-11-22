@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.ClosedByInterruptException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -56,6 +57,27 @@ class LockInventory {
 
     private static boolean isAnyCpu(final int cpuId) {
         return cpuId == AffinityLock.ANY_CPU;
+    }
+
+    /**
+     * Describes who holds a CPU that could not be reserved, for diagnostics only.
+     *
+     * @return "held by thread ..." or "held by pid ...", or null if no holder is visible
+     */
+    private static String heldBy(final AffinityLock lock) {
+        final Thread thread = lock.assignedThread;
+        if (thread != null && thread.isAlive())
+            return "held by thread " + thread;
+        if (LockCheck.isCpuFree(lock.cpuId()))
+            return null;
+        try {
+            final int pid = LockCheck.getProcessForCpu(lock.cpuId());
+            if (pid != Integer.MIN_VALUE)
+                return "held by pid " + pid;
+        } catch (IOException e) {
+            LOGGER.debug("Unable to read the lock holder of CPU {}", lock.cpuId(), e);
+        }
+        return "held by another process";
     }
 
     /**
@@ -131,11 +153,12 @@ class LockInventory {
             return noLock();
 
         final boolean specificCpuRequested = !isAnyCpu(cpuId);
+        String unavailable = null;
         try {
             if (specificCpuRequested && cpuId != 0) {
-                if (cpuId > logicalCoreLocks.length) {
-                    LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, as not enough CPUs",
-                            cpuId, Thread.currentThread());
+                if (isOutOfRange(cpuId)) {
+                    LOGGER.warn("Unable to acquire lock on CPU {} for thread {}: out of range 0..{}; no CPU taken",
+                            cpuId, Thread.currentThread(), logicalCoreLocks.length - 1);
                     return noLock();
                 }
 
@@ -145,8 +168,11 @@ class LockInventory {
                         && updateLockForCurrentThread(bind, required, false)) {
                     return required;
                 }
-                LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
-                        cpuId, Thread.currentThread());
+                unavailable = heldBy(required);
+                if (unavailable == null)
+                    unavailable = anyStrategyMatches(cpuId, cpuId, strategies)
+                            ? "could not be locked"
+                            : "not allowed by the requested strategies " + Arrays.toString(strategies);
             }
 
             for (AffinityStrategy strategy : strategies) {
@@ -157,6 +183,9 @@ class LockInventory {
                     if (al.canReserve(false)
                             && (isAnyCpu(cpuId) || strategy.matches(cpuId, al.cpuId()))
                             && updateLockForCurrentThread(bind, al, false)) {
+                        if (unavailable != null)
+                            LOGGER.warn("Unable to acquire lock on CPU {} for thread {}: {}; using CPU {} instead",
+                                    cpuId, Thread.currentThread(), unavailable, al.cpuId());
                         return al;
                     }
                 }
@@ -166,7 +195,11 @@ class LockInventory {
             return noLock();
         }
 
-        LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
+        if (unavailable != null)
+            LOGGER.warn("Unable to acquire lock on CPU {} for thread {}: {}; no reservable CPU to use instead",
+                    cpuId, Thread.currentThread(), unavailable);
+        else
+            LOGGER.warn("No reservable CPU for {}", Thread.currentThread());
 
         return noLock();
     }
@@ -174,8 +207,11 @@ class LockInventory {
     public final synchronized AffinityLock tryAcquireLock(boolean bind, int cpuId) {
         if (getAffinityImpl() instanceof NullAffinity)
             return null;
-        if (cpuId > logicalCoreLocks.length)
+        if (isOutOfRange(cpuId)) {
+            LOGGER.warn("Unable to acquire lock on CPU {} for thread {}: out of range 0..{}",
+                    cpuId, Thread.currentThread(), logicalCoreLocks.length - 1);
             return null;
+        }
         final AffinityLock required = logicalCoreLocks[cpuId];
         try {
             if (required.canReserve(true)
@@ -187,8 +223,9 @@ class LockInventory {
             return noLock();
         }
 
-        LOGGER.warn("Unable to acquire lock on CPU {} for thread {}, trying to find another CPU",
-                cpuId, Thread.currentThread());
+        final String holder = heldBy(required);
+        LOGGER.warn("Unable to acquire lock on CPU {} for thread {}: {}",
+                cpuId, Thread.currentThread(), holder == null ? "could not be locked" : holder);
 
         return null;
     }
@@ -273,6 +310,10 @@ class LockInventory {
         this.cpuLayout = cpuLayout;
         this.logicalCoreLocks = new AffinityLock[cpuLayout.cpus()];
         this.physicalCoreLocks.clear();
+    }
+
+    private boolean isOutOfRange(int cpuId) {
+        return cpuId < 0 || cpuId >= logicalCoreLocks.length;
     }
 
     private int toPhysicalCore(int layoutId) {

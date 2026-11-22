@@ -206,7 +206,8 @@ public class AffinityLock implements Closeable {
             }
         }
 
-        LOGGER.warn("Failed to lock any CPU in explicit list {}", Arrays.toString(cpus));
+        LOGGER.warn("Failed to lock any CPU in explicit list {} for thread {}; returning an unallocated lock, "
+                + "so this thread is not pinned and the OS chooses its CPU", Arrays.toString(cpus), Thread.currentThread());
         return LOCK_INVENTORY.noLock();
     }
 
