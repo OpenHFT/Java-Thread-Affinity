@@ -446,3 +446,7 @@ This API does not change allocation or distinguish E from LP-E cores.
 == Inspect CPU capabilities
 
 See link:docs/cpu-capabilities-cli.adoc[Inspect CPU capabilities: behaviour and usage].
+
+== Verify thread binding
+
+See link:docs/binding-verification.adoc[Verify thread binding: behaviour and usage].
