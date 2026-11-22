@@ -139,7 +139,7 @@ public class AffinityLock implements Closeable {
     static class Warnings {
         static void warmNoReservedCPUs() {
             if (RESERVED_AFFINITY.isEmpty() && PROCESSORS > 1) {
-                LoggerFactory.getLogger(AffinityLock.class).info("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
+                LoggerFactory.getLogger(AffinityLock.class).debug("No isolated CPUs found, so assuming CPUs 1 to {} available.", (PROCESSORS - 1));
             }
         }
     }
@@ -206,7 +206,8 @@ public class AffinityLock implements Closeable {
             }
         }
 
-        LOGGER.warn("Failed to lock any CPU in explicit list {}", Arrays.toString(cpus));
+        LOGGER.warn("Failed to lock any CPU in explicit list {} for thread {}; returning an unallocated lock, "
+                + "so this thread is not pinned and the OS chooses its CPU", Arrays.toString(cpus), Thread.currentThread());
         return LOCK_INVENTORY.noLock();
     }
 
@@ -360,6 +361,8 @@ public class AffinityLock implements Closeable {
      */
     final void assignCurrentThread(boolean bind, boolean wholeCore) {
         assignedThread = Thread.currentThread();
+        if (wholeCore && !bind)
+            lockInventory.assignWholeCore(cpuId);
         if (bind)
             bind(wholeCore);
     }
@@ -396,6 +399,8 @@ public class AffinityLock implements Closeable {
             Affinity.setAffinity(affinity);
         }
     }
+
+    final boolean reservable() { return reservable; }
 
     final boolean canReserve(boolean specified) {
 
@@ -456,7 +461,20 @@ public class AffinityLock implements Closeable {
     }
 
     /**
-     * @return unique id for this CPI or -1 if not allocated.
+     * Verify this reservation against the calling thread's actual affinity mask.
+     * A reservation made with bind=false is reported as reserved_not_bound.
+     * The check does not release the lock; use try-with-resources for ownership.
+     *
+     * @return the binding status, the reason for it, and the observed affinity mask if available
+     */
+    public BindingCheck checkBound() {
+        synchronized (lockInventory) {
+            return BindingCheck.inspect(this, Affinity.getAffinityImpl());
+        }
+    }
+
+    /**
+     * @return the reserved CPU id, or -1 if no CPU was allocated
      */
     public int cpuId() {
         return cpuId;

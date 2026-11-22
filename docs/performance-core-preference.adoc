@@ -1,0 +1,44 @@
+= Experimental performance-core preference
+
+Performance-core preference is enabled by default on Linux. To disable it:
+
+[source,shell]
+----
+java -Daffinity.disablePerformanceCorePreference=true ...
+----
+
+The disable flag defaults to false. Setting it to true restores legacy allocation;
+other platforms retain legacy allocation. Incident timings are not fresh performance evidence.
+The flag applies to automatic acquireLock and acquireCore; explicit CPU IDs,
+ordered CPU lists and relative selectors retain their existing behaviour.
+Caller strategy order and existing reservation checks remain in place.
+
+For the Linux Intel hybrid PMU profile, P-class candidates precede E-class
+candidates. Within a tier, prefer CPUs on CPU 0's NUMA node when Linux node cpulists
+provide an unambiguous mapping. CPU 0 is an explicit locality proxy, not evidence
+of actual kernel scheduling. Within the same class and node preference, a free
+physical core precedes an available SMT sibling on an occupied core. Remaining ties retain legacy ordering. Maximum
+frequency is not a ranking input. Mixed unknown classes and homogeneous profiles
+retain class-neutral ordering, with known CPU-0 locality preferred inside the filtered
+eligibility envelope. If NUMA data is missing, malformed or overlapping, no
+locality preference is applied. Remote CPUs remain eligible when local ones are busy. Conflicting sibling
+classes fall back to legacy physical-core order. DEBUG logs name the reason and
+ordered candidate IDs. No workload-specific speed guarantee is made.
+
+Each automatic acquisition reads Linux CPU capabilities afresh with the calling thread's current
+allowed mask, then intersects online CPUs and existing reservation constraints.
+A narrowed thread cannot escape its current mask to reach a faster core. Capture
+and restore an appropriate permitted mask before making further allocations if
+that is your application's intent. This does not rediscover the process's original
+cpuset. Missing online/mask data yields no eligible candidates. Whole-core selection
+requires every sibling inside the allowed online envelope; it cannot widen it.
+A subsequent whole-core fallback still uses the filtered logical-CPU policy.
+
+Reservations and availability are checked under the existing inventory monitor;
+cross-process locking stays with LockCheck. The snapshot is not atomic with OS
+hotplug, cgroup changes or competing processes. Existing bind failure cleanup and
+whole-core file-lock semantics are unchanged and require a separate hardening gate.
+Hotplug and high-availability behaviour have not been qualified. Tests use recorded classes
+and isolated lock files without changing real CPU binding. Hybrid/homogeneous host
+placement, native bind failures, NUMA tradeoffs and benchmark comparisons remain
+release gates. The default change is proposed for review; fixture tests do not establish a speedup.

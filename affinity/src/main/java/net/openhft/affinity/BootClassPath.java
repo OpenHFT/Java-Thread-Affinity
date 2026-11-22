@@ -113,7 +113,7 @@ enum BootClassPath {
                 @Override
                 public @NotNull FileVisitResult visitFile(final @NotNull Path file, final @NotNull BasicFileAttributes attrs) throws IOException {
                     if (file.getFileName().toString().endsWith(".class")) {
-                        dirResources.add(path.relativize(file).toString());
+                        dirResources.add(path.relativize(file).toString().replace(File.separatorChar, '/'));
                     }
                     return super.visitFile(file, attrs);
                 }

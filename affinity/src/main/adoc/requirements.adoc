@@ -284,6 +284,20 @@ A brief overview of the primary public classes and interfaces:
 
 == 12. Testing
 
+=== Reservation ownership regression coverage (FIX-292)
+
+A failed two-CPU file-lock acquisition releases the first lock, whether the second
+lock is busy or throws. Permission attributes are supplied only to file systems
+that support POSIX attributes. Reserving a whole core with `bind=false` still
+reserves every logical sibling and releases those reservations together.
+`LockPairRollbackTest` and `CoreReservationBoundaryTest` exercise these contracts.
+
+On Ubuntu/WSL, the native build requires `make`, a C++ compiler and a JDK with its
+headers. Install `build-essential` and set `JAVA_HOME` to that JDK before running
+`mvn -f affinity/pom.xml clean verify`.
+
+=== Existing test suites
+
 The project includes a comprehensive suite of tests:
 
 * *Unit Tests*: Located in `affinity/src/test/java/`.
